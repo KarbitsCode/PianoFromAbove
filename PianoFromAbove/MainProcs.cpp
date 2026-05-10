@@ -217,6 +217,9 @@ LRESULT WINAPI WndProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
                 case ID_VIEW_KEYBOARD:
                     cView.ToggleKeyboard( true );
                     return 0;
+                case ID_VIEW_NOTELABELS:
+                    cView.ToggleNoteLabels( true );
+                    return 0;
                 case ID_VIEW_ALWAYSONTOP:
                     cView.ToggleOnTop( true );
                     return 0;
@@ -369,6 +372,7 @@ LRESULT WINAPI GfxProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
         case WM_CREATE:
             hMenu = LoadMenu( g_hInstance, MAKEINTRESOURCE( IDR_CONTEXTMENU ) );
             ShowKeyboard( cView.GetKeyboard() );
+            ShowNoteLabels( cView.GetNoteLabels() );
             SetTimer( hWnd, IDC_INACTIVITYTIMER, 2500, NULL );
             return 0;
         case WM_LBUTTONDOWN: case WM_RBUTTONDOWN:
@@ -1458,6 +1462,12 @@ VOID ShowKeyboard( BOOL bShow )
 {
     HMENU hMenu = GetMainMenu();
     CheckMenuItem( hMenu, ID_VIEW_KEYBOARD, MF_BYCOMMAND | ( bShow ? MF_CHECKED : MF_UNCHECKED ) );
+}
+
+VOID ShowNoteLabels( BOOL bShow )
+{
+    HMENU hMenu = GetMainMenu();
+    CheckMenuItem( hMenu, ID_VIEW_NOTELABELS, MF_BYCOMMAND | ( bShow ? MF_CHECKED : MF_UNCHECKED ) );
 }
 
 VOID SetOnTop( BOOL bOnTop )

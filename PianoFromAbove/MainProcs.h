@@ -45,6 +45,7 @@ VOID HandOffMsg( UINT msg, WPARAM wParam, LPARAM lParam );
 VOID ShowLibrary( BOOL bShow );
 VOID ShowControls( BOOL bShow );
 VOID ShowKeyboard( BOOL bShow );
+VOID ShowNoteLabels( BOOL bShow );
 VOID SetOnTop( BOOL bOnTop );
 VOID SetFullScreen( BOOL bFullScreen );
 VOID SetZoomMove( BOOL bZoomMove );

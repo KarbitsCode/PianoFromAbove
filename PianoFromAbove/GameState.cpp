@@ -574,6 +574,7 @@ void MainScreen::InitState()
     m_iFPSCount = 0;
     m_llFPSTime = 0;
     m_dSpeed = -1.0; // Forces a speed reset upon first call to Logic
+    m_iNotesAlpha = 0;
 
     m_fZoomX = cView.GetZoomX();
     m_fOffsetX = cView.GetOffsetX();
@@ -885,6 +886,7 @@ GameState::GameError MainScreen::Logic( void )
     m_llTimeSpan = llTimeSpan;
     m_dVolume = cPlayback.GetVolume();
     m_bShowKB = cView.GetKeyboard();
+    m_bNoteLabels = cView.GetNoteLabels();
     m_bZoomMove = cView.GetZoomMove();
     m_fOffsetX = cView.GetOffsetX();
     m_fOffsetY = cView.GetOffsetY();
@@ -1276,6 +1278,7 @@ GameState::GameError MainScreen::Render()
     m_pRenderer->BeginScene();
     RenderLines();
     RenderNotes();
+    RenderLabels();
     if ( m_bShowKB )
         RenderKeys();
     RenderBorder();
@@ -1500,6 +1503,77 @@ void MainScreen::RenderNote( int iPos )
     m_pRenderer->DrawRect( x + fDeflate, y - cy + fDeflate,
                             cx - fDeflate * 2.0f, cy - fDeflate * 2.0f,
                             csTrack.iPrimaryRGB, csTrack.iDarkRGB, csTrack.iDarkRGB, csTrack.iPrimaryRGB );
+}
+
+void MainScreen::RenderLabels()
+{
+    // Do we have any notes to render?
+    if (m_iEndPos < 0 || m_iStartPos >= static_cast<int>(m_vEvents.size()))
+        return;
+
+    bool bSetState = true;
+    for (vector< int >::iterator it = m_vState.begin(); it != m_vState.end(); ++it)
+        bSetState &= !RenderLabel(*it, bSetState);
+
+    for (int i = m_iStartPos; i <= m_iEndPos; i++)
+    {
+        MIDIChannelEvent* pEvent = m_vEvents[i];
+        if (pEvent->GetChannelEventType() == MIDIChannelEvent::NoteOn &&
+            pEvent->GetParam2() > 0 && pEvent->GetSister())
+            bSetState &= !RenderLabel(i, bSetState);
+    }
+
+    if (!bSetState) m_pRenderer->EndText();
+}
+
+bool MainScreen::RenderLabel(int iPos, bool bSetState)
+{
+    const MIDIChannelEvent* pNote = m_vEvents[iPos];
+
+    const string* sLabel = pNote->GetLabel();
+    int iLabels = (m_bNoteLabels ? 1 : 0) + (sLabel && sLabel->length() > 0 ? 1 : 0);
+    if (!iLabels) return false;
+
+    int iNote = pNote->GetParam1();
+    int iTrack = pNote->GetTrack();
+    int iChannel = pNote->GetChannel();
+    long long llNoteStart = pNote->GetAbsMicroSec();
+    ChannelSettings& csTrack = m_vTrackSettings[iTrack].aChannels[iChannel];
+    if (m_vTrackSettings[iTrack].aChannels[iChannel].bHidden) return false;
+
+    // Compute true positions
+    float x = GetNoteX(iNote);
+    float y = m_fNotesY + m_fNotesCY * (1.0f - static_cast<float>(llNoteStart - m_llRndStartTime) / m_llTimeSpan);
+    float cx = MIDI::IsSharp(iNote) ? m_fWhiteCX * SharpRatio : m_fWhiteCX;
+
+    float fMaxY = m_fNotesY + m_fNotesCY + 3.0f + 15.0f * iLabels;
+    if (y > fMaxY) return false;
+
+    y = floor(y + 0.5f);
+    RECT rc = { static_cast<int>(x + cx / 2.0f + 0.5f), static_cast<int>(y - (3.0f + 15.0f * iLabels)), 0, 0 };
+    rc.right = rc.left;
+
+    if (bSetState) m_pRenderer->BeginText();
+
+    int iAlpha = (0xFF - ( m_iNotesAlpha )) << 24;
+    if (sLabel && sLabel->length() > 0)
+    {
+        OffsetRect(&rc, -1, -1);
+        m_pRenderer->DrawTextA(sLabel->c_str(), Renderer::SmallBold, &rc, DT_CENTER | DT_NOCLIP, csTrack.iVeryDarkRGB | iAlpha);
+        OffsetRect(&rc, 1, 1);
+        m_pRenderer->DrawTextA(sLabel->c_str(), Renderer::SmallBold, &rc, DT_CENTER | DT_NOCLIP, 0x00FFFFFF | iAlpha);
+        OffsetRect(&rc, 0, 15);
+    }
+    if (m_bNoteLabels)
+    {
+        OffsetRect(&rc, -1, -1);
+        const wstring& sLabel = MIDI::NoteName(iNote);
+        m_pRenderer->DrawTextW(sLabel.c_str(), Renderer::SmallBold, &rc, DT_CENTER | DT_NOCLIP, csTrack.iVeryDarkRGB | iAlpha, (int)sLabel.length() - 1);
+        OffsetRect(&rc, 1, 1);
+        m_pRenderer->DrawTextW(sLabel.c_str(), Renderer::SmallBold, &rc, DT_CENTER | DT_NOCLIP, 0x00FFFFFF | iAlpha, (int)sLabel.length() - 1);
+    }
+
+    return true;
 }
 
 float MainScreen::GetNoteX( int iNote )

@@ -210,7 +210,7 @@ protected:
 class MIDIChannelEvent : public MIDIEvent
 {
 public:
-    MIDIChannelEvent() : m_pSister( NULL ), m_iSimultaneous( 0 ) { }
+    MIDIChannelEvent() : m_pSister( NULL ), m_iSimultaneous( 0 ), m_sLabel( NULL ) { }
 
     enum ChannelEventType { NoteOff = 0x8, NoteOn, NoteAftertouch, Controller, ProgramChange, ChannelAftertouch, PitchBend };
     int ParseEvent( const unsigned char *pcData, int iMaxSize );
@@ -222,9 +222,12 @@ public:
     unsigned char GetParam2() const { return m_cParam2; }
     MIDIChannelEvent *GetSister() const { return m_pSister; }
     int GetSimultaneous() const { return m_iSimultaneous; }
+    const string *GetLabel() const { return m_sLabel; }
 
     void SetSister( MIDIChannelEvent *pSister ) { m_pSister = pSister; pSister->m_pSister = this; }
     void SetSimultaneous( int iSimultaneous ) { m_iSimultaneous = iSimultaneous; }
+    void SetLabelPtr( string *sLabel ) { m_sLabel = sLabel; }
+    void SetLabel( const string &sLabel ) { if ( m_sLabel ) *m_sLabel = sLabel; }
 
 private:
     ChannelEventType m_eChannelEventType;
@@ -233,6 +236,7 @@ private:
     unsigned char m_cParam2;
     MIDIChannelEvent *m_pSister;
     int m_iSimultaneous;
+    string *m_sLabel;
 };
 
 //Meta Event: info about the notes and whatnot

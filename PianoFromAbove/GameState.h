@@ -194,6 +194,8 @@ private:
     void RenderLines();
     void RenderNotes();
     void RenderNote( int iPos );
+    void RenderLabels();
+    bool RenderLabel(int iPos, bool bSetState);
     float GetNoteX( int iNote );
     void RenderKeys();
     void RenderBorder();
@@ -242,8 +244,8 @@ private:
     // Visual
     static const float SharpRatio;
     static const float KeyRatio;
-    bool m_bShowKB;
-    int m_eKeysShown;
+    bool m_bShowKB, m_bNoteLabels;
+    int m_eKeysShown, m_iNotesAlpha;
     ChannelSettings m_csBackground;
     ChannelSettings m_csKBRed, m_csKBWhite, m_csKBSharp, m_csKBBackground;
     vector< TrackSettings > m_vTrackSettings;

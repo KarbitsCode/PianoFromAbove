@@ -193,6 +193,7 @@ void ViewSettings::LoadDefaultValues()
     this->m_bLibrary = true;
     this->m_bControls = true;
     this->m_bKeyboard = true;
+    this->m_bNoteLabels = false;
     this->m_bOnTop = false;
     this->m_bFullScreen = false;
     this->m_bZoomMove = false;
@@ -388,6 +389,8 @@ void ViewSettings::LoadConfigValues( TiXmlElement *txRoot )
         m_bControls = ( iAttrVal != 0 );
     if ( txView->QueryIntAttribute( "Keyboard", &iAttrVal ) == TIXML_SUCCESS )
         m_bKeyboard = ( iAttrVal != 0 );
+    if ( txView->QueryIntAttribute( "NoteLabels", &iAttrVal ) == TIXML_SUCCESS )
+        m_bNoteLabels = ( iAttrVal != 0 );
     if ( txView->QueryIntAttribute( "OnTop", &iAttrVal ) == TIXML_SUCCESS )
         m_bOnTop = ( iAttrVal != 0 );
     txView->QueryFloatAttribute( "OffsetX", &m_fOffsetX );
@@ -518,6 +521,7 @@ bool ViewSettings::SaveConfigValues( TiXmlElement *txRoot )
     txView->SetAttribute( "Library", m_bLibrary );
     txView->SetAttribute( "Controls", m_bControls );
     txView->SetAttribute( "Keyboard", m_bKeyboard );
+    txView->SetAttribute( "NoteLabels", m_bNoteLabels );
     txView->SetAttribute( "OnTop", m_bOnTop );
     txView->SetDoubleAttribute( "OffsetX", m_fOffsetX );
     txView->SetDoubleAttribute( "OffsetY", m_fOffsetY );

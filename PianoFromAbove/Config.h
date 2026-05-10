@@ -130,6 +130,7 @@ public:
     void ToggleLibrary( bool bUpdateGUI = false ) { SetLibrary( !m_bLibrary, bUpdateGUI ); }
     void ToggleControls( bool bUpdateGUI = false ) { SetControls( !m_bControls, bUpdateGUI ); }
     void ToggleKeyboard( bool bUpdateGUI = false ) { SetKeyboard( !m_bKeyboard, bUpdateGUI ); }
+    void ToggleNoteLabels( bool bUpdateGUI = false ) { SetNoteLabels( !m_bNoteLabels, bUpdateGUI ); }
     void ToggleOnTop( bool bUpdateGUI = false ) { SetOnTop( !m_bOnTop, bUpdateGUI ); }
     void ToggleFullScreen( bool bUpdateGUI = false ) { SetFullScreen( !m_bFullScreen, bUpdateGUI ); }
     void ToggleZoomMove( bool bUpdateGUI = false ) { SetZoomMove( !m_bZoomMove, bUpdateGUI ); }
@@ -143,6 +144,7 @@ public:
     void SetLibrary( bool bLibrary, bool bUpdateGUI = false ) { m_bLibrary = bLibrary; if ( bUpdateGUI ) ::ShowLibrary( bLibrary ); }
     void SetControls( bool bControls, bool bUpdateGUI = false ) { m_bControls = bControls; if ( bUpdateGUI ) ::ShowControls( bControls ); }
     void SetKeyboard( bool bKeyboard, bool bUpdateGUI = false ) { m_bKeyboard = bKeyboard; if ( bUpdateGUI ) ::ShowKeyboard( bKeyboard ); }
+    void SetNoteLabels( bool bNoteLabels, bool bUpdateGUI = false ) { m_bNoteLabels = bNoteLabels; if ( bUpdateGUI ) ::ShowNoteLabels( bNoteLabels ); }
     void SetOnTop( bool bOnTop, bool bUpdateGUI = false ) { m_bOnTop = bOnTop; if ( bUpdateGUI ) ::SetOnTop( bOnTop ); }
     void SetFullScreen( bool bFullScreen, bool bUpdateGUI = false ) { m_bFullScreen = bFullScreen; if ( bUpdateGUI ) ::SetFullScreen( bFullScreen ); }
     void SetZoomMove( bool bZoomMove, bool bUpdateGUI = false ) { m_bZoomMove = bZoomMove; if ( bUpdateGUI ) ::SetZoomMove( bZoomMove ); }
@@ -158,12 +160,13 @@ public:
     bool GetLibrary() const { return m_bLibrary; }
     bool GetControls() const { return m_bControls; }
     bool GetKeyboard() const { return m_bKeyboard; }
+    bool GetNoteLabels() const { return m_bNoteLabels; }
     bool GetOnTop() const { return m_bOnTop; }
     bool GetFullScreen() const { return m_bFullScreen; }
     bool GetZoomMove() const { return m_bZoomMove; }
 
 private:
-    bool m_bLibrary, m_bControls, m_bKeyboard, m_bOnTop, m_bFullScreen, m_bZoomMove;
+    bool m_bLibrary, m_bControls, m_bKeyboard, m_bNoteLabels, m_bOnTop, m_bFullScreen, m_bZoomMove;
     float m_fOffsetX, m_fOffsetY, m_fZoomX;
     int m_iMainLeft, m_iMainTop, m_iMainWidth, m_iMainHeight, m_iLibWidth;
 };
