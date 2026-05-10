@@ -523,12 +523,12 @@ void MainScreen::InitNoteMap( const vector< MIDIEvent* > &vEvents )
             // Makes random access to the song faster, but unsure if it's worth it
             MIDIChannelEvent::ChannelEventType eEventType = pEvent->GetChannelEventType();
             if ( eEventType == MIDIChannelEvent::NoteOn && pEvent->GetParam2() > 0 && pEvent->GetSister() )
-                m_vNoteOns.push_back( pair< long long, int >( pEvent->GetAbsMicroSec(), m_vEvents.size() - 1 ) );
+                m_vNoteOns.push_back( pair< long long, int >( pEvent->GetAbsMicroSec(), static_cast<int>(m_vEvents.size() - 1) ) );
             else
             {
-                m_vNonNotes.push_back( pair< long long, int >( pEvent->GetAbsMicroSec(), m_vEvents.size() - 1 ) );
+                m_vNonNotes.push_back( pair< long long, int >( pEvent->GetAbsMicroSec(), static_cast<int>(m_vEvents.size() - 1) ) );
                 if ( eEventType == MIDIChannelEvent::ProgramChange || eEventType == MIDIChannelEvent::Controller )
-                   m_vProgramChange.push_back( pair< long long, int >( pEvent->GetAbsMicroSec(), m_vEvents.size() - 1 ) );
+                   m_vProgramChange.push_back( pair< long long, int >( pEvent->GetAbsMicroSec(), static_cast<int>(m_vEvents.size() - 1) ) );
             }
         }
         // Have to keep track of tempo and signature for the measure lines
@@ -539,9 +539,9 @@ void MainScreen::InitNoteMap( const vector< MIDIEvent* > &vEvents )
 
             MIDIMetaEvent::MetaEventType eEventType = pEvent->GetMetaEventType();
             if ( eEventType == MIDIMetaEvent::SetTempo )
-                m_vTempo.push_back( pair< long long, int >( pEvent->GetAbsMicroSec(), m_vMetaEvents.size() - 1 ) );
+                m_vTempo.push_back( pair< long long, int >( pEvent->GetAbsMicroSec(), static_cast<int>(m_vMetaEvents.size() - 1) ) );
             else if ( eEventType == MIDIMetaEvent::TimeSignature )
-                m_vSignature.push_back( pair< long long, int >( pEvent->GetAbsMicroSec(), m_vMetaEvents.size() - 1 ) );
+                m_vSignature.push_back( pair< long long, int >( pEvent->GetAbsMicroSec(), static_cast<int>(m_vMetaEvents.size() - 1) ) );
         }
 }
 
@@ -575,6 +575,7 @@ void MainScreen::InitState()
     m_llFPSTime = 0;
     m_dSpeed = -1.0; // Forces a speed reset upon first call to Logic
     m_iNotesAlpha = 0;
+    m_iNextHotNote = m_iSelectedNote = -0;
 
     m_fZoomX = cView.GetZoomX();
     m_fOffsetX = cView.GetOffsetX();
@@ -831,6 +832,8 @@ GameState::GameError MainScreen::MsgProc( HWND hWnd, UINT msg, WPARAM wParam, LP
             return Success;
         case WM_MOUSEMOVE:
         {
+            if ( !m_bHaveMouse ) m_iNextHotNote = -1;
+            m_bHaveMouse = true;
             if ( !m_bTrackPos && !m_bTrackZoom && !m_bPaused ) return Success;
             short x = LOWORD( lParam );
             short y = HIWORD( lParam );
@@ -854,6 +857,10 @@ GameState::GameError MainScreen::MsgProc( HWND hWnd, UINT msg, WPARAM wParam, LP
             m_ptLastPos.y = y;
             return Success;
         }
+        case WM_MOUSELEAVE:
+            m_bHaveMouse = false;
+            m_iNextHotNote = m_iSelectedNote = -1;
+            return Success;
     }
 
     return Success;
@@ -902,6 +909,10 @@ GameState::GameError MainScreen::Logic( void )
     double dMaxCorrect = ( mInfo.iMaxVolume > 0 ? 127.0 / mInfo.iMaxVolume : 1.0 );
     double dVolumeCorrect = ( mInfo.iVolumeSum > 0 ? ( m_dVolume * 127.0 * mInfo.iNoteCount ) / mInfo.iVolumeSum : 1.0 );
     dVolumeCorrect = min( dVolumeCorrect, dMaxCorrect );
+
+    m_iHotNote = m_iNextHotNote;
+    m_iNextHotNote = -1;
+    if (!m_bPaused) m_iSelectedNote = -1;
 
     // Time stuff
     long long llMaxTime = GetMaxTime();
@@ -1124,9 +1135,9 @@ void MainScreen::AdvanceIterators( long long llTime, bool bIsJump )
 {
     if ( bIsJump )
     {
-        m_itNextProgramChange = upper_bound( m_vProgramChange.begin(), m_vProgramChange.end(), pair< long long, int >( llTime, m_vEvents.size() ) );
+        m_itNextProgramChange = upper_bound( m_vProgramChange.begin(), m_vProgramChange.end(), pair< long long, int >( llTime, static_cast<int>(m_vEvents.size()) ) );
 
-        m_itNextTempo = upper_bound( m_vTempo.begin(), m_vTempo.end(), pair< long long, int >( llTime, m_vMetaEvents.size() ) );
+        m_itNextTempo = upper_bound( m_vTempo.begin(), m_vTempo.end(), pair< long long, int >( llTime, static_cast<int>(m_vMetaEvents.size()) ) );
         MIDIMetaEvent *pPrevious = GetPrevious( m_itNextTempo, m_vTempo, 3 );
         if ( pPrevious )
         {
@@ -1140,7 +1151,7 @@ void MainScreen::AdvanceIterators( long long llTime, bool bIsJump )
             m_llLastTempoTime = m_iLastTempoTick = 0;
         }
 
-        m_itNextSignature = upper_bound( m_vSignature.begin(), m_vSignature.end(), pair< long long, int >( llTime, m_vMetaEvents.size() ) );
+        m_itNextSignature = upper_bound( m_vSignature.begin(), m_vSignature.end(), pair< long long, int >( llTime, static_cast<int>(m_vMetaEvents.size()) ) );
         pPrevious = GetPrevious( m_itNextSignature, m_vSignature, 4 );
         if ( pPrevious )
         {
@@ -1499,10 +1510,27 @@ void MainScreen::RenderNote( int iPos )
         y = fMinY + cy;
     }
 
-    m_pRenderer->DrawRect( x, y - cy, cx, cy, csTrack.iVeryDarkRGB );
-    m_pRenderer->DrawRect( x + fDeflate, y - cy + fDeflate,
-                            cx - fDeflate * 2.0f, cy - fDeflate * 2.0f,
-                            csTrack.iPrimaryRGB, csTrack.iDarkRGB, csTrack.iDarkRGB, csTrack.iPrimaryRGB );
+
+    if (m_ptLastPos.x >= x && m_ptLastPos.x <= x + cx &&
+        m_ptLastPos.y <= y && m_ptLastPos.y >= y - cy)
+        m_iNextHotNote = iPos;
+
+    // Visualize!
+    int iAlpha = (m_iNotesAlpha) << 24;
+    if (m_bPaused && m_bHaveMouse && iPos == m_iHotNote && !m_bZoomMove && (m_iSelectedNote == -1 || m_iSelectedNote == iPos))
+    {
+        m_pRenderer->DrawRect(x, y - cy, cx, cy, csTrack.iPrimaryRGB | iAlpha);
+        m_pRenderer->DrawRect(x + fDeflate, y - cy + fDeflate,
+            cx - fDeflate * 2.0f, cy - fDeflate * 2.0f,
+            csTrack.iVeryDarkRGB | iAlpha, csTrack.iDarkRGB | iAlpha, csTrack.iDarkRGB | iAlpha, csTrack.iVeryDarkRGB | iAlpha);
+    }
+    else
+    {
+        m_pRenderer->DrawRect(x, y - cy, cx, cy, csTrack.iVeryDarkRGB | iAlpha);
+        m_pRenderer->DrawRect(x + fDeflate, y - cy + fDeflate,
+            cx - fDeflate * 2.0f, cy - fDeflate * 2.0f,
+            csTrack.iPrimaryRGB | iAlpha, csTrack.iDarkRGB | iAlpha, csTrack.iDarkRGB | iAlpha, csTrack.iPrimaryRGB | iAlpha);
+    }
 }
 
 void MainScreen::RenderLabels()
