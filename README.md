@@ -35,13 +35,13 @@ https://github.com/brian-pantano/PianoFromAbove/releases
 
 This is unfortunately very tricky. Hopefully I will simplify this in the future.
 
-* clone this repo
-* Download and install VisualStudio 2010
-* Download and install Direct X SDK
+* Clone this repo
+* Download and install Visual Studio 2022
+* Download and install DirectX SDK (Jun 2010)
 * ~Download and extract Google Protocol Buffers 2.5~ (already [included](https://github.com/KarbitsCode/PianoFromAbove/tree/master/ThirdVendor))
-  * Build libprotobuf-lite.vcproj (by opening `protobuf-lite.slnf` file)
+  * Build `libprotobuf-lite.vcxproj` (or by opening `protobuf-lite.slnf` file)
 * ~Download and extract Boost 1.55~ (not needed anymore)
-* Open the .sln ~and edit the VC++ Directories from the project properties so that the Include Directories and Library Directories point to the location of your boost and protocol buffers downloads~ (already configured)
+* Open the main `PianoFromAbove.sln` file ~and edit the VC++ Directories from the project properties so that the Include Directories and Library Directories point to the location of your boost and protocol buffers downloads~ (already configured)
 * Cross fingers
 * Build! (Release, x64)
 
