@@ -1,0 +1,8 @@
+{
+  "solution": {
+    "path": "protobuf.sln",
+    "projects": [
+      "libprotobuf-lite.vcxproj"
+    ]
+  }
+}
