@@ -577,6 +577,7 @@ void MainScreen::InitState()
     m_iNotesAlpha = 0;
     m_iNextHotNote = m_iSelectedNote = -0;
     m_iTotalNotesHit = 0;
+    m_iCurrentNotesHit = 0;
 
     m_fZoomX = cView.GetZoomX();
     m_fOffsetX = cView.GetOffsetX();
@@ -999,7 +1000,8 @@ void MainScreen::UpdateState( int iPos )
     {
         m_vState.push_back( iPos );
         m_pNoteState[iNote] = iPos;
-        m_iTotalNotesHit++;
+        m_iTotalNotesHit++; // Count the notes
+        m_iCurrentNotesHit++; // Count the notes
     }
     else
     {
@@ -1012,6 +1014,7 @@ void MainScreen::UpdateState( int iPos )
             if ( m_vEvents[*it] == pSearch )
             {
                 it = m_vState.erase( it );
+                m_iCurrentNotesHit = max( 0, m_iCurrentNotesHit - 1 ); // Decrease since it has been released (NoteOff), but don't pass negative
             }
             else
             {
@@ -1083,6 +1086,10 @@ void MainScreen::JumpTo( long long llStartTime, bool bUpdateGUI )
     AdvanceIterators( llStartTime, true );
     PlaySkippedEvents( itOldProgramChange );
     m_iStartTick = GetCurrentTick( m_llStartTime );
+
+    // Update note counters
+    m_iTotalNotesHit = GetNoteCountAtTime( m_llStartTime );
+    m_iCurrentNotesHit = (int)m_vState.size();
 
     if ( bUpdateGUI )
     {
@@ -1220,13 +1227,27 @@ MIDIMetaEvent* MainScreen::GetPrevious( eventvec_t::const_iterator &itCurrent,
     return NULL;
 }
 
+// Gets the number of notes that have started but not ended at given time (llTime).
+int MainScreen::GetNoteCountAtTime( long long llTime )
+{
+    int iCount = 0;
+    for ( int i = 0; i < (int)m_vNoteOns.size(); i++ )
+    {
+        if ( m_vNoteOns[i].first <= llTime )
+            iCount++;
+        else
+            break;
+    }
+    return iCount;
+}
+
 // Gets the tick corresponding to llStartTime using current tempo
-int  MainScreen::GetCurrentTick( long long llStartTime )
+int MainScreen::GetCurrentTick( long long llStartTime )
 {
     return GetCurrentTick( llStartTime, m_iLastTempoTick, m_llLastTempoTime, m_iMicroSecsPerBeat );
 }
 
-int  MainScreen::GetCurrentTick( long long llStartTime, int iLastTempoTick, long long llLastTempoTime, int iMicroSecsPerBeat )
+int MainScreen::GetCurrentTick( long long llStartTime, int iLastTempoTick, long long llLastTempoTime, int iMicroSecsPerBeat )
 {
     int iDivision = m_MIDI.GetInfo().iDivision;
     if ( !( iDivision & 0x8000 ) )
@@ -1812,7 +1833,7 @@ void MainScreen::RenderBorder()
 
 void MainScreen::RenderText()
 {
-    int iLines = 3;
+    int iLines = 4;
     if ( m_bShowFPS ) iLines++;
 
     // Screen info
@@ -1867,6 +1888,10 @@ void MainScreen::RenderStatus( LPRECT prcStatus )
     TCHAR sNotes[128];
     _stprintf_s( sNotes, TEXT( "%d" ), m_iTotalNotesHit );
 
+    // Build the note polyphony text
+    TCHAR sPoly[128];
+    _stprintf_s( sPoly, TEXT( "%d" ), m_iCurrentNotesHit );
+
     // Display the text
     InflateRect( prcStatus, -6, -3 );
 
@@ -1900,6 +1925,13 @@ void MainScreen::RenderStatus( LPRECT prcStatus )
     OffsetRect( prcStatus, -2, -1 );
     m_pRenderer->DrawText( TEXT( "Notes:" ), Renderer::Small, prcStatus, 0, 0xFFFFFFFF );
     m_pRenderer->DrawText( sNotes, Renderer::Small, prcStatus, DT_RIGHT, 0xFFFFFFFF );
+
+    OffsetRect( prcStatus, 2, 16 + 1 );
+    m_pRenderer->DrawText( TEXT( "Polyphony:" ), Renderer::Small, prcStatus, 0, 0xFF404040 );
+    m_pRenderer->DrawText( sPoly, Renderer::Small, prcStatus, DT_RIGHT, 0xFF404040 );
+    OffsetRect( prcStatus, -2, -1 );
+    m_pRenderer->DrawText( TEXT( "Polyphony:" ), Renderer::Small, prcStatus, 0, 0xFFFFFFFF );
+    m_pRenderer->DrawText( sPoly, Renderer::Small, prcStatus, DT_RIGHT, 0xFFFFFFFF );
 }
 
 void MainScreen::RenderMessage( LPRECT prcMsg, TCHAR *sMsg )

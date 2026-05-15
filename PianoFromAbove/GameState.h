@@ -180,6 +180,7 @@ private:
                                 const eventvec_t &vEventMap, int iDataLen );
 
     // MIDI helpers
+    int GetNoteCountAtTime( long long llStartTime );
     int GetCurrentTick( long long llStartTime );
     int GetCurrentTick( long long llStartTime, int iLastTempoTick, long long llLastTempoTime, int iMicroSecsPerBeat );
     long long GetTickTime( int iTick );
@@ -233,6 +234,7 @@ private:
     double m_dVolume;
     int m_iTotalNotesHit;
     int m_iCurrentNotesHit; // Notes currently playing (polyphony)
+    int m_iNotesHitSpeed; // For NPS (Note Per Second) calculation
 
     // FPS variables
     bool m_bShowFPS;
