@@ -96,7 +96,7 @@ private:
     void RenderGlobals();
     void RenderNotes();
     void RenderNote( int iPos );
-    float GetNoteX( int iNote );
+    float GetNoteX( int iNote ) const;
 
     // MIDI info
     MIDI m_MIDI; // The song to display
@@ -196,7 +196,7 @@ private:
     void RenderNote( int iPos );
     void RenderLabels();
     bool RenderLabel( int iPos, bool bSetState );
-    float GetNoteX( int iNote );
+    float GetNoteX( int iNote ) const;
     void RenderKeys();
     void RenderBorder();
     void RenderText();
@@ -231,6 +231,8 @@ private:
     Timer m_Timer; // Frame timers
     bool m_bMute;
     double m_dVolume;
+    int m_iTotalNotesHit;
+    int m_iCurrentNotesHit; // Notes currently playing (polyphony)
 
     // FPS variables
     bool m_bShowFPS;

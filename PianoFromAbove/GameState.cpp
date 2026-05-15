@@ -472,7 +472,7 @@ void SplashScreen::RenderNote( int iPos )
                             csTrack.iPrimaryRGB | iAlpha1, csTrack.iDarkRGB | iAlpha1, csTrack.iDarkRGB | iAlpha2, csTrack.iPrimaryRGB | iAlpha2 );
 }
 
-float SplashScreen::GetNoteX( int iNote )
+float SplashScreen::GetNoteX( int iNote ) const
 {
     int iWhiteKeys = MIDI::WhiteCount( m_iStartNote, iNote );
     float fStartX = ( MIDI::IsSharp( m_iStartNote ) - MIDI::IsSharp( iNote ) ) * SharpRatio / 2.0f;
@@ -576,6 +576,7 @@ void MainScreen::InitState()
     m_dSpeed = -1.0; // Forces a speed reset upon first call to Logic
     m_iNotesAlpha = 0;
     m_iNextHotNote = m_iSelectedNote = -0;
+    m_iTotalNotesHit = 0;
 
     m_fZoomX = cView.GetZoomX();
     m_fOffsetX = cView.GetOffsetX();
@@ -998,6 +999,7 @@ void MainScreen::UpdateState( int iPos )
     {
         m_vState.push_back( iPos );
         m_pNoteState[iNote] = iPos;
+        m_iTotalNotesHit++;
     }
     else
     {
@@ -1008,7 +1010,9 @@ void MainScreen::UpdateState( int iPos )
         while ( it != m_vState.end() )
         {
             if ( m_vEvents[*it] == pSearch )
+            {
                 it = m_vState.erase( it );
+            }
             else
             {
                 if ( it != m_vState.end() && m_vEvents[*it]->GetParam1() == iNote )
@@ -1245,7 +1249,7 @@ long long MainScreen::GetTickTime( int iTick, int iLastTempoTick, long long llLa
 {
     int iDivision = m_MIDI.GetInfo().iDivision;
     if ( !( iDivision & 0x8000 ) )
-        return llLastTempoTime + ( static_cast< long long >( iMicroSecsPerBeat ) * ( iTick - iLastTempoTick ) ) / iDivision;
+        return llLastTempoTime + ( static_cast< long long >( iMicroSecsPerBeat ) * ( static_cast< long long >(iTick) - iLastTempoTick ) ) / iDivision;
     //else
     //    return llLastTempoTime + ( 1000000LL * ( iTick - iLastTempoTick ) ) / iTicksPerSecond;
     return -1;
@@ -1602,7 +1606,7 @@ bool MainScreen::RenderLabel( int iPos, bool bSetState )
     return true;
 }
 
-float MainScreen::GetNoteX( int iNote )
+float MainScreen::GetNoteX( int iNote ) const
 {
     int iWhiteKeys = MIDI::WhiteCount( m_iStartNote, iNote );
     float fStartX = ( MIDI::IsSharp( m_iStartNote ) - MIDI::IsSharp( iNote ) ) * SharpRatio / 2.0f;
@@ -1808,7 +1812,7 @@ void MainScreen::RenderBorder()
 
 void MainScreen::RenderText()
 {
-    int iLines = 2;
+    int iLines = 3;
     if ( m_bShowFPS ) iLines++;
 
     // Screen info
@@ -1859,6 +1863,10 @@ void MainScreen::RenderStatus( LPRECT prcStatus )
     TCHAR sBPM[128];
     _stprintf_s( sBPM, TEXT( "%.1lf" ), MIDI::MicroSecsToBPM( m_iMicroSecsPerBeat ) );
 
+    // Build the note counter text
+    TCHAR sNotes[128];
+    _stprintf_s( sNotes, TEXT( "%d" ), m_iTotalNotesHit );
+
     // Display the text
     InflateRect( prcStatus, -6, -3 );
 
@@ -1879,12 +1887,19 @@ void MainScreen::RenderStatus( LPRECT prcStatus )
         m_pRenderer->DrawText( sFPS, Renderer::Small, prcStatus, DT_RIGHT, 0xFFFFFFFF );
     }
 
-    OffsetRect(prcStatus, 2, 16 + 1);
+    OffsetRect( prcStatus, 2, 16 + 1 );
     m_pRenderer->DrawText( TEXT( "BPM:" ), Renderer::Small, prcStatus, 0, 0xFF404040 );
     m_pRenderer->DrawText( sBPM, Renderer::Small, prcStatus, DT_RIGHT, 0xFF404040 );
-    OffsetRect(prcStatus, -2, -1 );
+    OffsetRect( prcStatus, -2, -1 );
     m_pRenderer->DrawText( TEXT( "BPM:" ), Renderer::Small, prcStatus, 0, 0xFFFFFFFF );
     m_pRenderer->DrawText( sBPM, Renderer::Small, prcStatus, DT_RIGHT, 0xFFFFFFFF );
+
+    OffsetRect( prcStatus, 2, 16 + 1 );
+    m_pRenderer->DrawText( TEXT( "Notes:" ), Renderer::Small, prcStatus, 0, 0xFF404040 );
+    m_pRenderer->DrawText( sNotes, Renderer::Small, prcStatus, DT_RIGHT, 0xFF404040 );
+    OffsetRect( prcStatus, -2, -1 );
+    m_pRenderer->DrawText( TEXT( "Notes:" ), Renderer::Small, prcStatus, 0, 0xFFFFFFFF );
+    m_pRenderer->DrawText( sNotes, Renderer::Small, prcStatus, DT_RIGHT, 0xFFFFFFFF );
 }
 
 void MainScreen::RenderMessage( LPRECT prcMsg, TCHAR *sMsg )
