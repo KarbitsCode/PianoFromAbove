@@ -195,7 +195,7 @@ private:
     void RenderNotes();
     void RenderNote( int iPos );
     void RenderLabels();
-    bool RenderLabel(int iPos, bool bSetState);
+    bool RenderLabel( int iPos, bool bSetState );
     float GetNoteX( int iNote );
     void RenderKeys();
     void RenderBorder();

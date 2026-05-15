@@ -523,12 +523,12 @@ void MainScreen::InitNoteMap( const vector< MIDIEvent* > &vEvents )
             // Makes random access to the song faster, but unsure if it's worth it
             MIDIChannelEvent::ChannelEventType eEventType = pEvent->GetChannelEventType();
             if ( eEventType == MIDIChannelEvent::NoteOn && pEvent->GetParam2() > 0 && pEvent->GetSister() )
-                m_vNoteOns.push_back( pair< long long, int >( pEvent->GetAbsMicroSec(), static_cast<int>(m_vEvents.size() - 1) ) );
+                m_vNoteOns.push_back( pair< long long, int >( pEvent->GetAbsMicroSec(), static_cast< int >(m_vEvents.size() - 1) ) );
             else
             {
-                m_vNonNotes.push_back( pair< long long, int >( pEvent->GetAbsMicroSec(), static_cast<int>(m_vEvents.size() - 1) ) );
+                m_vNonNotes.push_back( pair< long long, int >( pEvent->GetAbsMicroSec(), static_cast< int >(m_vEvents.size() - 1) ) );
                 if ( eEventType == MIDIChannelEvent::ProgramChange || eEventType == MIDIChannelEvent::Controller )
-                   m_vProgramChange.push_back( pair< long long, int >( pEvent->GetAbsMicroSec(), static_cast<int>(m_vEvents.size() - 1) ) );
+                   m_vProgramChange.push_back( pair< long long, int >( pEvent->GetAbsMicroSec(), static_cast< int >(m_vEvents.size() - 1) ) );
             }
         }
         // Have to keep track of tempo and signature for the measure lines
@@ -539,9 +539,9 @@ void MainScreen::InitNoteMap( const vector< MIDIEvent* > &vEvents )
 
             MIDIMetaEvent::MetaEventType eEventType = pEvent->GetMetaEventType();
             if ( eEventType == MIDIMetaEvent::SetTempo )
-                m_vTempo.push_back( pair< long long, int >( pEvent->GetAbsMicroSec(), static_cast<int>(m_vMetaEvents.size() - 1) ) );
+                m_vTempo.push_back( pair< long long, int >( pEvent->GetAbsMicroSec(), static_cast< int >(m_vMetaEvents.size() - 1) ) );
             else if ( eEventType == MIDIMetaEvent::TimeSignature )
-                m_vSignature.push_back( pair< long long, int >( pEvent->GetAbsMicroSec(), static_cast<int>(m_vMetaEvents.size() - 1) ) );
+                m_vSignature.push_back( pair< long long, int >( pEvent->GetAbsMicroSec(), static_cast< int >(m_vMetaEvents.size() - 1) ) );
         }
 }
 
@@ -912,7 +912,7 @@ GameState::GameError MainScreen::Logic( void )
 
     m_iHotNote = m_iNextHotNote;
     m_iNextHotNote = -1;
-    if (!m_bPaused) m_iSelectedNote = -1;
+    if ( !m_bPaused ) m_iSelectedNote = -1;
 
     // Time stuff
     long long llMaxTime = GetMaxTime();
@@ -1135,9 +1135,8 @@ void MainScreen::AdvanceIterators( long long llTime, bool bIsJump )
 {
     if ( bIsJump )
     {
-        m_itNextProgramChange = upper_bound( m_vProgramChange.begin(), m_vProgramChange.end(), pair< long long, int >( llTime, static_cast<int>(m_vEvents.size()) ) );
-
-        m_itNextTempo = upper_bound( m_vTempo.begin(), m_vTempo.end(), pair< long long, int >( llTime, static_cast<int>(m_vMetaEvents.size()) ) );
+        m_itNextProgramChange = upper_bound( m_vProgramChange.begin(), m_vProgramChange.end(), pair< long long, int >( llTime, static_cast< int >(m_vEvents.size()) ) );
+        m_itNextTempo = upper_bound( m_vTempo.begin(), m_vTempo.end(), pair< long long, int >( llTime, static_cast< int >(m_vMetaEvents.size()) ) );
         MIDIMetaEvent *pPrevious = GetPrevious( m_itNextTempo, m_vTempo, 3 );
         if ( pPrevious )
         {
@@ -1151,7 +1150,7 @@ void MainScreen::AdvanceIterators( long long llTime, bool bIsJump )
             m_llLastTempoTime = m_iLastTempoTick = 0;
         }
 
-        m_itNextSignature = upper_bound( m_vSignature.begin(), m_vSignature.end(), pair< long long, int >( llTime, static_cast<int>(m_vMetaEvents.size()) ) );
+        m_itNextSignature = upper_bound( m_vSignature.begin(), m_vSignature.end(), pair< long long, int >( llTime, static_cast< int >(m_vMetaEvents.size()) ) );
         pPrevious = GetPrevious( m_itNextSignature, m_vSignature, 4 );
         if ( pPrevious )
         {
@@ -1511,94 +1510,93 @@ void MainScreen::RenderNote( int iPos )
     }
 
 
-    if (m_ptLastPos.x >= x && m_ptLastPos.x <= x + cx &&
-        m_ptLastPos.y <= y && m_ptLastPos.y >= y - cy)
+    if ( m_ptLastPos.x >= x && m_ptLastPos.x <= x + cx &&
+        m_ptLastPos.y <= y && m_ptLastPos.y >= y - cy )
         m_iNextHotNote = iPos;
 
     // Visualize!
-    int iAlpha = (m_iNotesAlpha) << 24;
-    if (m_bPaused && m_bHaveMouse && iPos == m_iHotNote && !m_bZoomMove && (m_iSelectedNote == -1 || m_iSelectedNote == iPos))
+    int iAlpha = ( m_iNotesAlpha ) << 24;
+    if ( m_bPaused && m_bHaveMouse && iPos == m_iHotNote && !m_bZoomMove && ( m_iSelectedNote == -1 || m_iSelectedNote == iPos ) )
     {
-        m_pRenderer->DrawRect(x, y - cy, cx, cy, csTrack.iPrimaryRGB | iAlpha);
-        m_pRenderer->DrawRect(x + fDeflate, y - cy + fDeflate,
+        m_pRenderer->DrawRect( x, y - cy, cx, cy, csTrack.iPrimaryRGB | iAlpha );
+        m_pRenderer->DrawRect( x + fDeflate, y - cy + fDeflate,
             cx - fDeflate * 2.0f, cy - fDeflate * 2.0f,
-            csTrack.iVeryDarkRGB | iAlpha, csTrack.iDarkRGB | iAlpha, csTrack.iDarkRGB | iAlpha, csTrack.iVeryDarkRGB | iAlpha);
+            csTrack.iVeryDarkRGB | iAlpha, csTrack.iDarkRGB | iAlpha, csTrack.iDarkRGB | iAlpha, csTrack.iVeryDarkRGB | iAlpha );
     }
     else
     {
-        m_pRenderer->DrawRect(x, y - cy, cx, cy, csTrack.iVeryDarkRGB | iAlpha);
-        m_pRenderer->DrawRect(x + fDeflate, y - cy + fDeflate,
+        m_pRenderer->DrawRect( x, y - cy, cx, cy, csTrack.iVeryDarkRGB | iAlpha );
+        m_pRenderer->DrawRect( x + fDeflate, y - cy + fDeflate,
             cx - fDeflate * 2.0f, cy - fDeflate * 2.0f,
-            csTrack.iPrimaryRGB | iAlpha, csTrack.iDarkRGB | iAlpha, csTrack.iDarkRGB | iAlpha, csTrack.iPrimaryRGB | iAlpha);
+            csTrack.iPrimaryRGB | iAlpha, csTrack.iDarkRGB | iAlpha, csTrack.iDarkRGB | iAlpha, csTrack.iPrimaryRGB | iAlpha );
     }
 }
 
 void MainScreen::RenderLabels()
 {
     // Do we have any notes to render?
-    if (m_iEndPos < 0 || m_iStartPos >= static_cast<int>(m_vEvents.size()))
+    if ( m_iEndPos < 0 || m_iStartPos >= static_cast< int >( m_vEvents.size() ) )
         return;
 
     bool bSetState = true;
-    for (vector< int >::iterator it = m_vState.begin(); it != m_vState.end(); ++it)
-        bSetState &= !RenderLabel(*it, bSetState);
+    for ( vector< int >::iterator it = m_vState.begin(); it != m_vState.end(); ++it )
+        bSetState &= !RenderLabel( *it, bSetState );
 
-    for (int i = m_iStartPos; i <= m_iEndPos; i++)
+    for ( int i = m_iStartPos; i <= m_iEndPos; i++ )
     {
-        MIDIChannelEvent* pEvent = m_vEvents[i];
-        if (pEvent->GetChannelEventType() == MIDIChannelEvent::NoteOn &&
-            pEvent->GetParam2() > 0 && pEvent->GetSister())
-            bSetState &= !RenderLabel(i, bSetState);
+        MIDIChannelEvent *pEvent = m_vEvents[i];
+        if ( pEvent->GetChannelEventType() == MIDIChannelEvent::NoteOn &&
+            pEvent->GetParam2() > 0 && pEvent->GetSister() )
+            bSetState &= !RenderLabel( i, bSetState );
     }
 
-    if (!bSetState) m_pRenderer->EndText();
+    if ( !bSetState ) m_pRenderer->EndText();
 }
 
-bool MainScreen::RenderLabel(int iPos, bool bSetState)
+bool MainScreen::RenderLabel( int iPos, bool bSetState )
 {
-    const MIDIChannelEvent* pNote = m_vEvents[iPos];
+    const MIDIChannelEvent *pNote = m_vEvents[iPos];
 
-    const string* sLabel = pNote->GetLabel();
-    int iLabels = (m_bNoteLabels ? 1 : 0) + (sLabel && sLabel->length() > 0 ? 1 : 0);
-    if (!iLabels) return false;
+    const string *sLabel = pNote->GetLabel();
+    int iLabels = ( m_bNoteLabels ? 1 : 0 ) + ( sLabel && sLabel->length() > 0 ? 1 : 0 );
+    if ( !iLabels ) return false;
 
     int iNote = pNote->GetParam1();
     int iTrack = pNote->GetTrack();
     int iChannel = pNote->GetChannel();
     long long llNoteStart = pNote->GetAbsMicroSec();
     ChannelSettings& csTrack = m_vTrackSettings[iTrack].aChannels[iChannel];
-    if (m_vTrackSettings[iTrack].aChannels[iChannel].bHidden) return false;
+    if ( csTrack.bHidden ) return false;
 
     // Compute true positions
-    float x = GetNoteX(iNote);
-    float y = m_fNotesY + m_fNotesCY * (1.0f - static_cast<float>(llNoteStart - m_llRndStartTime) / m_llTimeSpan);
-    float cx = MIDI::IsSharp(iNote) ? m_fWhiteCX * SharpRatio : m_fWhiteCX;
+    float x = GetNoteX( iNote );
+    float y = m_fNotesY + m_fNotesCY * ( 1.0f - static_cast< float >( llNoteStart - m_llRndStartTime ) / m_llTimeSpan );
+    float cx = MIDI::IsSharp( iNote ) ? m_fWhiteCX * SharpRatio : m_fWhiteCX;
 
     float fMaxY = m_fNotesY + m_fNotesCY + 3.0f + 15.0f * iLabels;
-    if (y > fMaxY) return false;
+    if ( y > fMaxY ) return false;
 
-    y = floor(y + 0.5f);
-    RECT rc = { static_cast<int>(x + cx / 2.0f + 0.5f), static_cast<int>(y - (3.0f + 15.0f * iLabels)), 0, 0 };
+    y = floor( y + 0.5f );
+    RECT rc = { static_cast< int >( x + cx / 2.0f + 0.5f ), static_cast< int >( y - ( 3.0f + 15.0f * iLabels ) ), 0, 0 };
     rc.right = rc.left;
 
-    if (bSetState) m_pRenderer->BeginText();
-
-    int iAlpha = (0xFF - ( m_iNotesAlpha )) << 24;
-    if (sLabel && sLabel->length() > 0)
+    if ( bSetState ) m_pRenderer->BeginText();
+    int iAlpha = ( 0xFF - ( m_iNotesAlpha ) ) << 24;
+    if ( sLabel && sLabel->length() > 0 )
     {
-        OffsetRect(&rc, -1, -1);
-        m_pRenderer->DrawTextA(sLabel->c_str(), Renderer::SmallBold, &rc, DT_CENTER | DT_NOCLIP, csTrack.iVeryDarkRGB | iAlpha);
-        OffsetRect(&rc, 1, 1);
-        m_pRenderer->DrawTextA(sLabel->c_str(), Renderer::SmallBold, &rc, DT_CENTER | DT_NOCLIP, 0x00FFFFFF | iAlpha);
-        OffsetRect(&rc, 0, 15);
+        OffsetRect( &rc, -1, -1 );
+        m_pRenderer->DrawTextA( sLabel->c_str(), Renderer::SmallBold, &rc, DT_CENTER | DT_NOCLIP, csTrack.iVeryDarkRGB | iAlpha );
+        OffsetRect( &rc, 1, 1 );
+        m_pRenderer->DrawTextA( sLabel->c_str(), Renderer::SmallBold, &rc, DT_CENTER | DT_NOCLIP, 0x00FFFFFF | iAlpha );
+        OffsetRect( &rc, 0, 15 );
     }
-    if (m_bNoteLabels)
+    if ( m_bNoteLabels )
     {
-        OffsetRect(&rc, -1, -1);
-        const wstring& sLabel = MIDI::NoteName(iNote);
-        m_pRenderer->DrawTextW(sLabel.c_str(), Renderer::SmallBold, &rc, DT_CENTER | DT_NOCLIP, csTrack.iVeryDarkRGB | iAlpha, (int)sLabel.length() - 1);
-        OffsetRect(&rc, 1, 1);
-        m_pRenderer->DrawTextW(sLabel.c_str(), Renderer::SmallBold, &rc, DT_CENTER | DT_NOCLIP, 0x00FFFFFF | iAlpha, (int)sLabel.length() - 1);
+        OffsetRect( &rc, -1, -1 );
+        const wstring &sLabel = MIDI::NoteName( iNote );
+        m_pRenderer->DrawTextW( sLabel.c_str(), Renderer::SmallBold, &rc, DT_CENTER | DT_NOCLIP, csTrack.iVeryDarkRGB | iAlpha, (int)sLabel.length() - 1 );
+        OffsetRect( &rc, 1, 1 );
+        m_pRenderer->DrawTextW( sLabel.c_str(), Renderer::SmallBold, &rc, DT_CENTER | DT_NOCLIP, 0x00FFFFFF | iAlpha, (int)sLabel.length() - 1 );
     }
 
     return true;
@@ -1810,7 +1808,7 @@ void MainScreen::RenderBorder()
 
 void MainScreen::RenderText()
 {
-    int iLines = 1;
+    int iLines = 2;
     if ( m_bShowFPS ) iLines++;
 
     // Screen info
@@ -1832,7 +1830,7 @@ void MainScreen::RenderText()
     // Draw the text
     m_pRenderer->BeginText();
 
-    RenderStatus( &rcStatus );    
+    RenderStatus( &rcStatus );
     if ( m_bZoomMove )
         RenderMessage( &rcMsg, TEXT( "- Left-click and drag to move the screen\n- Right-click and drag to zoom horizontally\n- Press Escape to abort changes\n- Press Ctrl+V to save changes" ) );
     
@@ -1856,7 +1854,10 @@ void MainScreen::RenderStatus( LPRECT prcStatus )
     // Build the FPS text
     TCHAR sFPS[128];
     _stprintf_s( sFPS, TEXT( "%.1lf" ), m_dFPS );
-    
+
+    // Build the BPM text
+    TCHAR sBPM[128];
+    _stprintf_s( sBPM, TEXT( "%.1lf" ), MIDI::MicroSecsToBPM( m_iMicroSecsPerBeat ) );
 
     // Display the text
     InflateRect( prcStatus, -6, -3 );
@@ -1877,6 +1878,13 @@ void MainScreen::RenderStatus( LPRECT prcStatus )
         m_pRenderer->DrawText( TEXT( "FPS:" ), Renderer::Small, prcStatus, 0, 0xFFFFFFFF );
         m_pRenderer->DrawText( sFPS, Renderer::Small, prcStatus, DT_RIGHT, 0xFFFFFFFF );
     }
+
+    OffsetRect(prcStatus, 2, 16 + 1);
+    m_pRenderer->DrawText( TEXT( "BPM:" ), Renderer::Small, prcStatus, 0, 0xFF404040 );
+    m_pRenderer->DrawText( sBPM, Renderer::Small, prcStatus, DT_RIGHT, 0xFF404040 );
+    OffsetRect(prcStatus, -2, -1 );
+    m_pRenderer->DrawText( TEXT( "BPM:" ), Renderer::Small, prcStatus, 0, 0xFFFFFFFF );
+    m_pRenderer->DrawText( sBPM, Renderer::Small, prcStatus, DT_RIGHT, 0xFFFFFFFF );
 }
 
 void MainScreen::RenderMessage( LPRECT prcMsg, TCHAR *sMsg )

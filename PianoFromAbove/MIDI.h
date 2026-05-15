@@ -77,6 +77,7 @@ public:
     static Note NoteVal( int iNote );
     static bool IsSharp( int iNote );
     static int WhiteCount( int iMinNote, int iMaxNote );
+    static double MicroSecsToBPM( int iMicroSecsPerBeat );
 
     //Generally usefull static parsing functions
     static int ParseVarNum( const unsigned char *pcData, int iMaxSize, int *piOut );
