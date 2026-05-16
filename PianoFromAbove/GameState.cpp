@@ -578,6 +578,8 @@ void MainScreen::InitState()
     m_iNextHotNote = m_iSelectedNote = -0;
     m_iTotalNotesHit = 0;
     m_iCurrentNotesHit = 0;
+    m_iNotesHitSpeed = 0;
+    m_iNotesHitSpeedCount = 0;
 
     m_fZoomX = cView.GetZoomX();
     m_fOffsetX = cView.GetOffsetX();
@@ -927,6 +929,11 @@ GameState::GameError MainScreen::Logic( void )
     if ( m_llFPSTime >= 500000 )
     {
         m_dFPS = m_iFPSCount / ( m_llFPSTime / 1000000.0 );
+
+        // Also compute NPS every half a second
+        m_iNotesHitSpeed = m_iTotalNotesHit - m_iNotesHitSpeedCount;
+        m_iNotesHitSpeedCount = m_iTotalNotesHit;
+
         m_llFPSTime = m_iFPSCount = 0;
     }
 
@@ -1833,7 +1840,7 @@ void MainScreen::RenderBorder()
 
 void MainScreen::RenderText()
 {
-    int iLines = 4;
+    int iLines = 5;
     if ( m_bShowFPS ) iLines++;
 
     // Screen info
@@ -1888,6 +1895,10 @@ void MainScreen::RenderStatus( LPRECT prcStatus )
     TCHAR sNotes[128];
     _stprintf_s( sNotes, TEXT( "%d" ), m_iTotalNotesHit );
 
+    // Build the note per second counter text
+    TCHAR sNPS[128];
+    _stprintf_s( sNPS, TEXT( "%d" ), m_iNotesHitSpeed );
+
     // Build the note polyphony text
     TCHAR sPoly[128];
     _stprintf_s( sPoly, TEXT( "%d" ), m_iCurrentNotesHit );
@@ -1925,6 +1936,13 @@ void MainScreen::RenderStatus( LPRECT prcStatus )
     OffsetRect( prcStatus, -2, -1 );
     m_pRenderer->DrawText( TEXT( "Notes:" ), Renderer::Small, prcStatus, 0, 0xFFFFFFFF );
     m_pRenderer->DrawText( sNotes, Renderer::Small, prcStatus, DT_RIGHT, 0xFFFFFFFF );
+
+    OffsetRect( prcStatus, 2, 16 + 1 );
+    m_pRenderer->DrawText( TEXT( "NPS:" ), Renderer::Small, prcStatus, 0, 0xFF404040 );
+    m_pRenderer->DrawText( sNPS, Renderer::Small, prcStatus, DT_RIGHT, 0xFF404040 );
+    OffsetRect( prcStatus, -2, -1 );
+    m_pRenderer->DrawText( TEXT( "NPS:" ), Renderer::Small, prcStatus, 0, 0xFFFFFFFF );
+    m_pRenderer->DrawText( sNPS, Renderer::Small, prcStatus, DT_RIGHT, 0xFFFFFFFF );
 
     OffsetRect( prcStatus, 2, 16 + 1 );
     m_pRenderer->DrawText( TEXT( "Polyphony:" ), Renderer::Small, prcStatus, 0, 0xFF404040 );
