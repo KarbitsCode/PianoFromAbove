@@ -8,8 +8,9 @@
 ;General
 
 !define Version 1.1.0
+!system "if not exist Dist md Dist"
 Name "Piano From Above"
-OutFile "PFA-${Version}-setup.exe"
+OutFile "Dist\PFA-${Version}-setup.exe"
 BrandingText "PFA ${Version}"
 Var TargetFile ;Set in onInit
 
