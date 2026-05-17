@@ -17,6 +17,7 @@
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
 LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
+#pragma code_page(1252)
 
 #ifdef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////
@@ -62,6 +63,7 @@ FONT 8, "MS Shell Dlg", 400, 0, 0x0
 BEGIN
     LTEXT           "Keys to display:",IDC_STATIC,7,7,52,8
     CONTROL         "&Show all 88 keys",IDC_SHOWALLKEYS,"Button",BS_AUTORADIOBUTTON | WS_GROUP | WS_TABSTOP,7,19,69,10
+    CONTROL         "Show all 128 key&s",IDC_SHOWALLKEYS2,"Button",BS_AUTORADIOBUTTON | WS_TABSTOP,92,19,77,10
     CONTROL         "S&how song keys",IDC_SHOWSONGKEYS,"Button",BS_AUTORADIOBUTTON | WS_TABSTOP,7,33,67,10
     CONTROL         "Show &keys:",IDC_SHOWCUSTOMKEYS,"Button",BS_AUTORADIOBUTTON | WS_TABSTOP,7,48,53,10
     COMBOBOX        IDC_FIRSTKEY,61,47,32,30,CBS_DROPDOWNLIST | WS_DISABLED | WS_VSCROLL | WS_TABSTOP
@@ -158,7 +160,7 @@ FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
     CONTROL         "",IDC_STATIC,"Static",SS_WHITERECT,0,1,234,147
     CONTROL         "",IDC_PICTURE,"Static",SS_BITMAP,0,0,15,13
-    LTEXT           "Piano From Above 1.1.0\nÂ©2010 Brian Pantano",IDC_STATIC,88,7,139,21
+    LTEXT           "Piano From Above 1.1.0\n©2010 Brian Pantano",IDC_STATIC,88,7,139,21
     LTEXT           "Enjoy",IDC_LICENSE,88,40,139,12
     CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,1,147,233,1
     DEFPUSHBUTTON   "OK",IDOK,177,151,50,14
@@ -440,6 +442,22 @@ IDI_WELCOME             ICON                    "images\\Welcome.ico"
 //
 
 IDR_SPLASHMIDI          MIDI                    "Images\\Godowsky - Study of Chopin Etude Op. 10, No. 1.mid"
+
+
+/////////////////////////////////////////////////////////////////////////////
+//
+// AFX_DIALOG_LAYOUT
+//
+
+IDD_ABOUT AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_PP1_VISUAL AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
 
 #endif    // English (United States) resources
 /////////////////////////////////////////////////////////////////////////////

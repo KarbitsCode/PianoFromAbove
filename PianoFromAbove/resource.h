@@ -33,12 +33,13 @@
 #define IDC_COLOR6                      1011
 #define IDC_BKGCOLOR                    1012
 #define IDC_SHOWALLKEYS                 1020
-#define IDC_SHOWSONGKEYS                1021
-#define IDC_SHOWCUSTOMKEYS              1022
-#define IDC_LRARROWS                    1023
-#define IDC_LRARROWSSPIN                1024
-#define IDC_UDARROWS                    1025
-#define IDC_UDARROWSSPIN                1026
+#define IDC_SHOWALLKEYS2                1021
+#define IDC_SHOWSONGKEYS                1022
+#define IDC_SHOWCUSTOMKEYS              1023
+#define IDC_LRARROWS                    1024
+#define IDC_LRARROWSSPIN                1025
+#define IDC_UDARROWS                    1026
+#define IDC_UDARROWSSPIN                1027
 #define IDC_MIDIIN                      1028
 #define IDC_WINDOWSECS                  1028
 #define IDC_MIDIOUT                     1029
@@ -178,7 +179,7 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        150
+#define _APS_NEXT_RESOURCE_VALUE        152
 #define _APS_NEXT_COMMAND_VALUE         40176
 #define _APS_NEXT_CONTROL_VALUE         1095
 #define _APS_NEXT_SYMED_VALUE           102

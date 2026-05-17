@@ -102,7 +102,7 @@ INT_PTR WINAPI VisualProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
                     EnableWindow( GetDlgItem( hWnd, IDC_THROUGH ), TRUE );
                     EnableWindow( GetDlgItem( hWnd, IDC_LASTKEY ), TRUE );
                     return TRUE;
-                case IDC_SHOWALLKEYS: case IDC_SHOWSONGKEYS:
+                case IDC_SHOWALLKEYS: case IDC_SHOWALLKEYS2: case IDC_SHOWSONGKEYS:
                     EnableWindow( GetDlgItem( hWnd, IDC_FIRSTKEY ), FALSE );
                     EnableWindow( GetDlgItem( hWnd, IDC_THROUGH ), FALSE );
                     EnableWindow( GetDlgItem( hWnd, IDC_LASTKEY ), FALSE );
@@ -160,6 +160,7 @@ INT_PTR WINAPI VisualProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
                     // VisualSettings struct
                     bool bAlwaysShowControls = cVisual.bAlwaysShowControls;
                     cVisual.eKeysShown = ( IsDlgButtonChecked( hWnd, IDC_SHOWALLKEYS ) == BST_CHECKED ? cVisual.All : 
+                                           IsDlgButtonChecked( hWnd, IDC_SHOWALLKEYS2 ) == BST_CHECKED ? cVisual.All2 :
                                            IsDlgButtonChecked( hWnd, IDC_SHOWSONGKEYS ) == BST_CHECKED ? cVisual.Song :
                                            IsDlgButtonChecked( hWnd, IDC_SHOWCUSTOMKEYS ) == BST_CHECKED ? cVisual.Custom :
                                            cVisual.Song );

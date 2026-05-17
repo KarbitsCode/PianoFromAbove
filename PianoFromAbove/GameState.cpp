@@ -577,9 +577,9 @@ void MainScreen::InitState()
     m_iNotesAlpha = 0;
     m_iNextHotNote = m_iSelectedNote = -0;
     m_iTotalNotesHit = 0;
+    m_iLastTotalNotesHit = 0;
     m_iCurrentNotesHit = 0;
     m_iNotesHitSpeed = 0;
-    m_iNotesHitSpeedCount = 0;
 
     m_fZoomX = cView.GetZoomX();
     m_fOffsetX = cView.GetOffsetX();
@@ -931,8 +931,8 @@ GameState::GameError MainScreen::Logic( void )
         m_dFPS = m_iFPSCount / ( m_llFPSTime / 1000000.0 );
 
         // Also compute NPS every half a second
-        m_iNotesHitSpeed = m_iTotalNotesHit - m_iNotesHitSpeedCount;
-        m_iNotesHitSpeedCount = m_iTotalNotesHit;
+        m_iNotesHitSpeed = m_iTotalNotesHit - m_iLastTotalNotesHit;
+        m_iLastTotalNotesHit = m_iTotalNotesHit;
 
         m_llFPSTime = m_iFPSCount = 0;
     }
@@ -1342,6 +1342,11 @@ void MainScreen::RenderGlobals()
     {
         m_iStartNote = min( m_iStartNote, MIDI::A0 );
         m_iEndNote = max( m_iEndNote, MIDI::C8 );
+    }
+    else if ( m_eKeysShown == VisualSettings::All2 )
+    {
+        m_iStartNote = MIDI::CM1;
+        m_iEndNote = MIDI::G9;
     }
     else if ( m_eKeysShown == VisualSettings::Song )
     {
