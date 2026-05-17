@@ -1,4 +1,4 @@
-// Microsoft Visual C++ generated resource script.
+﻿// Microsoft Visual C++ generated resource script.
 //
 #include "resource.h"
 
@@ -17,7 +17,7 @@
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
 LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
-#pragma code_page(1252)
+#pragma code_page(65001)
 
 #ifdef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////
@@ -160,7 +160,7 @@ FONT 8, "MS Shell Dlg", 400, 0, 0x1
 BEGIN
     CONTROL         "",IDC_STATIC,"Static",SS_WHITERECT,0,1,234,147
     CONTROL         "",IDC_PICTURE,"Static",SS_BITMAP,0,0,15,13
-    LTEXT           "Piano From Above 1.1.0\n�2010 Brian Pantano",IDC_STATIC,88,7,139,21
+    LTEXT           "Piano From Above 1.1.0\n©2010 Brian Pantano",IDC_STATIC,88,7,139,21
     LTEXT           "Enjoy",IDC_LICENSE,88,40,139,12
     CONTROL         "",IDC_STATIC,"Static",SS_ETCHEDHORZ,1,147,233,1
     DEFPUSHBUTTON   "OK",IDOK,177,151,50,14
