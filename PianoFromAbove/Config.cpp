@@ -414,6 +414,12 @@ bool VisualSettings::SaveConfigValues( TiXmlElement *txRoot )
     txVisual->SetAttribute( "KeysShown", this->eKeysShown );
     txVisual->SetAttribute( "AlwaysShowControls", this->bAlwaysShowControls );
     txVisual->SetAttribute( "AssociateFiles", this->bAssociateFiles );
+
+    if ( this->eKeysShown == VisualSettings::All2 )
+    {
+        this->iFirstKey = MIDI::CM1;
+        this->iLastKey = MIDI::G9;
+    }
     txVisual->SetAttribute( "FirstKey", this->iFirstKey );
     txVisual->SetAttribute( "LastKey", this->iLastKey );
 

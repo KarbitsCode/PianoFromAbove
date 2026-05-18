@@ -194,7 +194,7 @@ VOID SetVisualProc( HWND hWnd, const VisualSettings &cVisual )
     HWND hWndLastKey = GetDlgItem( hWnd, IDC_LASTKEY );
 
     // Set values
-    CheckRadioButton( hWnd, IDC_SHOWALLKEYS, IDC_SHOWCUSTOMKEYS, IDC_SHOWALLKEYS + cVisual.eKeysShown );
+    CheckRadioButton( hWnd, IDC_SHOWALLKEYS, IDC_SHOWALLKEYS2, IDC_SHOWALLKEYS + cVisual.eKeysShown );
     CheckDlgButton( hWnd, IDC_SHOWCONTROLS, cVisual.bAlwaysShowControls ? BST_CHECKED : BST_UNCHECKED );
     CheckDlgButton( hWnd, IDC_ASSOCIATEFILES, cVisual.bAssociateFiles ? BST_CHECKED : BST_UNCHECKED );
     SendMessage( hWnd, WM_COMMAND, IDC_SHOWALLKEYS + cVisual.eKeysShown, 0 );

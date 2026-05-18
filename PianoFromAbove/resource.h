@@ -33,9 +33,9 @@
 #define IDC_COLOR6                      1011
 #define IDC_BKGCOLOR                    1012
 #define IDC_SHOWALLKEYS                 1020
-#define IDC_SHOWALLKEYS2                1021
-#define IDC_SHOWSONGKEYS                1022
-#define IDC_SHOWCUSTOMKEYS              1023
+#define IDC_SHOWSONGKEYS                1021
+#define IDC_SHOWCUSTOMKEYS              1022
+#define IDC_SHOWALLKEYS2                1023
 #define IDC_LRARROWS                    1024
 #define IDC_LRARROWSSPIN                1025
 #define IDC_UDARROWS                    1026
