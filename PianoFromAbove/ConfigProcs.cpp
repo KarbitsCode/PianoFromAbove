@@ -22,10 +22,10 @@
 
 VOID DoPreferences( HWND hWndOwner )
 {
-    int pDialogs[] = { IDD_PP1_VISUAL, IDD_PP2_AUDIO, IDD_PP4_CONTROLS, IDD_PP5_LIBRARY };
-    DLGPROC pProcs[] = { VisualProc, AudioProc, ControlsProc, LibraryProc };
-    LPCWSTR pTitles[] = { TEXT( "Visual" ), TEXT( "Audio" ), TEXT( "Controls" ), TEXT( "Library" ) };
-    PROPSHEETPAGE psp[4];
+    int pDialogs[] = { IDD_PP1_VISUAL, IDD_PP2_AUDIO, IDD_PP3_VIDEO, IDD_PP4_CONTROLS, IDD_PP5_LIBRARY };
+    DLGPROC pProcs[] = { VisualProc, AudioProc, VideoProc, ControlsProc, LibraryProc };
+    LPCWSTR pTitles[] = { TEXT( "Visual" ), TEXT( "Audio" ), TEXT( "Video" ), TEXT( "Controls" ), TEXT( "Library" ) };
+    PROPSHEETPAGE psp[5];
     PROPSHEETHEADER psh;
 
     for ( int i = 0; i < sizeof( psp ) / sizeof( PROPSHEETPAGE ); i++ )
