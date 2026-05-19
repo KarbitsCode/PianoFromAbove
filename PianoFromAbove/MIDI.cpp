@@ -74,9 +74,9 @@ int MIDIPos::GetNextEvent( int iMicroSecs, MIDIEvent **pOutEvent )
     // Make sure the event doesn't occur after the requested time window
     int iMaxTickAllowed = m_iCurrTick;
     if ( m_bIsStandard )
-        iMaxTickAllowed += ( static_cast< long long >( m_iTicksPerBeat ) * ( m_iCurrMicroSec + iMicroSecs ) ) / m_iMicroSecsPerBeat;
+        iMaxTickAllowed += ( static_cast< long long >( m_iTicksPerBeat ) * ( m_iCurrMicroSec + static_cast< long long >( iMicroSecs ) ) ) / m_iMicroSecsPerBeat;
     else
-        iMaxTickAllowed += ( static_cast< long long >( m_iTicksPerSecond ) * ( m_iCurrMicroSec + iMicroSecs ) ) / 1000000;
+        iMaxTickAllowed += ( static_cast< long long >( m_iTicksPerSecond ) * ( m_iCurrMicroSec + static_cast< long long >( iMicroSecs ) ) ) / 1000000;
 
     if ( iMicroSecs < 0 || pMinEvent->GetAbsT() <= iMaxTickAllowed )
     {
@@ -105,11 +105,11 @@ int MIDIPos::GetNextEvent( int iMicroSecs, MIDIEvent **pOutEvent )
     else
     {
         if ( m_bIsStandard )
-            m_iCurrMicroSec = iMicroSecs + m_iCurrMicroSec -
-                              ( static_cast< long long >( m_iMicroSecsPerBeat ) * ( iMaxTickAllowed - m_iCurrTick ) ) / m_iTicksPerBeat;
+            m_iCurrMicroSec = static_cast< long long >( iMicroSecs ) + m_iCurrMicroSec -
+                              ( static_cast< long long >( m_iMicroSecsPerBeat ) * ( static_cast< long long >( iMaxTickAllowed ) - m_iCurrTick ) ) / m_iTicksPerBeat;
         else
-            m_iCurrMicroSec = iMicroSecs + m_iCurrMicroSec -
-                              ( 1000000LL * ( iMaxTickAllowed - m_iCurrTick ) ) / m_iTicksPerSecond;
+            m_iCurrMicroSec = static_cast< long long >( iMicroSecs ) + m_iCurrMicroSec -
+                              ( 1000000LL * ( static_cast< long long >( iMaxTickAllowed ) - m_iCurrTick ) ) / m_iTicksPerSecond;
         m_iCurrTick = iMaxTickAllowed;
         return iMicroSecs;
     }
@@ -243,7 +243,7 @@ void MIDI::InitArrays()
     // Build the array of note names upon first call
     if ( !bValid )
     {
-        wchar_t buf[10];
+        wchar_t buf[10]{};
         wchar_t cNote = L'C';
         int iOctave = -1;
         bool bIsSharp = false;
@@ -415,9 +415,9 @@ void MIDI::PostProcess( vector< MIDIEvent* > *vEvents )
         // Compute the exact time (off by at most a micro second... I don't feel like rounding)
         int iTick = pEvent->GetAbsT();
         if ( bIsStandard )
-            llTime = llLastTempoTime + ( static_cast< long long >( iMicroSecsPerBeat ) * ( iTick - iLastTempoTick ) ) / iTicksPerBeat;
+            llTime = llLastTempoTime + ( static_cast< long long >( iMicroSecsPerBeat ) * ( static_cast< long long >( iTick ) - iLastTempoTick ) ) / iTicksPerBeat;
         else
-            llTime = llLastTempoTime + ( 1000000LL * ( iTick - iLastTempoTick ) ) / iTicksPerSecond;
+            llTime = llLastTempoTime + ( 1000000LL * ( static_cast< long long >( iTick ) - iLastTempoTick ) ) / iTicksPerSecond;
         pEvent->SetAbsMicroSec( llTime );
 
         if ( pEvent->GetEventType() == MIDIEvent::ChannelEvent )
@@ -461,7 +461,7 @@ void MIDI::ConnectNotes()
 {
     const int StackSize = 10;
     int pSize[16][128];
-    MIDIChannelEvent *pStacks[16][128][StackSize];
+    MIDIChannelEvent *pStacks[16][128][StackSize]{};
 
     for ( vector< MIDITrack* >::iterator itTrack = m_vTracks.begin(); itTrack != m_vTracks.end(); ++itTrack )
     {
@@ -902,7 +902,7 @@ void MIDIOutDevice::AllNotesOff( const vector< int > &vChannels )
     PlayEventAcrossChannels( 0xB0, 0x40, 0x00, vChannels );
 }
 
-void MIDIOutDevice::SetVolume( double dVolume )
+void MIDIOutDevice::SetVolume( double dVolume ) const
 {
     DWORD dwVolume = static_cast< DWORD >( 0xFFFF * dVolume + 0.5 );
     midiOutSetVolume( m_hMIDIOut, dwVolume | ( dwVolume << 16 ) );

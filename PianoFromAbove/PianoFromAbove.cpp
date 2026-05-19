@@ -43,7 +43,7 @@ INT WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdL
     srand( ( unsigned )time( NULL ) );
 
     // Ensure that the common control DLL is loaded. 
-    INITCOMMONCONTROLSEX icex;
+    INITCOMMONCONTROLSEX icex{};
     icex.dwSize = sizeof( INITCOMMONCONTROLSEX );
     icex.dwICC  = ICC_WIN95_CLASSES | ICC_COOL_CLASSES | ICC_STANDARD_CLASSES;
     InitCommonControlsEx(&icex); 
@@ -53,7 +53,7 @@ INT WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdL
     if ( FAILED( hr ) ) return 1;
 
     // Register the window class
-    WNDCLASSEX wc;
+    WNDCLASSEX wc{};
     wc.cbSize = sizeof( WNDCLASSEX );
     wc.style = 0;
     wc.lpfnWndProc = WndProc;

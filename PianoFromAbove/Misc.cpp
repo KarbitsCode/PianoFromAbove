@@ -111,7 +111,7 @@ double Timer::GetSecs()
 }
 
 // Private. Hits the API for the tick count.
-long long Timer::GetRawTicks()
+long long Timer::GetRawTicks() const
 {
     if ( m_bHighPrecision )
     {

@@ -670,7 +670,7 @@ int SongLibrary::ExpandSource( const wstring &sPath, Source eSource, vector< PFA
 PFAData::File* SongLibrary::AddFile( const wstring &wsFilename, MIDI *pMidi )
 {
     // Does it exist? Prob should remove from map if it's there.
-    WIN32_FILE_ATTRIBUTE_DATA fad;
+    WIN32_FILE_ATTRIBUTE_DATA fad{};
     GetFileAttributesEx( wsFilename.c_str(), GetFileExInfoStandard, &fad );
     if ( fad.dwFileAttributes == INVALID_FILE_ATTRIBUTES ) return NULL;
 

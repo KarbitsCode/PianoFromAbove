@@ -25,8 +25,8 @@ VOID DoPreferences( HWND hWndOwner )
     int pDialogs[] = { IDD_PP1_VISUAL, IDD_PP2_AUDIO, IDD_PP3_VIDEO, IDD_PP4_CONTROLS, IDD_PP5_LIBRARY };
     DLGPROC pProcs[] = { VisualProc, AudioProc, VideoProc, ControlsProc, LibraryProc };
     LPCWSTR pTitles[] = { TEXT( "Visual" ), TEXT( "Audio" ), TEXT( "Video" ), TEXT( "Controls" ), TEXT( "Library" ) };
-    PROPSHEETPAGE psp[5];
-    PROPSHEETHEADER psh;
+    PROPSHEETPAGE psp[5]{};
+    PROPSHEETHEADER psh{};
 
     for ( int i = 0; i < sizeof( psp ) / sizeof( PROPSHEETPAGE ); i++ )
     {
@@ -198,8 +198,8 @@ VOID SetVisualProc( HWND hWnd, const VisualSettings &cVisual )
     CheckDlgButton( hWnd, IDC_SHOWCONTROLS, cVisual.bAlwaysShowControls ? BST_CHECKED : BST_UNCHECKED );
     CheckDlgButton( hWnd, IDC_ASSOCIATEFILES, cVisual.bAssociateFiles ? BST_CHECKED : BST_UNCHECKED );
     SendMessage( hWnd, WM_COMMAND, IDC_SHOWALLKEYS + cVisual.eKeysShown, 0 );
-    SendMessage( hWndFirstKey, CB_SETCURSEL, cVisual.iFirstKey - MIDI::A0, 0 );
-    SendMessage( hWndLastKey, CB_SETCURSEL, cVisual.iLastKey - MIDI::A0, 0 );
+    SendMessage( hWndFirstKey, CB_SETCURSEL, static_cast< WPARAM >( cVisual.iFirstKey ) - MIDI::A0, 0 );
+    SendMessage( hWndLastKey, CB_SETCURSEL, static_cast< WPARAM >( cVisual.iLastKey ) - MIDI::A0, 0 );
 
     // Colors
     for ( int i = 0; i < IDC_COLOR6 - IDC_COLOR1 + 1; i++ )
@@ -451,7 +451,7 @@ INT_PTR WINAPI LibraryProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
             GetClientRect( hWndLibrary, &rc );
 
             // Set up the columns of the list view
-            LVCOLUMN lvc;
+            LVCOLUMN lvc{};
             lvc.mask = LVCF_FMT | LVCF_WIDTH | LVCF_TEXT;
             lvc.fmt = LVCFMT_LEFT;
             lvc.cx = rc.right - 68;
@@ -464,7 +464,7 @@ INT_PTR WINAPI LibraryProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
             SendMessage( hWndLibrary, LVM_INSERTCOLUMN, 1, ( LPARAM )&lvc );
 
             // Add the library sources
-            LVITEM lvi;
+            LVITEM lvi{};
             lvi.mask = LVIF_TEXT;
             lvi.iItem = -1;
             for ( map< wstring, SongLibrary::Source >::const_iterator it = mSources.begin(); it != mSources.end(); ++it )
@@ -505,13 +505,13 @@ INT_PTR WINAPI LibraryProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
 
                     // Prep the item structure
                     HWND hWndLibrary = GetDlgItem( hWnd, IDC_LIBRARY );
-                    LVITEM lvi;
+                    LVITEM lvi{};
                     lvi.mask = LVIF_TEXT;
                     lvi.iItem = lvi.iSubItem = 0;
                     lvi.pszText = ofn.lpstrFile;
 
                     // To ensure no duplicates are added
-                    LVFINDINFO lvfi;
+                    LVFINDINFO lvfi{};
                     lvfi.flags = LVFI_STRING;
                     lvfi.psz = ofn.lpstrFile;
 
@@ -539,7 +539,7 @@ INT_PTR WINAPI LibraryProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
                 case IDC_ADDFOLDER:
                 {
                     // Set up the data structure for the shell common dialog
-                    TCHAR sFolder[MAX_PATH];
+                    TCHAR sFolder[MAX_PATH]{};
                     LPITEMIDLIST pidl = NULL;
                     BROWSEINFO bi = { 0 };
                     bi.hwndOwner = hWnd;
@@ -555,13 +555,13 @@ INT_PTR WINAPI LibraryProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
 
                     // Prep the item structure
                     HWND hWndLibrary = GetDlgItem( hWnd, IDC_LIBRARY );
-                    LVITEM lvi;
+                    LVITEM lvi{};
                     lvi.mask = LVIF_TEXT;
                     lvi.iItem = lvi.iSubItem = 0;
                     lvi.pszText = sFolder;
 
                     // To ensure no duplicates are added
-                    LVFINDINFO lvfi;
+                    LVFINDINFO lvfi{};
                     lvfi.flags = LVFI_STRING;
                     lvfi.psz = sFolder;
 
@@ -611,9 +611,9 @@ INT_PTR WINAPI LibraryProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
                     cLibrary.SetAlwaysAdd( IsDlgButtonChecked( hWnd, IDC_ALWAYSADD ) == BST_CHECKED );
 
                     // Prep the item structures
-                    LVITEM lviPath, lviYN;
-                    TCHAR sPath[1024];
-                    TCHAR YN[2];
+                    LVITEM lviPath{}, lviYN{};
+                    TCHAR sPath[1024]{};
+                    TCHAR YN[2]{};
                     lviPath.iSubItem = 0;
                     lviPath.pszText = sPath;
                     lviPath.cchTextMax = sizeof( sPath ) / sizeof( TCHAR );
@@ -664,8 +664,8 @@ BOOL ToggleYN( HWND hWndListview, int iItem )
 {
     if ( iItem < 0 ) return FALSE;
 
-    LVITEM lvi;
-    TCHAR YN[2];
+    LVITEM lvi{};
+    TCHAR YN[2]{};
     lvi.iSubItem = 1;
     lvi.pszText = YN;
     lvi.cchTextMax = 2;
@@ -775,7 +775,7 @@ INT_PTR WINAPI TracksProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
             }
 
             if ( GetWindowLongPtr( hWndTracks, GWL_STYLE ) & WS_VSCROLL )
-                SendMessage( hWndTracks, LVM_SETCOLUMNWIDTH, 1, aCx[1] - 17 );
+                SendMessage( hWndTracks, LVM_SETCOLUMNWIDTH, 1, static_cast< LPARAM >( aCx[1] ) - 17 );
 
             RECT rcItem = { LVIR_BOUNDS };
             SendMessage( hWndTracks, LVM_GETITEMRECT, 0, ( LPARAM )&rcItem );
@@ -884,7 +884,7 @@ INT_PTR WINAPI TracksProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
                                 if ( lpnmlvcd->iSubItem >= 3 && lpnmlvcd->iSubItem <= 5 )
                                 {
                                     // Figure out size. Too big a rect is fine: will be clipped
-                                    RECT rcOut;
+                                    RECT rcOut{};
                                     int iBmpSize = lpnmcd->rc.bottom - lpnmcd->rc.top - 2;
                                     rcOut.left = lpnmcd->rc.left + ( lpnmcd->rc.right - lpnmcd->rc.left - iBmpSize ) / 2;
                                     rcOut.top = lpnmcd->rc.top + ( lpnmcd->rc.bottom - lpnmcd->rc.top - iBmpSize ) / 2;

@@ -124,7 +124,7 @@ LRESULT WINAPI WndProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
                     CheckActivity( TRUE );
 
                     // Set up the data structure for the shell common dialog
-                    TCHAR sFolder[MAX_PATH];
+                    TCHAR sFolder[MAX_PATH]{};
                     LPITEMIDLIST pidl = NULL;
                     BROWSEINFO bi = { 0 };
                     bi.hwndOwner = hWnd;
@@ -504,7 +504,7 @@ LRESULT WINAPI GfxProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
 
 VOID CopyMenuState( HMENU hMenuSrc, HMENU hMenuDest )
 {
-    MENUITEMINFO mii;
+    MENUITEMINFO mii{};
     mii.cbSize = sizeof( MENUITEMINFO );
     mii.fMask = MIIM_STATE | MIIM_CHECKMARKS | MIIM_ID;
     int iCount = GetMenuItemCount( hMenuSrc );
@@ -672,7 +672,7 @@ HWND CreateRebar( HWND hWndOwner )
     SendMessage( hWndStatic4, WM_SETFONT, ( WPARAM )hFont, FALSE );
     SendMessage( hWndSpeed, WM_SETFONT, ( WPARAM )hFont, FALSE );
 
-    REBARBANDINFO rbbi;
+    REBARBANDINFO rbbi{};
     rbbi.cbSize = sizeof(REBARBANDINFO);
     rbbi.fMask = RBBIM_CHILD | RBBIM_CHILDSIZE | RBBIM_STYLE | RBBIM_TEXT;
 
@@ -694,9 +694,9 @@ HWND CreateRebar( HWND hWndOwner )
     const PlaybackSettings &cPlayback = config.GetPlaybackSettings();
     g_hWndBar = hWndRebar; // SetMute needs it :/
     SetMute( cPlayback.GetMute() );
-    SendMessage( hWndSpeed, TBM_SETPOS, TRUE, ( LONG )( 100 * cPlayback.GetSpeed() + .5 ) );
-    SendMessage( hWndNSpeed, TBM_SETPOS, TRUE, ( LONG )( 100 * (2.0 - cPlayback.GetNSpeed()) + .5 ) );
-    SendMessage( hWndVolume, TBM_SETPOS, TRUE, ( LONG )( 100 * cPlayback.GetVolume() + .5 ) );
+    SendMessage( hWndSpeed, TBM_SETPOS, TRUE, ( LONG )( 100.0 * cPlayback.GetSpeed() + .5 ) );
+    SendMessage( hWndNSpeed, TBM_SETPOS, TRUE, ( LONG )( 100.0 * (2.0 - cPlayback.GetNSpeed()) + .5 ) );
+    SendMessage( hWndVolume, TBM_SETPOS, TRUE, ( LONG )( 100.0 * cPlayback.GetVolume() + .5 ) );
 
     return hWndRebar;
 }
@@ -760,7 +760,7 @@ LRESULT WINAPI PosnProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
                 }
             }
 
-            RECT rc;
+            RECT rc{};
             SendMessage( g_hWndBar, RB_GETRECT, 1, ( LPARAM )&rc );
             RedrawWindow( g_hWndBar, &rc, NULL, RDW_ERASE | RDW_INVALIDATE | RDW_ALLCHILDREN );
             return 0;
@@ -1194,7 +1194,7 @@ VOID PopulateLibrary( HWND hWndLibrary )
     SendMessage( hWndLibrary, WM_SETREDRAW, FALSE, 0 );
     SendMessage( hWndLibrary, LVM_DELETEALLITEMS, 0, 0 );
 
-    TCHAR buf[1024];
+    TCHAR buf[1024]{};
     LVITEM lvi = { 0 };
     lvi.pszText = buf;
     lvi.iItem = 0;
@@ -1208,7 +1208,7 @@ VOID PopulateLibrary( HWND hWndLibrary )
             {
                 const PFAData::SongInfo &dSongInfo = cLibrary.GetInfo( ( *itFile )->infopos() )->info();
                 int iFileStart = (int)sFilename.find_last_of( L'\\' );
-                int iFolderStart = (int)sFilename.find_last_of( L'\\', iFileStart - 1 );
+                int iFolderStart = (int)sFilename.find_last_of( L'\\', static_cast< std::string::size_type >( iFileStart ) - 1 );
 
                 lvi.iSubItem = 0;
                 lvi.mask = LVIF_TEXT | LVIF_PARAM;
@@ -1220,7 +1220,7 @@ VOID PopulateLibrary( HWND hWndLibrary )
                 lvi.mask = LVIF_TEXT;
                 if ( iFileStart - 1 > iFolderStart )
                 {
-                    _tcsncpy_s( buf, sFilename.c_str() + iFolderStart + 1, iFileStart - iFolderStart - 1 );
+                    _tcsncpy_s( buf, sFilename.c_str() + iFolderStart + 1, static_cast< size_t >( iFileStart ) - iFolderStart - 1 );
                     SendMessage( hWndLibrary, LVM_SETITEM, 0, ( LPARAM )&lvi );
                 }
 
@@ -1254,14 +1254,14 @@ VOID SortLibrary( HWND hWndLibrary, INT iSortCol )
     HWND hWndHeader = ( HWND )SendMessage( hWndLibrary, LVM_GETHEADER, 0, 0 );
     HDITEM hdi = { HDI_FORMAT };
 
-    SendMessage( hWndHeader, HDM_GETITEM, abs( cLibrary.GetSortCol() ) - 1, ( LPARAM )&hdi );
+    SendMessage( hWndHeader, HDM_GETITEM, static_cast< WPARAM >( abs( cLibrary.GetSortCol() ) ) - 1, ( LPARAM )&hdi );
     hdi.fmt &= ~( HDF_SORTDOWN | HDF_SORTUP );
-    SendMessage( hWndHeader, HDM_SETITEM, abs( cLibrary.GetSortCol() ) - 1, ( LPARAM )&hdi );
+    SendMessage( hWndHeader, HDM_SETITEM, static_cast< WPARAM >( abs( cLibrary.GetSortCol() ) ) - 1, ( LPARAM )&hdi );
 
-    SendMessage( hWndHeader, HDM_GETITEM, abs( iSortCol ) - 1, ( LPARAM )&hdi );
+    SendMessage( hWndHeader, HDM_GETITEM, static_cast< WPARAM >( abs( iSortCol ) ) - 1, ( LPARAM )&hdi );
     hdi.fmt &= ~( HDF_SORTDOWN | HDF_SORTUP );
     hdi.fmt |= ( iSortCol < 0 ? HDF_SORTDOWN : HDF_SORTUP );
-    SendMessage( hWndHeader, HDM_SETITEM, abs( iSortCol ) - 1, ( LPARAM )&hdi );
+    SendMessage( hWndHeader, HDM_SETITEM, static_cast< WPARAM >( abs( iSortCol ) ) - 1, ( LPARAM )&hdi );
 
     SendMessage( hWndLibrary, LVM_SORTITEMS, iSortCol, ( LPARAM )CompareLibrary );
     int iItem = (int)SendMessage( hWndLibrary, LVM_GETNEXTITEM, -1, LVNI_SELECTED );
@@ -1283,8 +1283,8 @@ INT CALLBACK CompareLibrary( LPARAM lParam1, LPARAM lParam2, LPARAM lParamSort )
     const string &sFile2 = dFile2->filename();
     int iFileStart1 = (int)sFile1.find_last_of( L'\\' );
     int iFileStart2 = (int)sFile2.find_last_of( L'\\' );
-    int iFolderStart1 = (int)sFile1.find_last_of( L'\\', iFileStart1 - 1 );
-    int iFolderStart2 = (int)sFile2.find_last_of( L'\\', iFileStart2 - 1 );
+    int iFolderStart1 = (int)sFile1.find_last_of( L'\\', static_cast< std::string::size_type >( iFileStart1 ) - 1 );
+    int iFolderStart2 = (int)sFile2.find_last_of( L'\\', static_cast< std::string::size_type >( iFileStart2 ) - 1 );
 
     int iMult = ( lParamSort < 0 ? -1 : 1 );
     int iCompare = 0;
@@ -1536,21 +1536,21 @@ VOID SetSpeed( DOUBLE dSpeed )
 {
     HWND hWndToolbar = GetDlgItem( g_hWndBar, IDC_TOPTOOLBAR );
     HWND hWndSpeed = GetDlgItem( hWndToolbar, IDC_SPEED );
-    SendMessage( hWndSpeed, TBM_SETPOS, TRUE, ( LONG )( 100 * dSpeed + .5 ) );
+    SendMessage( hWndSpeed, TBM_SETPOS, TRUE, ( LONG )( 100.0 * dSpeed + .5 ) );
 }
 
 VOID SetNSpeed( DOUBLE dNSpeed )
 {
     HWND hWndToolbar = GetDlgItem( g_hWndBar, IDC_TOPTOOLBAR );
     HWND hWndNSpeed = GetDlgItem( hWndToolbar, IDC_NSPEED );
-    SendMessage( hWndNSpeed, TBM_SETPOS, TRUE, ( LONG )( 100 * (2.0 - dNSpeed) + .5 ) );
+    SendMessage( hWndNSpeed, TBM_SETPOS, TRUE, ( LONG )( 100.0 * (2.0 - dNSpeed) + .5 ) );
 }
 
 VOID SetVolume( DOUBLE dVolume )
 {
     HWND hWndToolbar = GetDlgItem( g_hWndBar, IDC_TOPTOOLBAR );
     HWND hWndVolume = GetDlgItem( hWndToolbar, IDC_VOLUME );
-    SendMessage( hWndVolume, TBM_SETPOS, TRUE, ( LONG )( 100 * dVolume + .5 ) );
+    SendMessage( hWndVolume, TBM_SETPOS, TRUE, ( LONG )( 100.0 * dVolume + .5 ) );
 }
 
 VOID SetPosition( INT iPosition )

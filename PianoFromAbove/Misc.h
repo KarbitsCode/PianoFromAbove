@@ -32,15 +32,15 @@ public:
     long long GetTicksPerSec() { return m_llTicksPerSec; }
 
     // Status accessors
-    bool IsStarted() { return m_bStarted; }
-    bool IsPaused() { return m_bPaused; }
+    bool IsStarted() const { return m_bStarted; }
+    bool IsPaused() const { return m_bPaused; }
 
 private:
     static const long long m_llPrecisionLimit = 1000000000ll;
     static const long long m_llPrecisionThrottle = 1000ll;
 
     // Timer stuff
-    long long GetRawTicks();
+    long long GetRawTicks() const;
     long long m_llStartTicks;
     long long m_llTicksPerSec;
     bool m_bHighPrecision;

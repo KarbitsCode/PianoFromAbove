@@ -319,7 +319,7 @@ public:
 
     void AllNotesOff();
     void AllNotesOff( const vector< int > &vChannels );
-    void SetVolume( double dVolume );
+    void SetVolume( double dVolume ) const;
 
     bool PlayEventAcrossChannels( unsigned char cStatus, unsigned char cParam1, unsigned char cParam2 );
     bool PlayEventAcrossChannels( unsigned char cStatus, unsigned char cParam1, unsigned char cParam2, const vector< int > &vChannels );
