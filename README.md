@@ -23,7 +23,7 @@ And so I made it happen:
 
 <p align="center">
   <a href="https://www.youtube.com/watch?v=PWQj61p6D5s" target="_blank">
-    <img src="https://img.youtube.com/vi/PWQj61p6D5s/hqdefault.jpg"/>
+    <img src="https://web.archive.org/web/20250425015407im_/https://camo.githubusercontent.com/2152ea7d1710e9966dc0159cc7610c745d04b0b6cecf213f0482686a1052477e/68747470733a2f2f696d672e796f75747562652e636f6d2f76692f5057516a363170364435732f687164656661756c742e6a7067"/>
   </a>
 </p>
 
