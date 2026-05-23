@@ -223,14 +223,6 @@ int MIDI::WhiteCount( int iMinNote, int iMaxNote )
     return aWhiteCount[iMaxNote] - aWhiteCount[iMinNote];
 }
 
-// Converts microseconds per beat to BPM
-// BPM = 60,000,000 / microseconds_per_beat
-double MIDI::MicroSecsToBPM( int iMicroSecsPerBeat )
-{
-    if ( iMicroSecsPerBeat <= 0 ) return 0;
-    return ( static_cast< double >( 60000000 ) / iMicroSecsPerBeat );
-}
-
 wstring MIDI::aNoteNames[MIDI::KEYS + 1];
 MIDI::Note MIDI::aNoteVal[MIDI::KEYS];
 bool MIDI::aIsSharp[MIDI::KEYS];

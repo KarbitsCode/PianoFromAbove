@@ -1248,6 +1248,13 @@ int MainScreen::GetNoteCountAtTime( long long llTime )
     return iCount;
 }
 
+// Gets the BPM corresponding to iMicroSecsPerBeat
+double MainScreen::GetBeatPerMinute( int iMicroSecsPerBeat )
+{
+    if ( iMicroSecsPerBeat <= 0 ) return 0;
+    return ( 60000000.0 / iMicroSecsPerBeat );
+}
+
 // Gets the tick corresponding to llStartTime using current tempo
 int MainScreen::GetCurrentTick( long long llStartTime )
 {
@@ -1894,7 +1901,7 @@ void MainScreen::RenderStatus( LPRECT prcStatus )
 
     // Build the BPM text
     TCHAR sBPM[128];
-    _stprintf_s( sBPM, TEXT( "%.1lf" ), MIDI::MicroSecsToBPM( m_iMicroSecsPerBeat ) );
+    _stprintf_s( sBPM, TEXT( "%.1lf" ), GetBeatPerMinute( m_iMicroSecsPerBeat ) );
 
     // Build the note counter text
     TCHAR sNotes[128];
