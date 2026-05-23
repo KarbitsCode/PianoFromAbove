@@ -66,7 +66,7 @@
     <LinkIncremental>true</LinkIncremental>
     <IncludePath>$(DXSDK_DIR)Include;$(SolutionDir)\ThirdVendor\boost_1_55_0;$(SolutionDir)\ThirdVendor\protobuf-2.5.0\vsprojects\include;$(SolutionDir)\ThirdVendor\protobuf-2.5.0\src;$(IncludePath)</IncludePath>
     <LibraryPath>$(DXSDK_DIR)Lib\x86;$(SolutionDir)\ThirdVendor\protobuf-2.5.0\vsprojects\Debug\Win32;$(LibraryPath)</LibraryPath>
-    <TargetName>PFA-1.1.0-$(Platform)</TargetName>
+    <TargetName>PFA-1.1.0-x86</TargetName>
   </PropertyGroup>
   <PropertyGroup Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">
     <LinkIncremental>true</LinkIncremental>
@@ -97,7 +97,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;WINVER=0x0600;_WIN32_WINNT=0x0600;TIXML_USE_STL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -117,7 +117,7 @@
       <WarningLevel>Level3</WarningLevel>
       <Optimization>Disabled</Optimization>
       <PreprocessorDefinitions>WIN32;_DEBUG;_WINDOWS;WINVER=0x0600;_WIN32_WINNT=0x0600;TIXML_USE_STL;%(PreprocessorDefinitions)</PreprocessorDefinitions>
-      <RuntimeLibrary>MultiThreadedDLL</RuntimeLibrary>
+      <RuntimeLibrary>MultiThreadedDebugDLL</RuntimeLibrary>
     </ClCompile>
     <Link>
       <SubSystem>Windows</SubSystem>
@@ -200,10 +200,7 @@
     <ClCompile Include="ConfigProcs.cpp" />
     <ClCompile Include="GameState.cpp" />
     <ClCompile Include="MainProcs.cpp" />
-    <ClCompile Include="MIDI.cpp">
-      <RuntimeLibrary Condition="'$(Configuration)|$(Platform)'=='Debug|Win32'">MultiThreadedDebug</RuntimeLibrary>
-      <RuntimeLibrary Condition="'$(Configuration)|$(Platform)'=='Debug|x64'">MultiThreadedDebug</RuntimeLibrary>
-    </ClCompile>
+    <ClCompile Include="MIDI.cpp" />
     <ClCompile Include="Misc.cpp" />
     <ClCompile Include="PianoFromAbove.cpp" />
     <ClCompile Include="ProtoBuf\MetaData.pb.cc" />
