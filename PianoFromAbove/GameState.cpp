@@ -280,7 +280,7 @@ GameState::GameError SplashScreen::Logic()
 
     // Advance end position
     int iEventCount = (int)m_vEvents.size();
-    while ( m_iEndPos + 1 < iEventCount && m_vEvents[m_iEndPos + 1]->GetAbsMicroSec() < llEndTime )
+    while ( m_iEndPos + 1 < iEventCount && m_vEvents[static_cast< size_t >( m_iEndPos ) + 1]->GetAbsMicroSec() < llEndTime )
         m_iEndPos++;
         
     // Advance start position updating initial state as we pass stale events
@@ -954,7 +954,7 @@ GameState::GameError MainScreen::Logic( void )
 
     // Advance end position
     int iEventCount = (int)m_vEvents.size();
-    while ( m_iEndPos + 1 < iEventCount && m_vEvents[m_iEndPos + 1]->GetAbsMicroSec() < llEndTime )
+    while ( m_iEndPos + 1 < iEventCount && m_vEvents[static_cast< size_t >( m_iEndPos ) + 1]->GetAbsMicroSec() < llEndTime )
         m_iEndPos++;
 
     // Only want to advance start positions when unpaused becuase advancing startpos "consumes" the events
@@ -1085,7 +1085,7 @@ void MainScreen::JumpTo( long long llStartTime, bool bUpdateGUI )
     // End position: a little tricky. Same as logic code. Only needed for paused jumping.
     m_iEndPos = m_iStartPos - 1;
     int iEventCount = (int)m_vEvents.size();
-    while ( m_iEndPos + 1 < iEventCount && m_vEvents[m_iEndPos + 1]->GetAbsMicroSec() < llEndTime )
+    while ( m_iEndPos + 1 < iEventCount && m_vEvents[static_cast< size_t >( m_iEndPos ) + 1]->GetAbsMicroSec() < llEndTime )
         m_iEndPos++;
 
     // Input position, iterators, tick

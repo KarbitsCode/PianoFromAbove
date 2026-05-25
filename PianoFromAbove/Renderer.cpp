@@ -288,13 +288,13 @@ HRESULT D3D9Renderer::Blit( SCREEN_VERTEX *vertices, int iTriangles )
 {
     if ( m_bStatic )
     {
-        memcpy( m_pStaticVertexData + m_iStaticTriangle * 3 * sizeof( SCREEN_VERTEX ), vertices, iTriangles * 3 * sizeof( SCREEN_VERTEX ) );
+        memcpy( m_pStaticVertexData + static_cast< size_t >( m_iStaticTriangle ) * 3 * sizeof( SCREEN_VERTEX ), vertices, static_cast< size_t >( iTriangles ) * 3 * sizeof( SCREEN_VERTEX ) );
         m_iStaticTriangle += 2;
     }
     else
     {
         PrepBuffer( iTriangles );
-        memcpy( m_pVertexData + m_iTriangle * 3 * sizeof( SCREEN_VERTEX ), vertices, iTriangles * 3 * sizeof( SCREEN_VERTEX ) );
+        memcpy( m_pVertexData + static_cast< size_t >( m_iTriangle ) * 3 * sizeof( SCREEN_VERTEX ), vertices, static_cast< size_t >( iTriangles ) * 3 * sizeof( SCREEN_VERTEX ) );
         m_iTriangle += 2;
     }
     return S_OK;

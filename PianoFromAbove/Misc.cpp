@@ -175,7 +175,7 @@ void Util::ParseLongHex( const string &sText, string &sVal )
 bool Util::MD5( const unsigned char *pData, int iSize, string &sOut )
 {
     HCRYPTPROV hCryptProv;
-    HCRYPTHASH hHash;
+    HCRYPTHASH hHash{};
     BYTE pHash[32] = { 0 };
     DWORD iHashLen = sizeof( pHash );
 
