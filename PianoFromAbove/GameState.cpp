@@ -1002,13 +1002,21 @@ void MainScreen::UpdateState( int iPos )
     int iNote = pEvent->GetParam1();
     int iVelocity = pEvent->GetParam2();
 
+    // For filtering
+    bool bChannelMuted = m_vTrackSettings[iTrack].aChannels[iChannel].bMuted;
+    bool bChannelHidden = m_vTrackSettings[iTrack].aChannels[iChannel].bHidden;
+
     // Turn note on
     if ( eEventType == MIDIChannelEvent::NoteOn && iVelocity > 0 )
     {
         m_vState.push_back( iPos );
         m_pNoteState[iNote] = iPos;
-        m_iTotalNotesHit++; // Count the notes
-        m_iCurrentNotesHit++; // Count the notes
+        if ( !bChannelMuted && !bChannelHidden )
+        {
+            // Only count if it's visible
+            m_iTotalNotesHit++;
+            m_iCurrentNotesHit++;
+        }
     }
     else
     {
@@ -1021,7 +1029,12 @@ void MainScreen::UpdateState( int iPos )
             if ( m_vEvents[*it] == pSearch )
             {
                 it = m_vState.erase( it );
-                m_iCurrentNotesHit = max( 0, m_iCurrentNotesHit - 1 ); // Decrease since it has been released (NoteOff), but don't pass negative
+
+                if ( !bChannelMuted && !bChannelHidden )
+                {
+                    // Decrease since it has been released (NoteOff), but don't pass negative
+                    m_iCurrentNotesHit = max( 0, m_iCurrentNotesHit - 1 );
+                }
             }
             else
             {
@@ -1096,7 +1109,7 @@ void MainScreen::JumpTo( long long llStartTime, bool bUpdateGUI )
 
     // Update note counters
     m_iTotalNotesHit = GetNoteCountAtTime( m_llStartTime );
-    m_iCurrentNotesHit = (int)m_vState.size();
+    m_iCurrentNotesHit = GetPolyCountAtTime();
 
     if ( bUpdateGUI )
     {
@@ -1241,9 +1254,36 @@ int MainScreen::GetNoteCountAtTime( long long llTime )
     for ( int i = 0; i < (int)m_vNoteOns.size(); i++ )
     {
         if ( m_vNoteOns[i].first <= llTime )
-            iCount++;
+        {
+            MIDIChannelEvent *pEvent = m_vEvents[m_vNoteOns[i].second];
+            int iTrack = pEvent->GetTrack();
+            int iChannel = pEvent->GetChannel();
+            bool bChannelMuted = m_vTrackSettings[iTrack].aChannels[iChannel].bMuted;
+            bool bChannelHidden = m_vTrackSettings[iTrack].aChannels[iChannel].bHidden;
+            if ( !bChannelMuted && !bChannelHidden )
+                iCount++;
+        }
         else
+        {
             break;
+        }
+    }
+    return iCount;
+}
+
+// Gets the number of notes that are currently being played at caller time.
+int MainScreen::GetPolyCountAtTime()
+{
+    int iCount = 0;
+    for ( int i = 0; i < (int)m_vState.size(); i++ )
+    {
+        MIDIChannelEvent *pEvent = m_vEvents[m_vState[i]];
+        int iTrack = pEvent->GetTrack();
+        int iChannel = pEvent->GetChannel();
+        bool bChannelMuted = m_vTrackSettings[iTrack].aChannels[iChannel].bMuted;
+        bool bChannelHidden = m_vTrackSettings[iTrack].aChannels[iChannel].bHidden;
+        if ( !bChannelMuted && !bChannelHidden )
+            iCount++;
     }
     return iCount;
 }

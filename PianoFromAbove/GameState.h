@@ -181,6 +181,7 @@ private:
 
     // MIDI helpers
     int GetNoteCountAtTime( long long llStartTime );
+    int GetPolyCountAtTime();
     double GetBeatPerMinute( int iMicroSecsPerBeat );
     int GetCurrentTick( long long llStartTime );
     int GetCurrentTick( long long llStartTime, int iLastTempoTick, long long llLastTempoTime, int iMicroSecsPerBeat );
