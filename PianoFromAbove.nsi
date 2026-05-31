@@ -10,8 +10,8 @@
 !define Version 1.1.0
 !system "if not exist Dist md Dist"
 Name "Piano From Above"
-OutFile "Dist\PFA-${Version}-setup.exe"
-BrandingText "PFA ${Version}"
+OutFile "Dist\KPFA-${Version}-setup.exe"
+BrandingText "KPFA ${Version}"
 Var TargetFile ;Set in onInit
 
 RequestExecutionLevel admin
@@ -25,9 +25,9 @@ InstallDirRegKey HKCU "Software\Piano From Above" ""
 
 Function .onInit
     ${If} ${RunningX64}
-        StrCpy $TargetFile "PFA-${Version}-x86_64.exe"
+        StrCpy $TargetFile "KPFA-${Version}-x86_64.exe"
     ${Else}
-        StrCpy $TargetFile "PFA-${Version}-x86.exe"
+        StrCpy $TargetFile "KPFA-${Version}-x86.exe"
     ${EndIf}
     SetShellVarContext current
     Call uninstall
@@ -81,9 +81,9 @@ Section "Piano From Above (required)" SecProgramFile
 
     ${If} ${RunningX64}
         SetRegView 64
-        File "Release\PFA-1.1.0-x86_64.exe"
+        File "Release\KPFA-1.1.0-x86_64.exe"
     ${Else}
-        File "Release\PFA-1.1.0-x86.exe"
+        File "Release\KPFA-1.1.0-x86.exe"
     ${EndIf}
     File "Docs\Readme.txt"
     File "Docs\Credits.txt"

@@ -45,7 +45,7 @@ This is unfortunately very tricky. Hopefully I will simplify this in the future.
 * Cross fingers
 * Build! (Release, x64)
 
-Once that's done, there should be a Release\PFA-1.1.0-x86_64.exe that you can run.
+Once that's done, there should be a `Release\KPFA-1.1.0-x86_64.exe` that you can run.
 
 There's an optional .nsi script that you can run if you want to build an installer.
 
