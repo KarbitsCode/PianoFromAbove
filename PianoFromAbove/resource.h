@@ -130,6 +130,7 @@
 #define ID_PIANO_NOTEON                 40107
 #define ID_MIDI_NOTEON                  40108
 #define ID_VIEW_MOVEANDZOOM             40109
+#define IDC_LOADQUEUETIMER              40110
 #define ID__CANCELZOOMANDMOVE           40112
 #define ID_CANCELZOOMANDMOVE            40113
 #define ID_VIEW_CANCELMOVEANDZOOM       40114

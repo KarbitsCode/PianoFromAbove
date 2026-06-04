@@ -32,6 +32,7 @@ HWND g_hWndBar = NULL;
 HWND g_hWndLibDlg = NULL;
 HWND g_hWndGfx = NULL;
 TSQueue< MSG > g_MsgQueue; // Producer/consumer to hold events for our game thread
+LPSTR g_sMIDILoadPending = NULL;
 
 //-----------------------------------------------------------------------------
 // Name: wWinMain()
@@ -41,6 +42,13 @@ INT WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdL
 {
     g_hInstance = hInstance;
     srand( ( unsigned )time( NULL ) );
+
+    // If we have a MIDI from command line, add to queue
+    if (lpszCmdLine && lpszCmdLine[0])
+    {
+        Util::StripQuotes( lpszCmdLine );
+        g_sMIDILoadPending = lpszCmdLine;
+    }
 
     // Ensure that the common control DLL is loaded. 
     INITCOMMONCONTROLSEX icex{};

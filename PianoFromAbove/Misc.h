@@ -63,6 +63,7 @@ class Util
 public:
     static wchar_t* StringToWstring( const string &s );
     static char* WstringToString( const wstring &s );
+    static void StripQuotes(LPSTR s);
     static void ParseLongHex( const string &sText, string &sVal );
     static bool MD5( const unsigned char *pData, int iSize, string &sOut );
     static unsigned RandColor();

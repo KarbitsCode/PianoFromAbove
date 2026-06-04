@@ -37,6 +37,12 @@ LRESULT WINAPI WndProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
 
     switch( msg )
     {
+        case WM_CREATE:
+        {
+            if (g_sMIDILoadPending && g_sMIDILoadPending[0])
+                SetTimer(hWnd, IDC_LOADQUEUETIMER, 1000, NULL);
+            return 0;
+        }
         case WM_COMMAND:
         {
             int iId = LOWORD( wParam );
@@ -252,7 +258,7 @@ LRESULT WINAPI WndProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
         case WM_ACTIVATE:
             if ( LOWORD( wParam ) != WA_INACTIVE )
                 SetFocus( g_hWndGfx );
-            return  0;
+            return 0;
         case WM_SYSCOMMAND:
             if ( wParam == SC_SCREENSAVE || wParam == SC_MONITORPOWER )
             {
@@ -298,6 +304,17 @@ LRESULT WINAPI WndProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
             Sleep( 200 );
             Config::GetConfig().LoadMIDIDevices();
             HandOffMsg( WM_DEVICECHANGE, 0, 0 );
+            break;
+        case WM_TIMER:
+            if (wParam == IDC_LOADQUEUETIMER)
+            {
+                if ( g_sMIDILoadPending && g_sMIDILoadPending[0] )
+                {
+                    KillTimer( hWnd, IDC_LOADQUEUETIMER );
+                    PlayFile( Util::StringToWstring( g_sMIDILoadPending ), false, false );
+                    g_sMIDILoadPending = NULL;
+                }
+            }
             break;
         case WM_DESTROY:
             PostQuitMessage( 0 );
