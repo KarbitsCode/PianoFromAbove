@@ -149,16 +149,16 @@ char* Util::WstringToString( const wstring &s )
     return m_sBuf;
 }
 
-void Util::StripQuotes(LPSTR s)
+void Util::StripQuotes(LPWSTR s)
 {
     if (!s) return;
 
-    size_t len = strlen(s);
-    if (len >= 2 && s[0] == '"' && s[len - 1] == '"')
+    size_t len = wcslen(s);
+    if (len >= 2 && s[0] == L'"' && s[len - 1] == L'"')
     {
         // shift left by 1, remove trailing quote
-        memmove(s, s + 1, len - 2);
-        s[len - 2] = '\0';
+        wmemmove(s, s + 1, len - 2);
+        s[len - 2] = L'\0';
     }
 }
 

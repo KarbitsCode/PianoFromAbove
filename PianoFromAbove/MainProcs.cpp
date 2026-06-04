@@ -40,7 +40,7 @@ LRESULT WINAPI WndProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
         case WM_CREATE:
         {
             if (g_sMIDILoadPending && g_sMIDILoadPending[0])
-                SetTimer(hWnd, IDC_LOADQUEUETIMER, 1000, NULL);
+                SetTimer(hWnd, IDC_LOADQUEUETIMER, 2000, NULL);
             return 0;
         }
         case WM_COMMAND:
@@ -311,7 +311,7 @@ LRESULT WINAPI WndProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
                 if ( g_sMIDILoadPending && g_sMIDILoadPending[0] )
                 {
                     KillTimer( hWnd, IDC_LOADQUEUETIMER );
-                    PlayFile( Util::StringToWstring( g_sMIDILoadPending ), false, false );
+                    PlayFile( g_sMIDILoadPending, false, false );
                     g_sMIDILoadPending = NULL;
                 }
             }

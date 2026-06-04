@@ -20,7 +20,7 @@
 #include "Renderer.h"
 #include "Misc.h"
 
-INT WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLine, INT nCmdShow );
+INT WINAPI wWinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpszCmdLine, INT nCmdShow );
 DWORD WINAPI GameThread( LPVOID lpParameter );
 
 //-----------------------------------------------------------------------------
@@ -32,13 +32,13 @@ HWND g_hWndBar = NULL;
 HWND g_hWndLibDlg = NULL;
 HWND g_hWndGfx = NULL;
 TSQueue< MSG > g_MsgQueue; // Producer/consumer to hold events for our game thread
-LPSTR g_sMIDILoadPending = NULL;
+LPWSTR g_sMIDILoadPending = NULL;
 
 //-----------------------------------------------------------------------------
 // Name: wWinMain()
 // Desc: The application's entry point
 //-----------------------------------------------------------------------------
-INT WINAPI WinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPSTR lpszCmdLine, INT nCmdShow )
+INT WINAPI wWinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpszCmdLine, INT nCmdShow )
 {
     g_hInstance = hInstance;
     srand( ( unsigned )time( NULL ) );
