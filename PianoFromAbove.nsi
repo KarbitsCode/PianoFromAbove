@@ -82,6 +82,7 @@ Section "Piano From Above (required)" SecProgramFile
     ${If} ${RunningX64}
         SetRegView 64
         File "Release\KPFA-1.1.0-x86_64.exe"
+        File "Release\KPFA-1.1.0-x86.exe"
     ${Else}
         File "Release\KPFA-1.1.0-x86.exe"
     ${EndIf}
