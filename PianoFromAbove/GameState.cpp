@@ -112,8 +112,14 @@ GameState::GameError IntroScreen::Render()
 SplashScreen::SplashScreen( HWND hWnd, Renderer *pRenderer ) : GameState( hWnd, pRenderer ) 
 {
     HRSRC hResInfo = FindResource( NULL, MAKEINTRESOURCE( IDR_SPLASHMIDI ), TEXT( "MIDI" ) );
+
+    if ( hResInfo == NULL ) return;
+
     HGLOBAL hRes = LoadResource( NULL, hResInfo );
     int iSize = SizeofResource( NULL, hResInfo );
+
+    if ( hRes == NULL || iSize <= 0 ) return;
+
     unsigned char *pData = ( unsigned char * )LockResource( hRes );
 
     // Parse MIDI
@@ -1892,7 +1898,7 @@ void MainScreen::RenderBorder()
 
 void MainScreen::RenderText()
 {
-    int iLines = 5;
+    int iLines = 6;
     if ( m_bShowFPS ) iLines++;
 
     // Screen info
@@ -1934,6 +1940,14 @@ void MainScreen::RenderStatus( LPRECT prcStatus )
         _stprintf_s( sTime, TEXT( "\t-%lld:%04.1lf / %lld:%04.1lf" ),
             -m_llStartTime / 60000000, ( -m_llStartTime % 60000000 ) / 1000000.0,
             mInfo.llTotalMicroSecs / 60000000, ( mInfo.llTotalMicroSecs % 60000000 ) / 1000000.0 );
+
+    // Built the bar text
+    TCHAR sBar[128];
+    int iTicksPerBeat = mInfo.iDivision;
+    int iTicksPerMeasure = iTicksPerBeat * m_iBeatsPerMeasure;
+    _stprintf_s( sBar, TEXT( "%d:%d" ),
+        ( m_iStartTick / iTicksPerMeasure ) + 1,
+        ( ( m_iStartTick % iTicksPerMeasure ) / iTicksPerBeat ) + 1 );
 
     // Build the FPS text
     TCHAR sFPS[128];
@@ -1981,6 +1995,13 @@ void MainScreen::RenderStatus( LPRECT prcStatus )
     OffsetRect( prcStatus, -2, -1 );
     m_pRenderer->DrawText( TEXT( "BPM:" ), Renderer::Small, prcStatus, 0, 0xFFFFFFFF );
     m_pRenderer->DrawText( sBPM, Renderer::Small, prcStatus, DT_RIGHT, 0xFFFFFFFF );
+
+    OffsetRect( prcStatus, 2, 16 + 1 );
+    m_pRenderer->DrawText( TEXT( "Bar:" ), Renderer::Small, prcStatus, 0, 0xFF404040 );
+    m_pRenderer->DrawText( sBar, Renderer::Small, prcStatus, DT_RIGHT, 0xFF404040 );
+    OffsetRect( prcStatus, -2, -1 );
+    m_pRenderer->DrawText( TEXT( "Bar:" ), Renderer::Small, prcStatus, 0, 0xFFFFFFFF );
+    m_pRenderer->DrawText( sBar, Renderer::Small, prcStatus, DT_RIGHT, 0xFFFFFFFF );
 
     OffsetRect( prcStatus, 2, 16 + 1 );
     m_pRenderer->DrawText( TEXT( "Notes:" ), Renderer::Small, prcStatus, 0, 0xFF404040 );
