@@ -1,5 +1,7 @@
-﻿// Microsoft Visual C++ generated resource script.
+// Microsoft Visual C++ generated resource script.
 //
+#pragma code_page(65001)
+
 #include "resource.h"
 
 #define APSTUDIO_READONLY_SYMBOLS
@@ -17,7 +19,6 @@
 
 #if !defined(AFX_RESOURCE_DLL) || defined(AFX_TARG_ENU)
 LANGUAGE LANG_ENGLISH, SUBLANG_ENGLISH_US
-#pragma code_page(65001)
 
 #ifdef APSTUDIO_INVOKED
 /////////////////////////////////////////////////////////////////////////////
@@ -103,7 +104,8 @@ BEGIN
     CONTROL         "&GDI",IDC_GDI,"Button",BS_AUTORADIOBUTTON | WS_DISABLED,13,55,28,10
     CONTROL         "Display &frame rate",IDC_DISPLAYFPS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,13,68,75,10
     CONTROL         "&Limit frame rate",IDC_LIMITFPS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,13,81,66,10
-    GROUPBOX        "Video options (advanced users only)",IDC_STATIC,7,7,286,91
+    CONTROL         "&Solid background status",IDC_OPAQUESTATUS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,13,94,94,10
+    GROUPBOX        "Video options (advanced users only)",IDC_STATIC,7,7,286,104
 END
 
 IDD_PP5_LIBRARY DIALOGEX 0, 0, 300, 212
@@ -455,6 +457,11 @@ BEGIN
 END
 
 IDD_PP1_VISUAL AFX_DIALOG_LAYOUT
+BEGIN
+    0
+END
+
+IDD_PP3_VIDEO AFX_DIALOG_LAYOUT
 BEGIN
     0
 END

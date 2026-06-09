@@ -71,7 +71,7 @@ struct VideoSettings : public ISettings
     bool SaveConfigValues( TiXmlElement *txRoot );
 
     enum Renderer { Direct3D, OpenGL, GDI } eRenderer;
-    bool bShowFPS, bLimitFPS;
+    bool bShowFPS, bLimitFPS, bOpaqueStatus;
 };
 
 struct ControlsSettings : public ISettings

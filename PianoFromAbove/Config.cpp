@@ -151,6 +151,7 @@ void AudioSettings::LoadDefaultValues()
 
 void VideoSettings::LoadDefaultValues()
 {
+    this->bOpaqueStatus = false;
     this->bLimitFPS = true;
     this->bShowFPS = false;
     this->eRenderer = Direct3D;
@@ -293,6 +294,8 @@ void VideoSettings::LoadConfigValues( TiXmlElement *txRoot )
         this->bShowFPS = ( iAttrVal != 0 );
     if ( txVideo->QueryIntAttribute( "LimitFPS", &iAttrVal ) == TIXML_SUCCESS )
         this->bLimitFPS = ( iAttrVal != 0 );
+    if ( txVideo->QueryIntAttribute( "OpaqueStatus", &iAttrVal ) == TIXML_SUCCESS )
+        this->bOpaqueStatus = ( iAttrVal != 0 );
     if ( txVideo->QueryIntAttribute( "Renderer", &iAttrVal ) == TIXML_SUCCESS )
         this->eRenderer = static_cast< Renderer >( iAttrVal );
 }
@@ -461,6 +464,7 @@ bool VideoSettings::SaveConfigValues( TiXmlElement *txRoot )
     txVideo->SetAttribute( "Renderer", this->eRenderer );
     txVideo->SetAttribute( "ShowFPS", this->bShowFPS );
     txVideo->SetAttribute( "LimitFPS", this->bLimitFPS );
+    txVideo->SetAttribute( "OpaqueStatus", this->bOpaqueStatus );
     return true;
 }
 

@@ -284,6 +284,7 @@ INT_PTR WINAPI VideoProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
             CheckRadioButton( hWnd, IDC_DIRECT3D, IDC_GDI, IDC_DIRECT3D + cVideo.eRenderer );
             CheckDlgButton( hWnd, IDC_DISPLAYFPS, cVideo.bShowFPS ? BST_CHECKED : BST_UNCHECKED );
             CheckDlgButton( hWnd, IDC_LIMITFPS, cVideo.bLimitFPS ? BST_CHECKED : BST_UNCHECKED );
+            CheckDlgButton( hWnd, IDC_OPAQUESTATUS, cVideo.bOpaqueStatus ? BST_CHECKED : BST_UNCHECKED );
 
             return TRUE;
         }
@@ -308,6 +309,7 @@ INT_PTR WINAPI VideoProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
                                          cVideo.Direct3D );
                     cVideo.bShowFPS = ( IsDlgButtonChecked( hWnd, IDC_DISPLAYFPS ) == BST_CHECKED );
                     cVideo.bLimitFPS = ( IsDlgButtonChecked( hWnd, IDC_LIMITFPS ) == BST_CHECKED );
+                    cVideo.bOpaqueStatus = ( IsDlgButtonChecked( hWnd, IDC_OPAQUESTATUS ) == BST_CHECKED );
 
                     config.SetVideoSettings( cVideo );
                     SetWindowLongPtr( hWnd, DWLP_MSGRESULT, PSNRET_NOERROR );

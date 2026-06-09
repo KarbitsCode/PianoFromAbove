@@ -15,6 +15,8 @@
 #include "Config.h"
 #include "resource.h"
 
+#define ALPHA_PERCENT(p) ((unsigned)((p) * 255 / 100))
+
 const wstring GameState::Errors[] =
 {
     L"Success.",
@@ -914,6 +916,7 @@ GameState::GameError MainScreen::Logic( void )
     m_iEndNote = max( cVisual.iFirstKey, cVisual.iLastKey );
     m_bShowFPS = cVideo.bShowFPS;
     m_pRenderer->SetLimitFPS( cVideo.bLimitFPS );
+    m_bOpaqueStatus = cVideo.bOpaqueStatus;
     if ( cVisual.iBkgColor != m_csBackground.iOrigBGR ) m_csBackground.SetColor( cVisual.iBkgColor, 0.7f, 1.3f );
 
     double dMaxCorrect = ( mInfo.iMaxVolume > 0 ? 127.0 / mInfo.iMaxVolume : 1.0 );
@@ -1910,12 +1913,13 @@ void MainScreen::RenderText()
     rcMsg.bottom = rcMsg.top + iMsgCY;
 
     // Draw the backgrounds
-    unsigned iBkgColor = 0x40000000;
+    unsigned iStatusBkgColor = D3DCOLOR_ARGB(ALPHA_PERCENT(m_bOpaqueStatus ? 0 : 50), 0, 0, 0);
+    unsigned iZoomMoveBkgColor = D3DCOLOR_ARGB(ALPHA_PERCENT(25), 0, 0, 0);
     m_pRenderer->DrawRect( static_cast< float >( rcStatus.left ), static_cast< float >( rcStatus.top ), 
-        static_cast< float >( rcStatus.right - rcStatus.left ), static_cast< float >( rcStatus.bottom - rcStatus.top ), 0x80000000 );
+        static_cast< float >( rcStatus.right - rcStatus.left ), static_cast< float >( rcStatus.bottom - rcStatus.top ), iStatusBkgColor );
     if ( m_bZoomMove )
         m_pRenderer->DrawRect( static_cast< float >( rcMsg.left ), static_cast< float >( rcMsg.top ), 
-            static_cast< float >( rcMsg.right - rcMsg.left ), static_cast< float >( rcMsg.bottom - rcMsg.top ), iBkgColor );
+            static_cast< float >( rcMsg.right - rcMsg.left ), static_cast< float >( rcMsg.bottom - rcMsg.top ), iZoomMoveBkgColor );
 
     // Draw the text
     m_pRenderer->BeginText();
