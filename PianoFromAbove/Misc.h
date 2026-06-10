@@ -29,7 +29,7 @@ public:
     double GetSecs();
     long long GetMicroSecs();
     long long GetTicks();
-    long long GetTicksPerSec() { return m_llTicksPerSec; }
+    long long GetTicksPerSec() const { return m_llTicksPerSec; }
 
     // Status accessors
     bool IsStarted() const { return m_bStarted; }
@@ -63,7 +63,6 @@ class Util
 public:
     static wchar_t* StringToWstring( const string &s );
     static char* WstringToString( const wstring &s );
-    static void StripQuotes(LPWSTR s);
     static void ParseLongHex( const string &sText, string &sVal );
     static bool MD5( const unsigned char *pData, int iSize, string &sOut );
     static unsigned RandColor();

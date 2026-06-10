@@ -10,6 +10,7 @@
 *************************************************************************************************/
 #include <Windows.h>
 #include <CommCtrl.h>
+#include <shlwapi.h>
 #include <ctime>
 
 #include "MainProcs.h"
@@ -44,9 +45,9 @@ INT WINAPI wWinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpszCm
     srand( ( unsigned )time( NULL ) );
 
     // If we have a MIDI from command line, add to queue
-    if (lpszCmdLine && lpszCmdLine[0])
+    if ( lpszCmdLine && lpszCmdLine[0] )
     {
-        Util::StripQuotes( lpszCmdLine );
+        PathUnquoteSpaces( lpszCmdLine );
         g_sMIDILoadPending = lpszCmdLine;
     }
 

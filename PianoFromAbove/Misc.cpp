@@ -149,19 +149,6 @@ char* Util::WstringToString( const wstring &s )
     return m_sBuf;
 }
 
-void Util::StripQuotes(LPWSTR s)
-{
-    if (!s) return;
-
-    size_t len = wcslen(s);
-    if (len >= 2 && s[0] == L'"' && s[len - 1] == L'"')
-    {
-        // shift left by 1, remove trailing quote
-        wmemmove(s, s + 1, len - 2);
-        s[len - 2] = L'\0';
-    }
-}
-
 void Util::ParseLongHex( const string &sText, string &sVal )
 {
     int iLen = ( (int)sText.length() + 1 ) / 2;
