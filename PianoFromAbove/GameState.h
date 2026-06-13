@@ -238,6 +238,7 @@ private:
     int m_iLastTotalNotesHit;
     int m_iCurrentNotesHit; // Notes currently playing (polyphony)
     int m_iNotesHitSpeed; // For NPS (Note Per Second) calculation
+    int m_iShownTicks; // For tick-based rendering
 
     // FPS variables
     bool m_bShowFPS;

@@ -878,7 +878,7 @@ GameState::GameError MainScreen::MsgProc( HWND hWnd, UINT msg, WPARAM wParam, LP
     return Success;
 }
 
-GameState::GameError MainScreen::Logic( void )
+GameState::GameError MainScreen::Logic()
 {
     static Config &config = Config::GetConfig();
     static PlaybackSettings &cPlayback = config.GetPlaybackSettings();
@@ -961,9 +961,12 @@ GameState::GameError MainScreen::Logic( void )
 
     RenderGlobals();
 
+    m_iShownTicks = m_MIDI.GetInfo().iDivision / 1.5;
+
     // Advance end position
     int iEventCount = (int)m_vEvents.size();
-    while ( m_iEndPos + 1 < iEventCount && m_vEvents[static_cast< size_t >( m_iEndPos ) + 1]->GetAbsMicroSec() < llEndTime )
+    //while ( m_iEndPos + 1 < iEventCount && m_vEvents[static_cast< size_t >( m_iEndPos ) + 1]->GetAbsMicroSec() < llEndTime )
+    while ( m_iEndPos + 1 < iEventCount && m_vEvents[static_cast< size_t >( m_iEndPos ) + 1]->GetAbsT() < m_iStartTick + m_iShownTicks )
         m_iEndPos++;
 
     // Only want to advance start positions when unpaused becuase advancing startpos "consumes" the events
@@ -1576,10 +1579,17 @@ void MainScreen::RenderNote( int iPos )
     if ( m_vTrackSettings[iTrack].aChannels[iChannel].bHidden ) return;
 
     // Compute true positions
+
+    int iNoteStartTick = pNote->GetAbsT();
+    int iNoteEndTick = pNote->GetSister()->GetAbsT();
+    int iCurTick = GetCurrentTick( m_llStartTime );
+
     float x = GetNoteX( iNote );
-    float y = m_fNotesY + m_fNotesCY * ( 1.0f - static_cast< float >( llNoteStart - m_llRndStartTime ) / m_llTimeSpan );
+    // float y = m_fNotesY + m_fNotesCY * ( 1.0f - static_cast< float >( llNoteStart - m_llRndStartTime ) / m_llTimeSpan );
+    float y = m_fNotesY + m_fNotesCY * ( 1.0f - static_cast< float >( iNoteStartTick - iCurTick ) / m_iShownTicks );
     float cx =  MIDI::IsSharp( iNote ) ? m_fWhiteCX * SharpRatio : m_fWhiteCX;
-    float cy = m_fNotesCY * ( static_cast< float >( llNoteEnd - llNoteStart ) / m_llTimeSpan );
+    // float cy = m_fNotesCY * ( static_cast< float >( llNoteEnd - llNoteStart ) / m_llTimeSpan );
+    float cy = m_fNotesCY * ( static_cast< float >( iNoteEndTick - iNoteStartTick ) / m_iShownTicks );
     float fDeflate = m_fWhiteCX * 0.15f / 2.0f;
 
     // Rounding to make everything consistent
