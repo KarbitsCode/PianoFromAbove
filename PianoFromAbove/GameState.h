@@ -234,11 +234,10 @@ private:
     Timer m_Timer; // Frame timers
     bool m_bMute;
     double m_dVolume;
-    int m_iTotalNotesHit;
-    int m_iLastTotalNotesHit;
+    int m_iTotalNotesHit, m_iLastTotalNotesHit; // For note counter
     int m_iCurrentNotesHit; // Notes currently playing (polyphony)
     int m_iNotesHitSpeed; // For NPS (Note Per Second) calculation
-    long long m_llShownTicks; // For tick-based rendering
+    int m_iShownTicks; // For tick-based rendering
     bool m_bTickRenderMode;
 
     // FPS variables
