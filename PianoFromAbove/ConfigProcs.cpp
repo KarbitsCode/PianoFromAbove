@@ -77,6 +77,11 @@ INT_PTR WINAPI VisualProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
 
             // Config to fill out the form
             Config &config = Config::GetConfig();
+
+            HWND hWndRenderMode = GetDlgItem( hWnd, IDC_RENDERMODE );
+            SendMessage( hWndRenderMode, CB_ADDSTRING, 0, ( LPARAM )TEXT( "Time-Based" ));
+            SendMessage( hWndRenderMode, CB_ADDSTRING, 0, ( LPARAM )TEXT( "Tick-Based" ));
+
             SetVisualProc( hWnd, config.GetVisualSettings() );
             return TRUE;
         }
@@ -136,7 +141,7 @@ INT_PTR WINAPI VisualProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
                     cVisualSettings.LoadDefaultValues();
 
                     SendMessage( hWnd, WM_SETREDRAW, FALSE, 0 );
-                    SetVisualProc( hWnd, cVisualSettings  );
+                    SetVisualProc( hWnd, cVisualSettings );
                     SendMessage( hWnd, WM_SETREDRAW, TRUE, 0 );
                     InvalidateRect( hWnd, NULL, FALSE );
                     return TRUE;
@@ -166,9 +171,9 @@ INT_PTR WINAPI VisualProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
                                            cVisual.Song );
                     cVisual.bAlwaysShowControls = ( IsDlgButtonChecked( hWnd, IDC_SHOWCONTROLS ) == BST_CHECKED );
                     cVisual.bAssociateFiles = ( IsDlgButtonChecked( hWnd, IDC_ASSOCIATEFILES ) == BST_CHECKED );
-                    cVisual.bTickRenderMode = ( IsDlgButtonChecked( hWnd, IDC_RENDERONTICK ) == BST_CHECKED );
                     cVisual.iFirstKey = (int)SendMessage( GetDlgItem( hWnd, IDC_FIRSTKEY ), CB_GETCURSEL, 0, 0 ) + MIDI::CM1;
                     cVisual.iLastKey = (int)SendMessage( GetDlgItem( hWnd, IDC_LASTKEY ), CB_GETCURSEL, 0, 0 ) + MIDI::CM1;
+                    cVisual.eRenderMode = ( SendMessage( GetDlgItem( hWnd, IDC_RENDERMODE ), CB_GETCURSEL, 0, 0 ) == 0 ? VisualSettings::Time : VisualSettings::Tick );
                     for ( int i = 0; i < IDC_COLOR6 - IDC_COLOR1 + 1; i++ )
                         cVisual.colors[i] = (int)GetWindowLongPtr( GetDlgItem( hWnd, IDC_COLOR1 + i ), GWLP_USERDATA );
                     cVisual.iBkgColor = (int)GetWindowLongPtr( GetDlgItem( hWnd, IDC_BKGCOLOR ), GWLP_USERDATA );
@@ -193,15 +198,16 @@ VOID SetVisualProc( HWND hWnd, const VisualSettings &cVisual )
 {
     HWND hWndFirstKey = GetDlgItem( hWnd, IDC_FIRSTKEY );
     HWND hWndLastKey = GetDlgItem( hWnd, IDC_LASTKEY );
+    HWND hWndRenderMode = GetDlgItem( hWnd, IDC_RENDERMODE );
 
     // Set values
     CheckRadioButton( hWnd, IDC_SHOWALLKEYS, IDC_SHOWALLKEYS2, IDC_SHOWALLKEYS + cVisual.eKeysShown );
     CheckDlgButton( hWnd, IDC_SHOWCONTROLS, cVisual.bAlwaysShowControls ? BST_CHECKED : BST_UNCHECKED );
     CheckDlgButton( hWnd, IDC_ASSOCIATEFILES, cVisual.bAssociateFiles ? BST_CHECKED : BST_UNCHECKED );
-    CheckDlgButton( hWnd, IDC_RENDERONTICK, cVisual.bTickRenderMode ? BST_CHECKED : BST_UNCHECKED );
     SendMessage( hWnd, WM_COMMAND, IDC_SHOWALLKEYS + cVisual.eKeysShown, 0 );
     SendMessage( hWndFirstKey, CB_SETCURSEL, static_cast< WPARAM >( cVisual.iFirstKey ) - MIDI::CM1, 0 );
     SendMessage( hWndLastKey, CB_SETCURSEL, static_cast< WPARAM >( cVisual.iLastKey ) - MIDI::CM1, 0 );
+    SendMessage( hWndRenderMode, CB_SETCURSEL, cVisual.eRenderMode == VisualSettings::Time ? 0 : 1, 0 );
 
     // Colors
     for ( int i = 0; i < IDC_COLOR6 - IDC_COLOR1 + 1; i++ )
@@ -696,9 +702,9 @@ INT_PTR WINAPI TracksProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
     static vector< bool > vMuted, vHidden; // Would rather be part of control, but no subitem lparam available
     static vector< unsigned > vColors;
 
-	switch ( msg )
-	{
-	    case WM_INITDIALOG:
+    switch ( msg )
+    {
+        case WM_INITDIALOG:
         {
             HWND hWndTracks = GetDlgItem( hWnd, IDC_TRACKS );
             TCHAR buf[MAX_PATH];
@@ -923,7 +929,7 @@ INT_PTR WINAPI TracksProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
             }
             break;
         }
-	    case WM_COMMAND:
+        case WM_COMMAND:
         {
             int iId = LOWORD( wParam );
             switch ( iId )
@@ -934,12 +940,12 @@ INT_PTR WINAPI TracksProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
                     pGameState->SetChannelSettings( vMuted, vHidden, vColors );
                 }
                 case IDCANCEL:
-			        EndDialog( hWnd, iId );
-			        return TRUE;
+                    EndDialog( hWnd, iId );
+                    return TRUE;
             }
-		    break;
+            break;
         }
-	}
+    }
 
-	return FALSE;
+    return FALSE;
 }

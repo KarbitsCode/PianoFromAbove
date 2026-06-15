@@ -919,7 +919,7 @@ GameState::GameError MainScreen::Logic()
     m_pRenderer->SetLimitFPS( cVideo.bLimitFPS );
     m_bOpaqueStatus = cVideo.bOpaqueStatus;
     m_iShownTicks = static_cast< int >( llTickSpan );
-	m_bTickRenderMode = cVisual.bTickRenderMode;
+    m_bTickRenderMode = ( cVisual.eRenderMode == VisualSettings::Tick );
 
     if ( cVisual.iBkgColor != m_csBackground.iOrigBGR ) m_csBackground.SetColor( cVisual.iBkgColor, 0.7f, 1.3f );
 

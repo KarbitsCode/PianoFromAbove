@@ -70,8 +70,6 @@
 #define IDC_FIRSTKEY                    1062
 #define IDC_LASTKEY                     1063
 #define IDC_THROUGH                     1064
-#define IDC_COMBO1                      1072
-#define IDC_COMBO2                      1073
 #define IDC_RESET                       1076
 #define IDC_PIANOGROUP                  1078
 #define IDC_EDIT1                       1079
@@ -84,7 +82,7 @@
 #define IDC_LICENSE                     1093
 #define IDC_LOCK                        1094
 #define IDC_NSPEED                      1095
-#define IDC_RENDERONTICK                1096
+#define IDC_RENDERMODE                  1096
 #define ID_FILE_PLAYFILE                40001
 #define ID_FILE_ADDFILE                 40002
 #define ID_FILE_ADDFOLDER               40003
