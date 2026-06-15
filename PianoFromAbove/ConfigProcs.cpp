@@ -166,6 +166,7 @@ INT_PTR WINAPI VisualProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
                                            cVisual.Song );
                     cVisual.bAlwaysShowControls = ( IsDlgButtonChecked( hWnd, IDC_SHOWCONTROLS ) == BST_CHECKED );
                     cVisual.bAssociateFiles = ( IsDlgButtonChecked( hWnd, IDC_ASSOCIATEFILES ) == BST_CHECKED );
+                    cVisual.bTickRenderMode = ( IsDlgButtonChecked( hWnd, IDC_RENDERONTICK ) == BST_CHECKED );
                     cVisual.iFirstKey = (int)SendMessage( GetDlgItem( hWnd, IDC_FIRSTKEY ), CB_GETCURSEL, 0, 0 ) + MIDI::CM1;
                     cVisual.iLastKey = (int)SendMessage( GetDlgItem( hWnd, IDC_LASTKEY ), CB_GETCURSEL, 0, 0 ) + MIDI::CM1;
                     for ( int i = 0; i < IDC_COLOR6 - IDC_COLOR1 + 1; i++ )
@@ -197,6 +198,7 @@ VOID SetVisualProc( HWND hWnd, const VisualSettings &cVisual )
     CheckRadioButton( hWnd, IDC_SHOWALLKEYS, IDC_SHOWALLKEYS2, IDC_SHOWALLKEYS + cVisual.eKeysShown );
     CheckDlgButton( hWnd, IDC_SHOWCONTROLS, cVisual.bAlwaysShowControls ? BST_CHECKED : BST_UNCHECKED );
     CheckDlgButton( hWnd, IDC_ASSOCIATEFILES, cVisual.bAssociateFiles ? BST_CHECKED : BST_UNCHECKED );
+    CheckDlgButton( hWnd, IDC_RENDERONTICK, cVisual.bTickRenderMode ? BST_CHECKED : BST_UNCHECKED );
     SendMessage( hWnd, WM_COMMAND, IDC_SHOWALLKEYS + cVisual.eKeysShown, 0 );
     SendMessage( hWndFirstKey, CB_SETCURSEL, static_cast< WPARAM >( cVisual.iFirstKey ) - MIDI::CM1, 0 );
     SendMessage( hWndLastKey, CB_SETCURSEL, static_cast< WPARAM >( cVisual.iLastKey ) - MIDI::CM1, 0 );

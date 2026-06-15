@@ -129,6 +129,7 @@ void VisualSettings::LoadDefaultValues()
     this->eKeysShown = All;
     this->bAlwaysShowControls = false;
     this->bAssociateFiles = false;
+    this->bTickRenderMode = false;
     this->iFirstKey = MIDI::A0;
     this->iLastKey = MIDI::C8;
 
@@ -246,6 +247,8 @@ void VisualSettings::LoadConfigValues( TiXmlElement *txRoot )
         this->bAlwaysShowControls = ( iAttrVal != 0 );
     if ( txVisual->QueryIntAttribute( "AssociateFiles", &iAttrVal ) == TIXML_SUCCESS )
         this->bAssociateFiles = ( iAttrVal != 0 );
+    if ( txVisual->QueryIntAttribute( "TickRenderMode", &iAttrVal ) == TIXML_SUCCESS )
+        this->bTickRenderMode = ( iAttrVal != 0 );
     txVisual->QueryIntAttribute( "FirstKey", &this->iFirstKey );
     txVisual->QueryIntAttribute( "LastKey", &this->iLastKey );
 
@@ -417,6 +420,7 @@ bool VisualSettings::SaveConfigValues( TiXmlElement *txRoot )
     txVisual->SetAttribute( "KeysShown", this->eKeysShown );
     txVisual->SetAttribute( "AlwaysShowControls", this->bAlwaysShowControls );
     txVisual->SetAttribute( "AssociateFiles", this->bAssociateFiles );
+    txVisual->SetAttribute( "TickRenderMode", this->bTickRenderMode );
 
     if ( this->eKeysShown == VisualSettings::All2 )
     {

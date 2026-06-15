@@ -917,6 +917,9 @@ GameState::GameError MainScreen::Logic()
     m_bShowFPS = cVideo.bShowFPS;
     m_pRenderer->SetLimitFPS( cVideo.bLimitFPS );
     m_bOpaqueStatus = cVideo.bOpaqueStatus;
+    m_llShownTicks = m_MIDI.GetInfo().iDivision / 1.5;
+	m_bTickRenderMode = cVisual.bTickRenderMode;
+
     if ( cVisual.iBkgColor != m_csBackground.iOrigBGR ) m_csBackground.SetColor( cVisual.iBkgColor, 0.7f, 1.3f );
 
     double dMaxCorrect = ( mInfo.iMaxVolume > 0 ? 127.0 / mInfo.iMaxVolume : 1.0 );
@@ -961,13 +964,14 @@ GameState::GameError MainScreen::Logic()
 
     RenderGlobals();
 
-    m_iShownTicks = m_MIDI.GetInfo().iDivision / 1.5;
-
     // Advance end position
     int iEventCount = (int)m_vEvents.size();
-    //while ( m_iEndPos + 1 < iEventCount && m_vEvents[static_cast< size_t >( m_iEndPos ) + 1]->GetAbsMicroSec() < llEndTime )
-    while ( m_iEndPos + 1 < iEventCount && m_vEvents[static_cast< size_t >( m_iEndPos ) + 1]->GetAbsT() < m_iStartTick + m_iShownTicks )
-        m_iEndPos++;
+    if ( m_bTickRenderMode )
+        while ( m_iEndPos + 1 < iEventCount && m_vEvents[static_cast< size_t >( m_iEndPos ) + 1]->GetAbsT() < m_iStartTick + m_llShownTicks )
+            m_iEndPos++;
+    else
+        while ( m_iEndPos + 1 < iEventCount && m_vEvents[static_cast< size_t >( m_iEndPos ) + 1]->GetAbsMicroSec() < llEndTime )
+            m_iEndPos++;
 
     // Only want to advance start positions when unpaused becuase advancing startpos "consumes" the events
     if ( !m_bPaused )
@@ -1579,17 +1583,21 @@ void MainScreen::RenderNote( int iPos )
     if ( m_vTrackSettings[iTrack].aChannels[iChannel].bHidden ) return;
 
     // Compute true positions
-
     int iNoteStartTick = pNote->GetAbsT();
     int iNoteEndTick = pNote->GetSister()->GetAbsT();
-    int iCurTick = GetCurrentTick( m_llStartTime );
 
     float x = GetNoteX( iNote );
-    // float y = m_fNotesY + m_fNotesCY * ( 1.0f - static_cast< float >( llNoteStart - m_llRndStartTime ) / m_llTimeSpan );
-    float y = m_fNotesY + m_fNotesCY * ( 1.0f - static_cast< float >( iNoteStartTick - iCurTick ) / m_iShownTicks );
+    float y = 0;
+    if ( m_bTickRenderMode )
+        y = m_fNotesY + m_fNotesCY * ( 1.0f - static_cast< float >( iNoteStartTick - m_iStartTick ) / m_llShownTicks );
+    else
+        y = m_fNotesY + m_fNotesCY * (1.0f - static_cast<float>(llNoteStart - m_llRndStartTime) / m_llTimeSpan);
     float cx =  MIDI::IsSharp( iNote ) ? m_fWhiteCX * SharpRatio : m_fWhiteCX;
-    // float cy = m_fNotesCY * ( static_cast< float >( llNoteEnd - llNoteStart ) / m_llTimeSpan );
-    float cy = m_fNotesCY * ( static_cast< float >( iNoteEndTick - iNoteStartTick ) / m_iShownTicks );
+    float cy = 0;
+    if ( m_bTickRenderMode )
+        cy = m_fNotesCY * ( static_cast< float >( iNoteEndTick - iNoteStartTick ) / m_llShownTicks );
+    else
+        cy = m_fNotesCY * ( static_cast< float >( llNoteEnd - llNoteStart ) / m_llTimeSpan );
     float fDeflate = m_fWhiteCX * 0.15f / 2.0f;
 
     // Rounding to make everything consistent
