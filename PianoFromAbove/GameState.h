@@ -238,7 +238,6 @@ private:
     int m_iCurrentNotesHit; // Notes currently playing (polyphony)
     int m_iNotesHitSpeed; // For NPS (Note Per Second) calculation
     int m_iShownTicks; // For tick-based rendering
-    bool m_bTickRenderMode;
 
     // FPS variables
     bool m_bShowFPS;
@@ -253,7 +252,7 @@ private:
     static const float SharpRatio;
     static const float KeyRatio;
     bool m_bShowKB, m_bNoteLabels, m_bHaveMouse, m_bOpaqueStatus;
-    int m_eKeysShown, m_iHotNote, m_iNextHotNote, m_iSelectedNote, m_iNotesAlpha;
+    int m_eRenderMode, m_eKeysShown, m_iHotNote, m_iNextHotNote, m_iSelectedNote, m_iNotesAlpha;
     ChannelSettings m_csBackground;
     ChannelSettings m_csKBRed, m_csKBWhite, m_csKBSharp, m_csKBBackground;
     vector< TrackSettings > m_vTrackSettings;

@@ -81,6 +81,7 @@ INT_PTR WINAPI VisualProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
             HWND hWndRenderMode = GetDlgItem( hWnd, IDC_RENDERMODE );
             SendMessage( hWndRenderMode, CB_ADDSTRING, 0, ( LPARAM )TEXT( "Time-Based" ));
             SendMessage( hWndRenderMode, CB_ADDSTRING, 0, ( LPARAM )TEXT( "Tick-Based" ));
+            SendMessage( hWndRenderMode, CB_ADDSTRING, 0, ( LPARAM )TEXT( "Tick-Based (notes only)" ));
 
             SetVisualProc( hWnd, config.GetVisualSettings() );
             return TRUE;
@@ -173,7 +174,7 @@ INT_PTR WINAPI VisualProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
                     cVisual.bAssociateFiles = ( IsDlgButtonChecked( hWnd, IDC_ASSOCIATEFILES ) == BST_CHECKED );
                     cVisual.iFirstKey = (int)SendMessage( GetDlgItem( hWnd, IDC_FIRSTKEY ), CB_GETCURSEL, 0, 0 ) + MIDI::CM1;
                     cVisual.iLastKey = (int)SendMessage( GetDlgItem( hWnd, IDC_LASTKEY ), CB_GETCURSEL, 0, 0 ) + MIDI::CM1;
-                    cVisual.eRenderMode = ( SendMessage( GetDlgItem( hWnd, IDC_RENDERMODE ), CB_GETCURSEL, 0, 0 ) == 0 ? VisualSettings::Time : VisualSettings::Tick );
+                    cVisual.eRenderMode = static_cast< VisualSettings::RenderMode >( SendMessage( GetDlgItem( hWnd, IDC_RENDERMODE ), CB_GETCURSEL, 0, 0 ) );
                     for ( int i = 0; i < IDC_COLOR6 - IDC_COLOR1 + 1; i++ )
                         cVisual.colors[i] = (int)GetWindowLongPtr( GetDlgItem( hWnd, IDC_COLOR1 + i ), GWLP_USERDATA );
                     cVisual.iBkgColor = (int)GetWindowLongPtr( GetDlgItem( hWnd, IDC_BKGCOLOR ), GWLP_USERDATA );
@@ -207,7 +208,7 @@ VOID SetVisualProc( HWND hWnd, const VisualSettings &cVisual )
     SendMessage( hWnd, WM_COMMAND, IDC_SHOWALLKEYS + cVisual.eKeysShown, 0 );
     SendMessage( hWndFirstKey, CB_SETCURSEL, static_cast< WPARAM >( cVisual.iFirstKey ) - MIDI::CM1, 0 );
     SendMessage( hWndLastKey, CB_SETCURSEL, static_cast< WPARAM >( cVisual.iLastKey ) - MIDI::CM1, 0 );
-    SendMessage( hWndRenderMode, CB_SETCURSEL, cVisual.eRenderMode == VisualSettings::Time ? 0 : 1, 0 );
+    SendMessage( hWndRenderMode, CB_SETCURSEL, static_cast< WPARAM >( cVisual.eRenderMode ), 0 );
 
     // Colors
     for ( int i = 0; i < IDC_COLOR6 - IDC_COLOR1 + 1; i++ )

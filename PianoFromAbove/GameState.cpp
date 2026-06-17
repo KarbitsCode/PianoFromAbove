@@ -919,7 +919,7 @@ GameState::GameError MainScreen::Logic()
     m_pRenderer->SetLimitFPS( cVideo.bLimitFPS );
     m_bOpaqueStatus = cVideo.bOpaqueStatus;
     m_iShownTicks = static_cast< int >( llTickSpan );
-    m_bTickRenderMode = ( cVisual.eRenderMode == VisualSettings::Tick );
+    m_eRenderMode = cVisual.eRenderMode;
 
     if ( cVisual.iBkgColor != m_csBackground.iOrigBGR ) m_csBackground.SetColor( cVisual.iBkgColor, 0.7f, 1.3f );
 
@@ -968,7 +968,7 @@ GameState::GameError MainScreen::Logic()
 
     // Advance end position
     int iEventCount = (int)m_vEvents.size();
-    if ( m_bTickRenderMode )
+    if ( m_eRenderMode == VisualSettings::Tick || m_eRenderMode == VisualSettings::Tick2 )
         while ( m_iEndPos + 1 < iEventCount && m_vEvents[static_cast< size_t >( m_iEndPos ) + 1]->GetAbsT() < iEndTick )
             m_iEndPos++;
     else
@@ -1516,7 +1516,7 @@ void MainScreen::RenderLines()
             bool bIsMeasure = !( ( iNextBeat < 0 ? -iNextBeat : iNextBeat ) % iBeatsPerMeasure );
             llNextBeatTime = GetTickTime( iNextBeatTick, iLastTempoTick, llLastTempoTime, iMicroSecsPerBeat ); 
             float y = 0;
-            if ( m_bTickRenderMode )
+            if ( m_eRenderMode == VisualSettings::Tick )
                 y = m_fNotesY + m_fNotesCY * ( 1.0f - static_cast< float >( iNextBeatTick - m_iStartTick ) / m_iShownTicks );
             else
                 y = m_fNotesY + m_fNotesCY * ( 1.0f - static_cast< float >( llNextBeatTime - m_llRndStartTime ) / m_llTimeSpan );
@@ -1593,17 +1593,19 @@ void MainScreen::RenderNote( int iPos )
     int iNoteEndTick = pNote->GetSister()->GetAbsT();
 
     float x = GetNoteX( iNote );
-    float y = 0;
-    if ( m_bTickRenderMode )
-        y = m_fNotesY + m_fNotesCY * ( 1.0f - static_cast< float >( iNoteStartTick - m_iStartTick ) / m_iShownTicks );
-    else
-        y = m_fNotesY + m_fNotesCY * (1.0f - static_cast<float>(llNoteStart - m_llRndStartTime) / m_llTimeSpan);
     float cx =  MIDI::IsSharp( iNote ) ? m_fWhiteCX * SharpRatio : m_fWhiteCX;
+    float y = 0;
     float cy = 0;
-    if ( m_bTickRenderMode )
+    if ( m_eRenderMode == VisualSettings::Tick || m_eRenderMode == VisualSettings::Tick2 )
+    {
+        y = m_fNotesY + m_fNotesCY * ( 1.0f - static_cast< float >( iNoteStartTick - m_iStartTick ) / m_iShownTicks );
         cy = m_fNotesCY * ( static_cast< float >( iNoteEndTick - iNoteStartTick ) / m_iShownTicks );
+    }
     else
+    {
+        y = m_fNotesY + m_fNotesCY * (1.0f - static_cast<float>(llNoteStart - m_llRndStartTime) / m_llTimeSpan);
         cy = m_fNotesCY * ( static_cast< float >( llNoteEnd - llNoteStart ) / m_llTimeSpan );
+    }
     float fDeflate = m_fWhiteCX * 0.15f / 2.0f;
 
     // Rounding to make everything consistent
@@ -1689,7 +1691,7 @@ bool MainScreen::RenderLabel( int iPos, bool bSetState )
     // Compute true positions
     float x = GetNoteX( iNote );
     float y = 0;
-    if ( m_bTickRenderMode )
+    if ( m_eRenderMode == VisualSettings::Tick )
         y = m_fNotesY + m_fNotesCY * ( 1.0f - static_cast< float >( iNoteStartTick - m_iStartTick ) / m_iShownTicks );
     else
         y = m_fNotesY + m_fNotesCY * ( 1.0f - static_cast< float >( llNoteStart - m_llRndStartTime ) / m_llTimeSpan );
