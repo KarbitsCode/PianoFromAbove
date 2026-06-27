@@ -13,6 +13,7 @@
 #include "Globals.h"
 #include "GameState.h"
 #include "Config.h"
+#include "Audio.h"
 #include "resource.h"
 
 #define ALPHA_PERCENT(p) ((unsigned)((p) * 255 / 100))
@@ -803,7 +804,7 @@ GameState::GameError MainScreen::MsgProc( HWND hWnd, UINT msg, WPARAM wParam, LP
             break;
         }
         case WM_DEVICECHANGE:
-            if ( cAudio.iOutDevice >= 0 && m_OutDevice.GetDevice() != cAudio.vMIDIOutDevices[cAudio.iOutDevice] )
+            if ( ( cAudio.iOutDevice >= 0 && m_OutDevice.GetDevice() != cAudio.vMIDIOutDevices[cAudio.iOutDevice] ) || wParam == DEVICECHANGE_AUDIO_ENDPOINT )
                 m_OutDevice.Open( cAudio.iOutDevice );
             break;
         case TBM_SETPOS:

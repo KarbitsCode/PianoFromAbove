@@ -19,6 +19,7 @@
 #include "Config.h"
 #include "GameState.h"
 #include "Renderer.h"
+#include "Audio.h"
 #include "Misc.h"
 
 INT WINAPI wWinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpszCmdLine, INT nCmdShow );
@@ -34,6 +35,8 @@ HWND g_hWndLibDlg = NULL;
 HWND g_hWndGfx = NULL;
 TSQueue< MSG > g_MsgQueue; // Producer/consumer to hold events for our game thread
 LPWSTR g_sMIDILoadPending = NULL;
+IMMDeviceEnumerator* g_pDeviceEnumerator = NULL;
+AudioNotificationClient* g_pAudioNotify = NULL;
 
 //-----------------------------------------------------------------------------
 // Name: wWinMain()
@@ -139,6 +142,27 @@ INT WINAPI wWinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpszCm
     SetFocus( g_hWndGfx );
     cPlayback.SetPaused( false, false );
 
+    // Trying to make bluetooth device detector
+    hr = CoCreateInstance(
+        __uuidof(MMDeviceEnumerator),
+        NULL,
+        CLSCTX_INPROC_SERVER,
+        __uuidof(IMMDeviceEnumerator),
+        (void**)&g_pDeviceEnumerator);
+
+    if (SUCCEEDED(hr))
+    {
+        g_pAudioNotify = new AudioNotificationClient();
+        hr = g_pDeviceEnumerator->RegisterEndpointNotificationCallback(g_pAudioNotify);
+        if (FAILED(hr))
+        {
+            delete g_pAudioNotify;
+            g_pAudioNotify = NULL;
+            g_pDeviceEnumerator->Release();
+            g_pDeviceEnumerator = NULL;
+        }
+    }
+
     // Enter the message loop
     MSG msg = { 0 };
     while( GetMessage( &msg, NULL, 0, 0 ) )
@@ -159,6 +183,12 @@ INT WINAPI wWinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpszCm
     config.SaveConfigValues();
 
     // Clean up
+    if (g_pDeviceEnumerator && g_pAudioNotify)
+    {
+        g_pDeviceEnumerator->UnregisterEndpointNotificationCallback(g_pAudioNotify);
+        g_pAudioNotify->Release();
+        g_pDeviceEnumerator->Release();
+    }
     UnregisterClass( CLASSNAME, wc.hInstance );
     CoUninitialize();
     return 0;

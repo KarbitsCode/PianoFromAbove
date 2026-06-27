@@ -185,6 +185,7 @@
     </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup>
+    <ClInclude Include="Audio.h" />
     <ClInclude Include="Config.h" />
     <ClInclude Include="ConfigProcs.h" />
     <ClInclude Include="GameState.h" />
@@ -202,6 +203,7 @@
     <ResourceCompile Include="PianoFromAbove.rc" />
   </ItemGroup>
   <ItemGroup>
+    <ClCompile Include="Audio.cpp" />
     <ClCompile Include="Config.cpp" />
     <ClCompile Include="ConfigProcs.cpp" />
     <ClCompile Include="GameState.cpp" />

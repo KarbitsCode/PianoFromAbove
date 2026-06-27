@@ -303,7 +303,7 @@ LRESULT WINAPI WndProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
         case WM_DEVICECHANGE:
             Sleep( 200 );
             Config::GetConfig().LoadMIDIDevices();
-            HandOffMsg( WM_DEVICECHANGE, 0, 0 );
+            HandOffMsg( WM_DEVICECHANGE, wParam == DEVICECHANGE_AUDIO_ENDPOINT ? DEVICECHANGE_AUDIO_ENDPOINT : 0, 0 );
             break;
         case WM_TIMER:
             if (wParam == IDC_LOADQUEUETIMER)
@@ -1439,7 +1439,6 @@ INT_PTR WINAPI AboutProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
 }
 
 // Helpers involved with user interaction and the GUI
-
 VOID HandOffMsg( UINT msg, WPARAM wParam, LPARAM lParam )
 {
     MSG msgGameThread = { g_hWndGfx, msg, wParam, lParam };
