@@ -1,7 +1,7 @@
 #pragma once
-#define DEVICECHANGE_AUDIO_ENDPOINT 1
 
 #include <mmdeviceapi.h>
+constexpr auto DEVICECHANGE_AUDIO_ENDPOINT = 0x1000;
 
 class AudioNotificationClient : public IMMNotificationClient
 {

@@ -227,7 +227,7 @@ GameState::GameError SplashScreen::MsgProc( HWND hWnd, UINT msg, WPARAM wParam, 
             }
         }
         case WM_DEVICECHANGE:
-            if ( cAudio.iOutDevice >= 0 && m_OutDevice.GetDevice() != cAudio.vMIDIOutDevices[cAudio.iOutDevice] )
+            if ( ( cAudio.iOutDevice >= 0 && m_OutDevice.GetDevice() != cAudio.vMIDIOutDevices[cAudio.iOutDevice] ) || wParam == DEVICECHANGE_AUDIO_ENDPOINT )
                 m_OutDevice.Open( cAudio.iOutDevice );
             break;
         case WM_KEYDOWN:
