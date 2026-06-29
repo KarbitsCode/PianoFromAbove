@@ -509,13 +509,19 @@ LRESULT WINAPI GfxProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
         case WM_DROPFILES:
         {
             HDROP hDrop = ( HDROP )wParam;
-            UINT uNumFiles = DragQueryFile( hDrop, 0xFFFFFFFF, NULL, 0 );
-            if ( uNumFiles > 0 )
+            POINT pt;
+            DragQueryPoint( hDrop, &pt );
+            HWND hWndDrop = ChildWindowFromPoint( g_hWnd, pt );
+            if ( hWndDrop == g_hWndGfx )
             {
-                static TCHAR sFilename[1024] = { 0 };
-                DragQueryFile( hDrop, 0, sFilename, _countof(sFilename) );
-                g_sMIDILoadPending = sFilename;
-                SetTimer( g_hWnd, IDC_LOADQUEUETIMER, 0, NULL );
+                UINT uNumFiles = DragQueryFile( hDrop, 0xFFFFFFFF, NULL, 0 );
+                if ( uNumFiles > 0 )
+                {
+                    static TCHAR sFilename[1024] = { 0 };
+                    DragQueryFile( hDrop, 0, sFilename, _countof( sFilename ) );
+                    g_sMIDILoadPending = sFilename;
+                    SetTimer( g_hWnd, IDC_LOADQUEUETIMER, 0, NULL );
+                }
             }
             DragFinish( hDrop );
             break;

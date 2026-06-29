@@ -145,17 +145,17 @@ INT WINAPI wWinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpszCm
 
     // Trying to make bluetooth device detector
     hr = CoCreateInstance(
-        __uuidof(MMDeviceEnumerator),
+        __uuidof( MMDeviceEnumerator ),
         NULL,
         CLSCTX_INPROC_SERVER,
-        __uuidof(IMMDeviceEnumerator),
-        (void**)&g_pDeviceEnumerator);
+        __uuidof( IMMDeviceEnumerator ),
+        ( void** )&g_pDeviceEnumerator );
 
-    if (SUCCEEDED(hr))
+    if ( SUCCEEDED( hr ) )
     {
         g_pAudioNotify = new AudioNotificationClient();
-        hr = g_pDeviceEnumerator->RegisterEndpointNotificationCallback(g_pAudioNotify);
-        if (FAILED(hr))
+        hr = g_pDeviceEnumerator->RegisterEndpointNotificationCallback( g_pAudioNotify );
+        if ( FAILED( hr ) )
         {
             delete g_pAudioNotify;
             g_pAudioNotify = NULL;
