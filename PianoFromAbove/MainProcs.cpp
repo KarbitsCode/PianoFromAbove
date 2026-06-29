@@ -511,8 +511,10 @@ LRESULT WINAPI GfxProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
             HDROP hDrop = ( HDROP )wParam;
             POINT pt;
             DragQueryPoint( hDrop, &pt );
-            HWND hWndDrop = ChildWindowFromPoint( g_hWnd, pt );
-            if ( hWndDrop == g_hWndGfx )
+            ClientToScreen( g_hWndGfx, &pt );
+            HWND hWndDrop = WindowFromPoint( pt );
+            HWND hWndParent = GetParent( hWndDrop );
+            if ( hWndDrop == g_hWndGfx && hWndParent == g_hWnd )
             {
                 UINT uNumFiles = DragQueryFile( hDrop, 0xFFFFFFFF, NULL, 0 );
                 if ( uNumFiles > 0 )

@@ -140,7 +140,7 @@ INT WINAPI wWinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpszCm
     ShowWindow( g_hWnd, nCmdShow );
     UpdateWindow( g_hWnd );
     SetFocus( g_hWndGfx );
-    DragAcceptFiles(g_hWndGfx, TRUE); // Now accepts drag-n-drop
+    DragAcceptFiles( g_hWndGfx, TRUE ); // Now accepts drag-n-drop
     cPlayback.SetPaused( false, false );
 
     // Trying to make bluetooth device detector
