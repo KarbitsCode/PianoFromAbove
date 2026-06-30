@@ -45,6 +45,10 @@ Function uninstall
     Done:
 FunctionEnd
 
+Function launchPFA
+    ShellExecAsUser::ShellExecAsUser "" "$INSTDIR\$TargetFile" "" ""
+FunctionEnd
+
 ;--------------------------------
 ;Interface Configuration
 
@@ -52,7 +56,8 @@ FunctionEnd
 !define MUI_HEADERIMAGE
 !define MUI_HEADERIMAGE_BITMAP "PianoFromAbove\Images\Install Header.bmp"
 !define MUI_WELCOMEFINISHPAGE_BITMAP "PianoFromAbove\Images\Mirror Wizard.bmp"
-!define MUI_FINISHPAGE_RUN "$INSTDIR\$TargetFile"
+!define MUI_FINISHPAGE_RUN
+!define MUI_FINISHPAGE_RUN_FUNCTION launchPFA
 !define MUI_ABORTWARNING
 
 ;--------------------------------
