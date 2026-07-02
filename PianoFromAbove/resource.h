@@ -83,6 +83,7 @@
 #define IDC_LOCK                        1094
 #define IDC_NSPEED                      1095
 #define IDC_RENDERMODE                  1096
+#define IDC_ACDNTDISPLAY                1097
 #define ID_FILE_PLAYFILE                40001
 #define ID_FILE_ADDFILE                 40002
 #define ID_FILE_ADDFOLDER               40003
@@ -182,7 +183,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        153
 #define _APS_NEXT_COMMAND_VALUE         40176
-#define _APS_NEXT_CONTROL_VALUE         1097
+#define _APS_NEXT_CONTROL_VALUE         1098
 #define _APS_NEXT_SYMED_VALUE           102
 #endif
 #endif

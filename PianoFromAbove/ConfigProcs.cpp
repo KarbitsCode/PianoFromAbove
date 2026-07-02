@@ -65,25 +65,30 @@ INT_PTR WINAPI VisualProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
     {
         case WM_INITDIALOG:
         {
-            HWND hWndFirstKey = GetDlgItem( hWnd, IDC_FIRSTKEY );
-            HWND hWndLastKey = GetDlgItem( hWnd, IDC_LASTKEY );
-
-            // Enumerate the keys
-            for ( int i = MIDI::CM1; i <= MIDI::G9; i++ )
-            {
-                SendMessage( hWndFirstKey, CB_ADDSTRING, i, ( LPARAM )MIDI::NoteName(i).c_str() );
-                SendMessage( hWndLastKey, CB_ADDSTRING, i, ( LPARAM )MIDI::NoteName(i).c_str() );
-            }
-
             // Config to fill out the form
             Config &config = Config::GetConfig();
+            VisualSettings cVisual = config.GetVisualSettings();
+
+            HWND hWndFirstKey = GetDlgItem(hWnd, IDC_FIRSTKEY);
+            HWND hWndLastKey = GetDlgItem(hWnd, IDC_LASTKEY);
+
+            // Enumerate the keys
+            for (int i = MIDI::CM1; i <= MIDI::G9; i++)
+            {
+                SendMessage( hWndFirstKey, CB_ADDSTRING, i, ( LPARAM )MIDI::NoteName( i, cVisual.eAccidentals == VisualSettings::Flats ).c_str() );
+                SendMessage( hWndLastKey, CB_ADDSTRING, i, ( LPARAM )MIDI::NoteName( i, cVisual.eAccidentals == VisualSettings::Flats ).c_str() );
+            }
 
             HWND hWndRenderMode = GetDlgItem( hWnd, IDC_RENDERMODE );
             SendMessage( hWndRenderMode, CB_ADDSTRING, 0, ( LPARAM )TEXT( "Time-Based" ));
             SendMessage( hWndRenderMode, CB_ADDSTRING, 0, ( LPARAM )TEXT( "Tick-Based" ));
             SendMessage( hWndRenderMode, CB_ADDSTRING, 0, ( LPARAM )TEXT( "Tick-Based (notes only)" ));
 
-            SetVisualProc( hWnd, config.GetVisualSettings() );
+            HWND hWndAccidentalNoteDisplay = GetDlgItem( hWnd, IDC_ACDNTDISPLAY );
+            SendMessage( hWndAccidentalNoteDisplay, CB_ADDSTRING, 0, ( LPARAM )TEXT( "Sharps" ));
+            SendMessage( hWndAccidentalNoteDisplay, CB_ADDSTRING, 0, ( LPARAM )TEXT( "Flats" ));
+
+            SetVisualProc( hWnd, cVisual );
             return TRUE;
         }
         // Draws the colored buttons
@@ -175,6 +180,7 @@ INT_PTR WINAPI VisualProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
                     cVisual.iFirstKey = (int)SendMessage( GetDlgItem( hWnd, IDC_FIRSTKEY ), CB_GETCURSEL, 0, 0 ) + MIDI::CM1;
                     cVisual.iLastKey = (int)SendMessage( GetDlgItem( hWnd, IDC_LASTKEY ), CB_GETCURSEL, 0, 0 ) + MIDI::CM1;
                     cVisual.eRenderMode = static_cast< VisualSettings::RenderMode >( SendMessage( GetDlgItem( hWnd, IDC_RENDERMODE ), CB_GETCURSEL, 0, 0 ) );
+                    cVisual.eAccidentals = static_cast< VisualSettings::Accidentals >( SendMessage( GetDlgItem( hWnd, IDC_ACDNTDISPLAY ), CB_GETCURSEL, 0, 0 ) );
                     for ( int i = 0; i < IDC_COLOR6 - IDC_COLOR1 + 1; i++ )
                         cVisual.colors[i] = (int)GetWindowLongPtr( GetDlgItem( hWnd, IDC_COLOR1 + i ), GWLP_USERDATA );
                     cVisual.iBkgColor = (int)GetWindowLongPtr( GetDlgItem( hWnd, IDC_BKGCOLOR ), GWLP_USERDATA );
@@ -200,6 +206,7 @@ VOID SetVisualProc( HWND hWnd, const VisualSettings &cVisual )
     HWND hWndFirstKey = GetDlgItem( hWnd, IDC_FIRSTKEY );
     HWND hWndLastKey = GetDlgItem( hWnd, IDC_LASTKEY );
     HWND hWndRenderMode = GetDlgItem( hWnd, IDC_RENDERMODE );
+    HWND hWndAccidentalNoteDisplay = GetDlgItem( hWnd, IDC_ACDNTDISPLAY );
 
     // Set values
     CheckRadioButton( hWnd, IDC_SHOWALLKEYS, IDC_SHOWALLKEYS2, IDC_SHOWALLKEYS + cVisual.eKeysShown );
@@ -209,6 +216,7 @@ VOID SetVisualProc( HWND hWnd, const VisualSettings &cVisual )
     SendMessage( hWndFirstKey, CB_SETCURSEL, static_cast< WPARAM >( cVisual.iFirstKey ) - MIDI::CM1, 0 );
     SendMessage( hWndLastKey, CB_SETCURSEL, static_cast< WPARAM >( cVisual.iLastKey ) - MIDI::CM1, 0 );
     SendMessage( hWndRenderMode, CB_SETCURSEL, static_cast< WPARAM >( cVisual.eRenderMode ), 0 );
+    SendMessage( hWndAccidentalNoteDisplay, CB_SETCURSEL, static_cast< WPARAM >( cVisual.eAccidentals ), 0 );
 
     // Colors
     for ( int i = 0; i < IDC_COLOR6 - IDC_COLOR1 + 1; i++ )

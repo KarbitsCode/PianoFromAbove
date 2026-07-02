@@ -128,6 +128,7 @@ void VisualSettings::LoadDefaultValues()
 {
     this->eKeysShown = All;
     this->eRenderMode = Time;
+    this->eAccidentals = Sharps;
     this->bAlwaysShowControls = false;
     this->bAssociateFiles = false;
     this->iFirstKey = MIDI::A0;
@@ -249,6 +250,8 @@ void VisualSettings::LoadConfigValues( TiXmlElement *txRoot )
         this->bAssociateFiles = ( iAttrVal != 0 );
     if ( txVisual->QueryIntAttribute( "RenderMode", &iAttrVal ) == TIXML_SUCCESS )
         this->eRenderMode = static_cast< RenderMode >( iAttrVal );
+    if ( txVisual->QueryIntAttribute( "Accidentals", &iAttrVal ) == TIXML_SUCCESS )
+        this->eAccidentals = static_cast< Accidentals >( iAttrVal );
     txVisual->QueryIntAttribute( "FirstKey", &this->iFirstKey );
     txVisual->QueryIntAttribute( "LastKey", &this->iLastKey );
 
@@ -421,6 +424,7 @@ bool VisualSettings::SaveConfigValues( TiXmlElement *txRoot )
     txVisual->SetAttribute( "AlwaysShowControls", this->bAlwaysShowControls );
     txVisual->SetAttribute( "AssociateFiles", this->bAssociateFiles );
     txVisual->SetAttribute( "RenderMode", this->eRenderMode );
+    txVisual->SetAttribute( "Accidentals", this->eAccidentals );
 
     if ( this->eKeysShown == VisualSettings::All2 )
     {

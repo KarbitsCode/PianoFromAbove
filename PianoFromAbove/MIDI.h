@@ -75,7 +75,7 @@ public:
     static const int CM1 = C8 - 9 * 12;
     static const int Drums = 0x09;
     static const wstring Instruments[129];
-    static const wstring &NoteName( int iNote );
+    static const wstring &NoteName( int iNote, bool bUseFlats = false );
     static Note NoteVal( int iNote );
     static bool IsSharp( int iNote );
     static int WhiteCount( int iMinNote, int iMaxNote );

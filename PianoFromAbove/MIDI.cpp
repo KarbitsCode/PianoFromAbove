@@ -194,11 +194,12 @@ const wstring MIDI::Instruments[129] =
     L"Helicopter", L"Applause", L"Gunshot", L"Various"
 };
 
-const wstring &MIDI::NoteName( int iNote )
+const wstring &MIDI::NoteName( int iNote, bool bUseFlats )
 {
     InitArrays();
-    if ( iNote < 0 || iNote >= MIDI::KEYS ) return aNoteNamesFlat[MIDI::KEYS];
-    return aNoteNamesFlat[iNote];
+    const wstring* pNames = bUseFlats ? aNoteNamesFlat : aNoteNamesSharp;
+    if ( iNote < 0 || iNote >= MIDI::KEYS ) return pNames[MIDI::KEYS];
+    return pNames[iNote];
 }
 
 MIDI::Note MIDI::NoteVal( int iNote )

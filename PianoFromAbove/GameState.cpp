@@ -921,6 +921,7 @@ GameState::GameError MainScreen::Logic()
     m_bOpaqueStatus = cVideo.bOpaqueStatus;
     m_iShownTicks = static_cast< int >( llTickSpan );
     m_eRenderMode = cVisual.eRenderMode;
+    m_bUseFlats = ( cVisual.eAccidentals == VisualSettings::Flats );
 
     if ( cVisual.iBkgColor != m_csBackground.iOrigBGR ) m_csBackground.SetColor( cVisual.iBkgColor, 0.7f, 1.3f );
 
@@ -1718,7 +1719,7 @@ bool MainScreen::RenderLabel( int iPos, bool bSetState )
     if ( m_bNoteLabels )
     {
         OffsetRect( &rc, -1, -1 );
-        const wstring &sLabel = MIDI::NoteName( iNote );
+        const wstring &sLabel = MIDI::NoteName( iNote, m_bUseFlats );
         m_pRenderer->DrawTextW( sLabel.c_str(), Renderer::SmallBold, &rc, DT_CENTER | DT_NOCLIP, csTrack.iVeryDarkRGB | iAlpha, (int)sLabel.length() - 1 );
         OffsetRect( &rc, 1, 1 );
         m_pRenderer->DrawTextW( sLabel.c_str(), Renderer::SmallBold, &rc, DT_CENTER | DT_NOCLIP, 0x00FFFFFF | iAlpha, (int)sLabel.length() - 1 );
