@@ -197,8 +197,8 @@ const wstring MIDI::Instruments[129] =
 const wstring &MIDI::NoteName( int iNote )
 {
     InitArrays();
-    if ( iNote < 0 || iNote >= MIDI::KEYS ) return aNoteNames[MIDI::KEYS];
-    return aNoteNames[iNote];
+    if ( iNote < 0 || iNote >= MIDI::KEYS ) return aNoteNamesFlat[MIDI::KEYS];
+    return aNoteNamesFlat[iNote];
 }
 
 MIDI::Note MIDI::NoteVal( int iNote )
@@ -223,7 +223,8 @@ int MIDI::WhiteCount( int iMinNote, int iMaxNote )
     return aWhiteCount[iMaxNote] - aWhiteCount[iMinNote];
 }
 
-wstring MIDI::aNoteNames[MIDI::KEYS + 1];
+wstring MIDI::aNoteNamesSharp[MIDI::KEYS + 1];
+wstring MIDI::aNoteNamesFlat[MIDI::KEYS + 1];
 MIDI::Note MIDI::aNoteVal[MIDI::KEYS];
 bool MIDI::aIsSharp[MIDI::KEYS];
 int MIDI::aWhiteCount[MIDI::KEYS + 1];
@@ -250,7 +251,21 @@ void MIDI::InitArrays()
             buf[iPos++] = L'0' + abs( iOctave );
             buf[iPos++] = L'\0';
 
-            aNoteNames[i] = buf;
+            // Building flats from sharps
+            wstring flat = buf;
+            if (flat.substr(0, 2) == L"C#")
+                flat.replace(0, 2, L"Db");
+            else if (flat.substr(0, 2) == L"D#")
+                flat.replace(0, 2, L"Eb");
+            else if (flat.substr(0, 2) == L"F#")
+                flat.replace(0, 2, L"Gb");
+            else if (flat.substr(0, 2) == L"G#")
+                flat.replace(0, 2, L"Ab");
+            else if (flat.substr(0, 2) == L"A#")
+                flat.replace(0, 2, L"Bb");
+            aNoteNamesFlat[i] = flat;
+
+            aNoteNamesSharp[i] = buf;
             aNoteVal[i] = eNote;
             aIsSharp[i] = bIsSharp;
 
@@ -272,7 +287,7 @@ void MIDI::InitArrays()
         aWhiteCount[0] = 0;
         for ( int i = 1; i < MIDI::KEYS + 1; i++ )
             aWhiteCount[i] = aWhiteCount[i - 1] + !aIsSharp[i - 1];
-        aNoteNames[MIDI::KEYS] = L"Invalid";
+        aNoteNamesSharp[MIDI::KEYS] = L"Invalid";
         bValid = true;
     }
 }

@@ -128,7 +128,8 @@ public:
 
 private:
     static void InitArrays();
-    static wstring aNoteNames[KEYS + 1];
+    static wstring aNoteNamesSharp[KEYS + 1];
+    static wstring aNoteNamesFlat[KEYS + 1];
     static Note aNoteVal[KEYS];
     static bool aIsSharp[KEYS];
     static int aWhiteCount[KEYS + 1];
