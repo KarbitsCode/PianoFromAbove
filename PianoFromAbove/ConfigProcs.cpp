@@ -69,25 +69,18 @@ INT_PTR WINAPI VisualProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
             Config &config = Config::GetConfig();
             VisualSettings cVisual = config.GetVisualSettings();
 
-            HWND hWndFirstKey = GetDlgItem(hWnd, IDC_FIRSTKEY);
-            HWND hWndLastKey = GetDlgItem(hWnd, IDC_LASTKEY);
-
-            // Enumerate the keys
-            for (int i = MIDI::CM1; i <= MIDI::G9; i++)
-            {
-                SendMessage( hWndFirstKey, CB_ADDSTRING, i, ( LPARAM )MIDI::NoteName( i, cVisual.eAccidentals == VisualSettings::Flats ).c_str() );
-                SendMessage( hWndLastKey, CB_ADDSTRING, i, ( LPARAM )MIDI::NoteName( i, cVisual.eAccidentals == VisualSettings::Flats ).c_str() );
-            }
-
             HWND hWndRenderMode = GetDlgItem( hWnd, IDC_RENDERMODE );
-            SendMessage( hWndRenderMode, CB_ADDSTRING, 0, ( LPARAM )TEXT( "Time-Based" ));
-            SendMessage( hWndRenderMode, CB_ADDSTRING, 0, ( LPARAM )TEXT( "Tick-Based" ));
-            SendMessage( hWndRenderMode, CB_ADDSTRING, 0, ( LPARAM )TEXT( "Tick-Based (notes only)" ));
+            SendMessage( hWndRenderMode, CB_RESETCONTENT, 0, 0 );
+            SendMessage( hWndRenderMode, CB_ADDSTRING, 0, ( LPARAM )TEXT( "Time-Based" ) );
+            SendMessage( hWndRenderMode, CB_ADDSTRING, 0, ( LPARAM )TEXT( "Tick-Based" ) );
+            SendMessage( hWndRenderMode, CB_ADDSTRING, 0, ( LPARAM )TEXT( "Tick-Based (notes only)" ) );
 
             HWND hWndAccidentalNoteDisplay = GetDlgItem( hWnd, IDC_ACDNTDISPLAY );
-            SendMessage( hWndAccidentalNoteDisplay, CB_ADDSTRING, 0, ( LPARAM )TEXT( "Sharps" ));
-            SendMessage( hWndAccidentalNoteDisplay, CB_ADDSTRING, 0, ( LPARAM )TEXT( "Flats" ));
+            SendMessage( hWndAccidentalNoteDisplay, CB_RESETCONTENT, 0, 0 );
+            SendMessage( hWndAccidentalNoteDisplay, CB_ADDSTRING, 0, ( LPARAM )TEXT( "Sharps" ) );
+            SendMessage( hWndAccidentalNoteDisplay, CB_ADDSTRING, 0, ( LPARAM )TEXT( "Flats" ) );
 
+            FillKeysDropdown( hWnd, cVisual.eAccidentals );
             SetVisualProc( hWnd, cVisual );
             return TRUE;
         }
@@ -180,7 +173,11 @@ INT_PTR WINAPI VisualProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
                     cVisual.iFirstKey = (int)SendMessage( GetDlgItem( hWnd, IDC_FIRSTKEY ), CB_GETCURSEL, 0, 0 ) + MIDI::CM1;
                     cVisual.iLastKey = (int)SendMessage( GetDlgItem( hWnd, IDC_LASTKEY ), CB_GETCURSEL, 0, 0 ) + MIDI::CM1;
                     cVisual.eRenderMode = static_cast< VisualSettings::RenderMode >( SendMessage( GetDlgItem( hWnd, IDC_RENDERMODE ), CB_GETCURSEL, 0, 0 ) );
-                    cVisual.eAccidentals = static_cast< VisualSettings::Accidentals >( SendMessage( GetDlgItem( hWnd, IDC_ACDNTDISPLAY ), CB_GETCURSEL, 0, 0 ) );
+                    auto newAccidentals = static_cast< VisualSettings::Accidentals >( SendMessage( GetDlgItem( hWnd, IDC_ACDNTDISPLAY ), CB_GETCURSEL, 0, 0 ) );
+                    if ( newAccidentals != cVisual.eAccidentals )
+                        FillKeysDropdown( hWnd, newAccidentals );
+                    cVisual.eAccidentals = newAccidentals;
+                    
                     for ( int i = 0; i < IDC_COLOR6 - IDC_COLOR1 + 1; i++ )
                         cVisual.colors[i] = (int)GetWindowLongPtr( GetDlgItem( hWnd, IDC_COLOR1 + i ), GWLP_USERDATA );
                     cVisual.iBkgColor = (int)GetWindowLongPtr( GetDlgItem( hWnd, IDC_BKGCOLOR ), GWLP_USERDATA );
@@ -189,6 +186,7 @@ INT_PTR WINAPI VisualProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
                     config.SetVisualSettings( cVisual );
                     if ( cView.GetFullScreen() && bAlwaysShowControls != cVisual.bAlwaysShowControls )
                         cView.SetControls( cView.GetControls(), true );
+                    SetVisualProc( hWnd, cVisual );
                     SetWindowLongPtr( hWnd, DWLP_MSGRESULT, PSNRET_NOERROR );
                     return TRUE;
                 }
@@ -222,6 +220,22 @@ VOID SetVisualProc( HWND hWnd, const VisualSettings &cVisual )
     for ( int i = 0; i < IDC_COLOR6 - IDC_COLOR1 + 1; i++ )
         SetWindowLongPtr( GetDlgItem( hWnd, IDC_COLOR1 + i ), GWLP_USERDATA, cVisual.colors[i] );
     SetWindowLongPtr( GetDlgItem( hWnd, IDC_BKGCOLOR ), GWLP_USERDATA, cVisual.iBkgColor );
+}
+
+VOID FillKeysDropdown( HWND hWnd, VisualSettings::Accidentals eAccidentals )
+{
+    HWND hWndFirstKey = GetDlgItem( hWnd, IDC_FIRSTKEY );
+    HWND hWndLastKey = GetDlgItem( hWnd, IDC_LASTKEY );
+
+    SendMessage( hWndFirstKey, CB_RESETCONTENT, 0, 0 );
+    SendMessage( hWndLastKey, CB_RESETCONTENT, 0, 0 );
+
+    // Enumerate the keys
+    for (int i = MIDI::CM1; i <= MIDI::G9; i++)
+    {
+        SendMessage( hWndFirstKey, CB_ADDSTRING, i, ( LPARAM )MIDI::NoteName( i, eAccidentals == VisualSettings::Flats ).c_str() );
+        SendMessage( hWndLastKey, CB_ADDSTRING, i, ( LPARAM )MIDI::NoteName( i, eAccidentals == VisualSettings::Flats ).c_str() );
+    }
 }
 
 INT_PTR WINAPI AudioProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
