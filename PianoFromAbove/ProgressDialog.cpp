@@ -146,24 +146,15 @@ void ProgressDialog::ProcessMessages()
 
 LRESULT CALLBACK ProgressDialog::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
-    ProgressDialog* pThis = NULL;
-
-    if (msg == WM_CREATE)
-    {
-        CREATESTRUCT* pCreate = reinterpret_cast<CREATESTRUCT*>(lParam);
-        pThis = reinterpret_cast<ProgressDialog*>(pCreate->lpCreateParams);
-        SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG_PTR)pThis);
-    }
-    else
-    {
-        pThis = reinterpret_cast<ProgressDialog*>(GetWindowLongPtr(hWnd, GWLP_USERDATA));
-    }
-
     switch (msg)
     {
-        case WM_CLOSE:
-        case WM_DESTROY:
+        case WM_CREATE:
+        {
+            CREATESTRUCT* pCreate = reinterpret_cast<CREATESTRUCT*>(lParam);
+            ProgressDialog* pThis = reinterpret_cast<ProgressDialog*>(pCreate->lpCreateParams);
+            SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG_PTR)pThis);
             return 0;
+        }
         default:
             return DefWindowProc(hWnd, msg, wParam, lParam);
     }

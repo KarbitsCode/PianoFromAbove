@@ -34,27 +34,25 @@ Config::Config()
     LoadConfigValues();
 
     ProgressDialog progressDlg;
-    if (progressDlg.Create())
+    if ( progressDlg.Create() )
     {
         int iTotalFiles = m_SongLibrary.CountFilesInSource();
         m_SongLibrary.SetProgressCallback([&progressDlg, iTotalFiles]( int iFilesScanned, const wstring& sCurrentFile ) {
-            progressDlg.SetProgress( iFilesScanned, iTotalFiles, sCurrentFile);
+            progressDlg.SetProgress( iFilesScanned, iTotalFiles, sCurrentFile );
         });
 
         // Scan on background thread
-        atomic<bool> bScanComplete(false);
+        atomic< bool > bScanComplete( false );
         thread scanThread([this, &bScanComplete]() {
             m_SongLibrary.ExpandSources();
             bScanComplete = true;
         });
 
-        while (!bScanComplete && progressDlg.IsValid())
+        while ( !bScanComplete && progressDlg.IsValid() )
             progressDlg.ProcessMessages();
 
         scanThread.join();
     }
-
-    progressDlg.Destroy();
 }
 
 string Config::GetFolder()
