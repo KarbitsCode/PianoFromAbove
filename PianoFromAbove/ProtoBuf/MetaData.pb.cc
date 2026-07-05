@@ -6,11 +6,14 @@
 
 #include <algorithm>
 
-#include <google/protobuf/stubs/common.h>
+#pragma warning(push)
+#pragma warning(disable : 4244 4267)
 #include <google/protobuf/stubs/once.h>
+#include <google/protobuf/stubs/common.h>
 #include <google/protobuf/io/coded_stream.h>
 #include <google/protobuf/wire_format_lite_inl.h>
 // @@protoc_insertion_point(includes)
+#pragma warning(pop)
 
 namespace PFAData {
 
