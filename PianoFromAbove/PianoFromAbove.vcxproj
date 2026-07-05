@@ -193,6 +193,7 @@
     <ClInclude Include="MIDI.h" />
     <ClInclude Include="Misc.h" />
     <ClInclude Include="Notification.h" />
+    <ClInclude Include="ProgressDialog.h" />
     <ClInclude Include="ProtoBuf\MetaData.pb.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="resource.h" />
@@ -211,6 +212,7 @@
     <ClCompile Include="Misc.cpp" />
     <ClCompile Include="Notification.cpp" />
     <ClCompile Include="PianoFromAbove.cpp" />
+    <ClCompile Include="ProgressDialog.cpp" />
     <ClCompile Include="ProtoBuf\MetaData.pb.cc" />
     <ClCompile Include="Renderer.cpp" />
     <ClCompile Include="tinyxml\tinystr.cpp" />

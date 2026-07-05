@@ -12,6 +12,7 @@
 #include <vector>
 #include <map>
 #include <string>
+#include <functional>
 
 #include "ProtoBuf\MetaData.pb.h"
 #include "tinyxml\tinyxml.h"
@@ -19,6 +20,7 @@
 #include "MIDI.h"
 #include "GameState.h"
 #include "MainProcs.h"
+#include "ProgressDialog.h"
 
 #define APPNAME "Piano From Above"
 #define APPNAMENOSPACES "PianoFromAbove"
@@ -27,6 +29,8 @@
 #define POSNCLASSNAME  TEXT( "PianoFromAbovePosCtrl" )
 #define MINWIDTH 640
 #define MINHEIGHT 469
+
+typedef function< void( int, const wstring& ) > ProgressCallback;
 
 class ISettings;
 class Config;
@@ -191,6 +195,7 @@ public:
     int ExpandSources();
     PFAData::File* SongLibrary::AddFile( const wstring &wsFilename, MIDI *pMidi = NULL );
     void clear();
+    int CountFilesInSource();
 
     const map < wstring, Source > &GetSources() const { return m_mSources; }
     const map< wstring, vector< PFAData::File* >* > &GetFiles() const { return m_mFiles; }
@@ -200,6 +205,7 @@ public:
 
     void SetAlwaysAdd( bool bAlwaysAdd ) { m_bAlwaysAdd = bAlwaysAdd; }
     void SetSortCol( int iSortCol ) { m_iSortCol = iSortCol; }
+    void SetProgressCallback( ProgressCallback callback ) { m_ProgressCallback = callback; }
 
 private:
     int ExpandSource( const wstring &sSource, Source eSource );
@@ -207,6 +213,8 @@ private:
 
     bool m_bAlwaysAdd;
     int m_iSortCol;
+	int m_iFilesScanned;
+    ProgressCallback m_ProgressCallback;
 
     // Source maps
     map< wstring, Source > m_mSources;

@@ -30,7 +30,18 @@ Config::Config()
 {
     LoadDefaultValues();
     LoadConfigValues();
+
+	ProgressDialog progressDlg;
+    if (progressDlg.Create())
+    {
+		int iTotalFiles = m_SongLibrary.CountFilesInSource();
+        m_SongLibrary.SetProgressCallback([&progressDlg, iTotalFiles]( int iFilesScanned, const wstring& sCurrentFile ) {
+            progressDlg.SetProgress( iFilesScanned, iTotalFiles, sCurrentFile);
+        });
+	}
+
     m_SongLibrary.ExpandSources();
+	progressDlg.Destroy();
 }
 
 string Config::GetFolder()
@@ -629,6 +640,12 @@ int SongLibrary::ExpandSource( const wstring &sPath, Source eSource, vector< PFA
 {
     if ( eSource == File )
     {
+        if ( m_ProgressCallback )
+        {
+            wstring sFilename = sPath.length() > 4 ? sPath.substr(4) : sPath;
+            m_ProgressCallback( ++m_iFilesScanned, sFilename );
+        }
+
         PFAData::File *pInfo = AddFile( sPath );
         if ( !pInfo ) return 0;
         pvFiles->push_back( pInfo );
@@ -648,6 +665,9 @@ int SongLibrary::ExpandSource( const wstring &sPath, Source eSource, vector< PFA
         {
             do
             {
+                if ( m_ProgressCallback )
+                    m_ProgressCallback( ++m_iFilesScanned, ffd.cFileName );
+
                 PFAData::File *pInfo = AddFile( sPath + L'\\' + ffd.cFileName );
                 if ( pInfo )
                 {
@@ -677,6 +697,33 @@ int SongLibrary::ExpandSource( const wstring &sPath, Source eSource, vector< PFA
     
         return iExpanded;
     }
+}
+
+int SongLibrary::CountFilesInSource()
+{
+    int iTotalFiles = 0;
+    TCHAR buf[1024];
+
+    for (const auto& source : m_mSources)
+    {
+        if (source.first.length() + 7 > 1024) continue;
+        memcpy(buf, source.first.c_str(), source.first.length() * sizeof(wchar_t));
+        memcpy(buf + source.first.length(), L"\\*.mid", 7 * sizeof(wchar_t));
+
+        WIN32_FIND_DATA ffd;
+        HANDLE hFind = FindFirstFile(buf, &ffd);
+        if (hFind != INVALID_HANDLE_VALUE)
+        {
+            do
+            {
+                if (!(ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY))
+                    iTotalFiles++;
+            } while (FindNextFile(hFind, &ffd));
+            FindClose(hFind);
+        }
+    }
+
+    return iTotalFiles;
 }
 
 PFAData::File* SongLibrary::AddFile( const wstring &wsFilename, MIDI *pMidi )

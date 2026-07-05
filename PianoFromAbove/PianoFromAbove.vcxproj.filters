@@ -78,6 +78,9 @@
     <ClInclude Include="Notification.h">
       <Filter>Header Files\Window</Filter>
     </ClInclude>
+    <ClInclude Include="ProgressDialog.h">
+      <Filter>Header Files\Window</Filter>
+    </ClInclude>
   </ItemGroup>
   <ItemGroup>
     <ResourceCompile Include="PianoFromAbove.rc">
@@ -125,6 +128,9 @@
       <Filter>Source Files\ProtoBuf</Filter>
     </ClCompile>
     <ClCompile Include="Notification.cpp">
+      <Filter>Source Files\Window</Filter>
+    </ClCompile>
+    <ClCompile Include="ProgressDialog.cpp">
       <Filter>Source Files\Window</Filter>
     </ClCompile>
   </ItemGroup>
