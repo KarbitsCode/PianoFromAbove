@@ -213,7 +213,7 @@ private:
 
     bool m_bAlwaysAdd;
     int m_iSortCol;
-	int m_iFilesScanned;
+    int m_iFilesScanned;
     ProgressCallback m_ProgressCallback;
 
     // Source maps

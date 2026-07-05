@@ -12,6 +12,8 @@
 #include <TChar.h>
 
 #include <fstream>
+#include <thread>
+#include <atomic>
 using namespace std;
 
 #include "Config.h"
@@ -31,17 +33,28 @@ Config::Config()
     LoadDefaultValues();
     LoadConfigValues();
 
-	ProgressDialog progressDlg;
+    ProgressDialog progressDlg;
     if (progressDlg.Create())
     {
-		int iTotalFiles = m_SongLibrary.CountFilesInSource();
+        int iTotalFiles = m_SongLibrary.CountFilesInSource();
         m_SongLibrary.SetProgressCallback([&progressDlg, iTotalFiles]( int iFilesScanned, const wstring& sCurrentFile ) {
             progressDlg.SetProgress( iFilesScanned, iTotalFiles, sCurrentFile);
         });
-	}
 
-    m_SongLibrary.ExpandSources();
-	progressDlg.Destroy();
+        // Scan on background thread
+        atomic<bool> bScanComplete(false);
+        thread scanThread([this, &bScanComplete]() {
+            m_SongLibrary.ExpandSources();
+            bScanComplete = true;
+        });
+
+        while (!bScanComplete && progressDlg.IsValid())
+            progressDlg.ProcessMessages();
+
+        scanThread.join();
+    }
+
+    progressDlg.Destroy();
 }
 
 string Config::GetFolder()

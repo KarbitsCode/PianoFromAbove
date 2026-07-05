@@ -40,7 +40,7 @@ bool ProgressDialog::Create()
         WS_EX_DLGMODALFRAME,
         CLASSNAME,
         L"Scanning MIDI Library...",
-        WS_POPUP | WS_CAPTION | WS_SYSMENU,
+        WS_POPUP | WS_CAPTION,
         CW_USEDEFAULT, CW_USEDEFAULT, 400, 200,
         NULL, NULL, GetModuleHandle(NULL), this
     );
@@ -70,8 +70,9 @@ bool ProgressDialog::Create()
 
     SendMessage(m_hProgressBar, PBM_SETRANGE, 0, MAKELPARAM(0, 100));
     SendMessage(m_hProgressBar, PBM_SETSTEP, 1, 0);
+    SetClassLongPtr(m_hProgressBar, GCLP_HCURSOR, (LONG_PTR)LoadCursor(NULL, IDC_WAIT));
 
-    // Create file name text
+    // Create progress text
     m_hFileText = CreateWindowEx(
         0,
         L"STATIC",
