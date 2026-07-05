@@ -2,7 +2,7 @@
 #include <string>
 #include "Globals.h"
 #include "MainProcs.h"
-#include "Audio.h"
+#include "Notification.h"
 
 HRESULT AudioNotificationClient::OnDefaultDeviceChanged(
     EDataFlow flow,

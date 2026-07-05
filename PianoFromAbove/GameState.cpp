@@ -13,7 +13,6 @@
 #include "Globals.h"
 #include "GameState.h"
 #include "Config.h"
-#include "Audio.h"
 #include "resource.h"
 
 #define ALPHA_PERCENT(p) ((unsigned)((p) * 255 / 100))

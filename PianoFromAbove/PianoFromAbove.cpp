@@ -19,7 +19,7 @@
 #include "Config.h"
 #include "GameState.h"
 #include "Renderer.h"
-#include "Audio.h"
+#include "Notification.h"
 #include "Misc.h"
 
 INT WINAPI wWinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpszCmdLine, INT nCmdShow );

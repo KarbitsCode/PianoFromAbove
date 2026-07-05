@@ -185,7 +185,6 @@
     </Manifest>
   </ItemDefinitionGroup>
   <ItemGroup>
-    <ClInclude Include="Audio.h" />
     <ClInclude Include="Config.h" />
     <ClInclude Include="ConfigProcs.h" />
     <ClInclude Include="GameState.h" />
@@ -193,6 +192,7 @@
     <ClInclude Include="MainProcs.h" />
     <ClInclude Include="MIDI.h" />
     <ClInclude Include="Misc.h" />
+    <ClInclude Include="Notification.h" />
     <ClInclude Include="ProtoBuf\MetaData.pb.h" />
     <ClInclude Include="Renderer.h" />
     <ClInclude Include="resource.h" />
@@ -203,13 +203,13 @@
     <ResourceCompile Include="PianoFromAbove.rc" />
   </ItemGroup>
   <ItemGroup>
-    <ClCompile Include="Audio.cpp" />
     <ClCompile Include="Config.cpp" />
     <ClCompile Include="ConfigProcs.cpp" />
     <ClCompile Include="GameState.cpp" />
     <ClCompile Include="MainProcs.cpp" />
     <ClCompile Include="MIDI.cpp" />
     <ClCompile Include="Misc.cpp" />
+    <ClCompile Include="Notification.cpp" />
     <ClCompile Include="PianoFromAbove.cpp" />
     <ClCompile Include="ProtoBuf\MetaData.pb.cc" />
     <ClCompile Include="Renderer.cpp" />
