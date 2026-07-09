@@ -4,11 +4,11 @@
 #include <string>
 using namespace std;
 
-class ProgressDialog
+class ProgressScanDialog
 {
 public:
-    ProgressDialog();
-    ~ProgressDialog();
+    ProgressScanDialog();
+    ~ProgressScanDialog();
 
     bool Create();
     void Destroy();

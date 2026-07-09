@@ -2,16 +2,16 @@
 #include <CommCtrl.h>
 #include "ProgressDialog.h"
 
-const wchar_t* ProgressDialog::CLASSNAME = L"PianoFromAboveProgress";
+const wchar_t* ProgressScanDialog::CLASSNAME = L"PianoFromAboveProgressScan";
 
-ProgressDialog::ProgressDialog() : m_hWnd(NULL), m_hProgressBar(NULL), m_hStatusText(NULL), m_hFileText(NULL), m_iFilesScanned(0) {}
+ProgressScanDialog::ProgressScanDialog() : m_hWnd(NULL), m_hProgressBar(NULL), m_hStatusText(NULL), m_hFileText(NULL), m_iFilesScanned(0) {}
 
-ProgressDialog::~ProgressDialog()
+ProgressScanDialog::~ProgressScanDialog()
 {
     Destroy();
 }
 
-bool ProgressDialog::Create()
+bool ProgressScanDialog::Create()
 {
     if (m_hWnd != NULL)
         return true;
@@ -21,7 +21,7 @@ bool ProgressDialog::Create()
     wc.style = 0;
     wc.lpfnWndProc = WndProc;
     wc.cbClsExtra = 0;
-    wc.cbWndExtra = sizeof(ProgressDialog*);
+    wc.cbWndExtra = sizeof(ProgressScanDialog*);
     wc.hInstance = GetModuleHandle(NULL);
     wc.hCursor = LoadCursor(NULL, IDC_WAIT);
     wc.hbrBackground = (HBRUSH)(COLOR_BTNFACE + 1);
@@ -88,7 +88,7 @@ bool ProgressDialog::Create()
     return true;
 }
 
-void ProgressDialog::Destroy()
+void ProgressScanDialog::Destroy()
 {
     if (m_hWnd)
     {
@@ -100,7 +100,7 @@ void ProgressDialog::Destroy()
     }
 }
 
-void ProgressDialog::SetProgress(int iFilesScanned, int iTotalFiles, const wstring& sCurrentFile)
+void ProgressScanDialog::SetProgress(int iFilesScanned, int iTotalFiles, const wstring& sCurrentFile)
 {
     if (!IsValid())
         return;
@@ -125,7 +125,7 @@ void ProgressDialog::SetProgress(int iFilesScanned, int iTotalFiles, const wstri
     ProcessMessages();
 }
 
-void ProgressDialog::SetStatus(const wstring& sStatus)
+void ProgressScanDialog::SetStatus(const wstring& sStatus)
 {
     if (!IsValid())
         return;
@@ -134,7 +134,7 @@ void ProgressDialog::SetStatus(const wstring& sStatus)
     ProcessMessages();
 }
 
-void ProgressDialog::ProcessMessages()
+void ProgressScanDialog::ProcessMessages()
 {
     MSG msg = { 0 };
     while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
@@ -144,14 +144,14 @@ void ProgressDialog::ProcessMessages()
     }
 }
 
-LRESULT CALLBACK ProgressDialog::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
+LRESULT CALLBACK ProgressScanDialog::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
 {
     switch (msg)
     {
         case WM_CREATE:
         {
             CREATESTRUCT* pCreate = reinterpret_cast<CREATESTRUCT*>(lParam);
-            ProgressDialog* pThis = reinterpret_cast<ProgressDialog*>(pCreate->lpCreateParams);
+            ProgressScanDialog* pThis = reinterpret_cast<ProgressScanDialog*>(pCreate->lpCreateParams);
             SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG_PTR)pThis);
             return 0;
         }

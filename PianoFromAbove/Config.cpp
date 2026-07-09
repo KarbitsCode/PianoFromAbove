@@ -33,7 +33,7 @@ Config::Config()
     LoadDefaultValues();
     LoadConfigValues();
 
-    ProgressDialog progressDlg;
+    ProgressScanDialog progressDlg;
     if ( progressDlg.Create() )
     {
         int iTotalFiles = m_SongLibrary.CountFilesInSource();
@@ -653,7 +653,7 @@ int SongLibrary::ExpandSource( const wstring &sPath, Source eSource, vector< PFA
     {
         if ( m_ProgressCallback )
         {
-            wstring sFilename = sPath.length() > 4 ? sPath.substr(4) : sPath;
+            wstring sFilename = sPath.compare(0, 4, L"\\\\?\\") == 0 ? sPath.substr(4) : sPath;
             m_ProgressCallback( ++m_iFilesScanned, sFilename );
         }
 

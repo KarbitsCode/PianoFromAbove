@@ -151,7 +151,7 @@ MIDI::MIDI ( const wstring &sFilename )
     ifs.close();
 
     // Parse it
-    int iTotal = ParseMIDI ( pcMemBlock, iSize );
+    int iTotal = ParseMIDI( pcMemBlock, iSize );
     m_Info.sFilename = sFilename;
     Util::MD5( pcMemBlock, iSize, m_Info.sMd5 );
  
