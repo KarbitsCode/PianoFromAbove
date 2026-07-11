@@ -9,6 +9,7 @@
 *
 *************************************************************************************************/
 #include <tchar.h>
+#include <chrono>
 
 #include "Globals.h"
 #include "GameState.h"
@@ -523,6 +524,7 @@ void MainScreen::InitNoteMap( const vector< MIDIEvent* > &vEvents )
     m_vEvents.reserve( vEvents.size() );
     m_vNoteOns.reserve( vEvents.size() / 2 );
     for ( vector< MIDIEvent* >::const_iterator it = vEvents.begin(); it != vEvents.end(); ++it )
+    {
         if ( (*it)->GetEventType() == MIDIEvent::ChannelEvent )
         {
             MIDIChannelEvent *pEvent = reinterpret_cast< MIDIChannelEvent* >( *it );
@@ -551,6 +553,24 @@ void MainScreen::InitNoteMap( const vector< MIDIEvent* > &vEvents )
             else if ( eEventType == MIDIMetaEvent::TimeSignature )
                 m_vSignature.push_back( pair< long long, int >( pEvent->GetAbsMicroSec(), static_cast< int >(m_vMetaEvents.size() - 1) ) );
         }
+    }
+
+    m_vVisibleNotesCount.resize( m_vNoteOns.size() );
+    int count = 0;
+    for ( size_t i = 0; i < m_vNoteOns.size(); ++i )
+    {
+        MIDIChannelEvent* pEvent = m_vEvents[m_vNoteOns[i].second];
+        int track = pEvent->GetTrack();
+        int channel = pEvent->GetChannel();
+
+        if ( !m_vTrackSettings[track].aChannels[channel].bMuted &&
+            !m_vTrackSettings[track].aChannels[channel].bHidden )
+        {
+            ++count;
+        }
+
+        m_vVisibleNotesCount[i] = count;
+    }
 }
 
 // Display colors
@@ -1269,25 +1289,15 @@ MIDIMetaEvent* MainScreen::GetPrevious( eventvec_t::const_iterator &itCurrent,
 // Gets the number of notes that have started but not ended at given time (llTime).
 int MainScreen::GetNoteCountAtTime( long long llTime )
 {
-    int iCount = 0;
-    for ( int i = 0; i < (int)m_vNoteOns.size(); i++ )
-    {
-        if ( m_vNoteOns[i].first <= llTime )
-        {
-            MIDIChannelEvent *pEvent = m_vEvents[m_vNoteOns[i].second];
-            int iTrack = pEvent->GetTrack();
-            int iChannel = pEvent->GetChannel();
-            bool bChannelMuted = m_vTrackSettings[iTrack].aChannels[iChannel].bMuted;
-            bool bChannelHidden = m_vTrackSettings[iTrack].aChannels[iChannel].bHidden;
-            if ( !bChannelMuted && !bChannelHidden )
-                iCount++;
-        }
-        else
-        {
-            break;
-        }
-    }
-    return iCount;
+    auto it = upper_bound(
+        m_vNoteOns.begin(),
+        m_vNoteOns.end(),
+        make_pair( llTime, INT_MAX ) );
+
+    if ( it == m_vNoteOns.begin() )
+        return 0;
+
+    return m_vVisibleNotesCount[( it - m_vNoteOns.begin() ) - 1];
 }
 
 // Gets the number of notes that are currently being played at caller time.
