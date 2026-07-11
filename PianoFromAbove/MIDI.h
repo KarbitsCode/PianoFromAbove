@@ -12,9 +12,13 @@
 #include <Windows.h>
 #include <vector>
 #include <string>
+#include <functional>
 using namespace std;
 
 #include "Misc.h"
+#include "ProgressDialog.h"
+
+typedef function< void( int currentTrack, int totalTracks ) > ProgressLoadCallback;
 
 //Classes defined in this file
 class MIDI;
@@ -102,6 +106,8 @@ public:
     void ConnectNotes();
     void clear( void );
 
+    void SetProgressCallback( ProgressLoadCallback callback ) { m_ProgressCallback = callback; }
+
     friend class MIDIPos;
 
     struct MIDIInfo
@@ -136,6 +142,7 @@ private:
 
     MIDIInfo m_Info;
     vector< MIDITrack* > m_vTracks;
+    ProgressLoadCallback m_ProgressCallback;
 };
 
 //Holds all the event of one MIDI track

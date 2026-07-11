@@ -30,7 +30,7 @@
 #define MINWIDTH 640
 #define MINHEIGHT 469
 
-typedef function< void( int, const wstring& ) > ProgressCallback;
+typedef function< void( int, const wstring& ) > ProgressScanCallback;
 
 class ISettings;
 class Config;
@@ -205,7 +205,7 @@ public:
 
     void SetAlwaysAdd( bool bAlwaysAdd ) { m_bAlwaysAdd = bAlwaysAdd; }
     void SetSortCol( int iSortCol ) { m_iSortCol = iSortCol; }
-    void SetProgressCallback( ProgressCallback callback ) { m_ProgressCallback = callback; }
+    void SetProgressCallback( ProgressScanCallback callback ) { m_ProgressCallback = callback; }
 
 private:
     int ExpandSource( const wstring &sSource, Source eSource );
@@ -214,7 +214,7 @@ private:
     bool m_bAlwaysAdd;
     int m_iSortCol;
     int m_iFilesScanned;
-    ProgressCallback m_ProgressCallback;
+    ProgressScanCallback m_ProgressCallback;
 
     // Source maps
     map< wstring, Source > m_mSources;

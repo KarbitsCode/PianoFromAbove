@@ -8,7 +8,10 @@
 *
 *************************************************************************************************/
 #include "MIDI.h"
+#include <Shlwapi.h>
 #include <fstream>
+#include <thread>
+#include <atomic>
 
 //-----------------------------------------------------------------------------
 // MIDIPos functions
@@ -138,25 +141,43 @@ int MIDIPos::GetNextEvents( int iMicroSecs, vector< MIDIEvent* > &vEvents )
 
 MIDI::MIDI ( const wstring &sFilename )
 {
-    // Open the file
-    ifstream ifs( sFilename, ios::in | ios::binary | ios::ate );
-    if ( !ifs.is_open() )
-        return;
+    ProgressLoadDialog progressDlg;
+    if ( progressDlg.Create() ) {
+        progressDlg.SetFilename( PathFindFileName( sFilename.c_str() ) );
+        SetProgressCallback([&progressDlg]( int currentTrack, int totalTracks ) {
+            progressDlg.SetTrack( currentTrack, totalTracks );
+        });
 
-    // Read it all in
-    int iSize = static_cast<int>( ifs.tellg() );
-    unsigned char *pcMemBlock = new unsigned char[iSize];
-    ifs.seekg( 0, ios::beg );
-    ifs.read( reinterpret_cast< char* >( pcMemBlock ), iSize );
-    ifs.close();
+        // Load on background thread
+        atomic< bool > bLoadComplete( false );
+        thread scanThread([this, &bLoadComplete, &sFilename]() {
+            // Open the file
+            ifstream ifs( sFilename, ios::in | ios::binary | ios::ate );
+            if ( !ifs.is_open() )
+                return;
 
-    // Parse it
-    int iTotal = ParseMIDI( pcMemBlock, iSize );
-    m_Info.sFilename = sFilename;
-    Util::MD5( pcMemBlock, iSize, m_Info.sMd5 );
- 
-    // Clean up
-    delete[] pcMemBlock;
+            // Read it all in
+            int iSize = static_cast< int >( ifs.tellg() );
+            unsigned char *pcMemBlock = new unsigned char[iSize];
+            ifs.seekg( 0, ios::beg );
+            ifs.read( reinterpret_cast< char* >( pcMemBlock ), iSize );
+            ifs.close();
+
+            // Parse it
+            int iTotal = ParseMIDI( pcMemBlock, iSize );
+            m_Info.sFilename = sFilename;
+            Util::MD5( pcMemBlock, iSize, m_Info.sMd5 );
+
+            // Clean up
+            delete[] pcMemBlock;
+            bLoadComplete = true;
+        });
+
+        while ( !bLoadComplete && progressDlg.IsValid() )
+            progressDlg.ProcessMessages();
+
+        scanThread.join();
+    }
 }
 
 MIDI::~MIDI( void )
@@ -308,6 +329,8 @@ int MIDI::ParseMIDI( const unsigned char *pcData, int iMaxSize )
 
     // Reset first. This is the only parsing function that resets/clears first.
     clear();
+    if (m_ProgressCallback)
+        m_ProgressCallback(0, m_Info.iNumTracks);
 
     // Read header info
     if ( ParseNChars( pcData, 4, iMaxSize, pcBuf ) != 4 ) return 0;
@@ -339,6 +362,8 @@ int MIDI::ParseTracks( const unsigned char *pcData, int iMaxSize )
         // Create and parse the track
         MIDITrack *track = new MIDITrack();
         iCount = track->ParseTrack( pcData + iTotal, iMaxSize - iTotal, iTrack++ );
+        if (m_ProgressCallback)
+            m_ProgressCallback(iTrack, m_Info.iNumTracks);
 
         // If Success, add it to the list
         if ( iCount > 0 )
@@ -352,6 +377,9 @@ int MIDI::ParseTracks( const unsigned char *pcData, int iMaxSize )
         iTotal += iCount;
     }
     while ( iMaxSize - iTotal > 0 && iCount > 0 && m_Info.iFormatType != 2 );
+
+    if (m_ProgressCallback)
+        m_ProgressCallback(m_Info.iNumTracks, m_Info.iNumTracks);
 
     return iTotal;
 }
