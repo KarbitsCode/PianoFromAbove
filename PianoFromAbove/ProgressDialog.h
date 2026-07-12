@@ -42,12 +42,10 @@ public:
     bool IsValid() const { return m_hWnd != NULL; }
 
     void SetFilename(const std::wstring& sFilename);
-    void SetStatus(const std::wstring& sStatus);
-    void SetTrack(int iCurrent, int iTotal);
-    void SetEvent(int iCurrent, int iTotal);
-    void SetProgress(int iCurrent, int iTotal);
-
-    HWND GetHwnd() const { return m_hWnd; }
+    void SetStatus(HWND hWnd, const std::wstring& sStatus);
+    void SetProgress(HWND hWnd, int iCurrent, int iTotal);
+    void SetTrackProgress(int iCurrent, int iTotal);
+    void SetEventProgress(int iCurrent, int iTotal);
 
     void ProcessMessages();
 
@@ -55,11 +53,10 @@ private:
     static LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
     HWND m_hWnd;
-    HWND m_hProgressBar;
-    HWND m_hStatusText;
-    HWND m_hFileText;
-    HWND m_hTrack;
-    HWND m_hEvent;
+    HWND m_hTrackProgressBar;
+    HWND m_hTrackStatusText;
+    HWND m_hEventProgressBar;
+    HWND m_hEventStatusText;
 
     static const wchar_t* CLASSNAME;
 };

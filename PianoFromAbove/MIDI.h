@@ -106,7 +106,8 @@ public:
     void ConnectNotes();
     void clear( void );
 
-    void SetProgressCallback( ProgressLoadCallback callback ) { m_ProgressCallback = callback; }
+    void SetProgressTrackCallback( ProgressLoadCallback callback ) { m_ProgressTrackCallback = callback; }
+    void SetProgressEventCallback( ProgressLoadCallback callback ) { m_ProgressEventCallback = callback; }
 
     friend class MIDIPos;
 
@@ -142,7 +143,8 @@ private:
 
     MIDIInfo m_Info;
     vector< MIDITrack* > m_vTracks;
-    ProgressLoadCallback m_ProgressCallback;
+    ProgressLoadCallback m_ProgressTrackCallback;
+    ProgressLoadCallback m_ProgressEventCallback;
 };
 
 //Holds all the event of one MIDI track
@@ -152,8 +154,8 @@ public:
     ~MIDITrack( void );
 
     //Parsing functions that load data into the instance
-    int ParseTrack( const unsigned char *pcData, int iMaxSize, int iTrack );
-    int ParseEvents( const unsigned char *pcData, int iMaxSize, int iTrack );
+    int ParseTrack( const unsigned char *pcData, int iMaxSize, int iTrack, ProgressLoadCallback progressCallback = NULL );
+    int ParseEvents( const unsigned char *pcData, int iMaxSize, int iTrack, ProgressLoadCallback progressCallback = NULL, bool bCountOnly = false );
     void clear( void );
 
     friend class MIDIPos;

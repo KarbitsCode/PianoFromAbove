@@ -164,7 +164,7 @@ LRESULT CALLBACK ProgressScanDialog::WndProc(HWND hWnd, UINT msg, WPARAM wParam,
 
 const wchar_t* ProgressLoadDialog::CLASSNAME = L"PianoFromAboveProgressLoad";
 
-ProgressLoadDialog::ProgressLoadDialog() : m_hWnd(NULL), m_hProgressBar(NULL), m_hStatusText(NULL), m_hFileText(NULL), m_hEvent(NULL), m_hTrack(NULL) {}
+ProgressLoadDialog::ProgressLoadDialog() : m_hWnd(NULL), m_hTrackProgressBar(NULL), m_hTrackStatusText(NULL), m_hEventProgressBar(NULL), m_hEventStatusText(NULL) {}
 
 ProgressLoadDialog::~ProgressLoadDialog()
 {
@@ -177,7 +177,7 @@ bool ProgressLoadDialog::Create()
         return true;
 
     const int width = 420;
-    const int height = 120;
+    const int height = 160;
 
     int x = (GetSystemMetrics(SM_CXSCREEN) - width) / 2;
     int y = (GetSystemMetrics(SM_CYSCREEN) - height) / 2;
@@ -214,18 +214,8 @@ bool ProgressLoadDialog::Create()
     if (!m_hWnd)
         return false;
 
-    // Create status text
-    m_hStatusText = CreateWindowEx(
-        0,
-        L"STATIC",
-        L"Loading...",
-        WS_CHILD | WS_VISIBLE,
-        10, 30, 380, 20,
-        m_hWnd, NULL, GetModuleHandle(NULL), NULL
-    );
-
-    // Create progress bar
-    m_hProgressBar = CreateWindowEx(
+    // Create track progress bar
+    m_hTrackProgressBar = CreateWindowEx(
         0,
         PROGRESS_CLASS,
         NULL,
@@ -234,10 +224,46 @@ bool ProgressLoadDialog::Create()
         m_hWnd, NULL, GetModuleHandle(NULL), NULL
     );
 
-    SendMessage(m_hProgressBar, PBM_SETRANGE, 0, MAKELPARAM(0, 100));
-    SendMessage(m_hProgressBar, PBM_SETSTEP, 1, 0);
-    SendMessage(m_hProgressBar, PBM_SETPOS, 0, 0);
-    SetClassLongPtr(m_hProgressBar, GCLP_HCURSOR, (LONG_PTR)LoadCursor(NULL, IDC_WAIT));
+    // Create track status text
+    m_hTrackStatusText = CreateWindowEx(
+        0,
+        L"STATIC",
+        L"Loading...",
+        WS_CHILD | WS_VISIBLE,
+        10, 30, 380, 20,
+        m_hWnd, NULL, GetModuleHandle(NULL), NULL
+    );
+
+    SendMessage(m_hTrackProgressBar, PBM_SETRANGE, 0, MAKELPARAM(0, 100));
+    SendMessage(m_hTrackProgressBar, PBM_SETSTEP, 1, 0);
+    SendMessage(m_hTrackProgressBar, PBM_SETPOS, 0, 0);
+    SetClassLongPtr(m_hTrackProgressBar, GCLP_HCURSOR, (LONG_PTR)LoadCursor(NULL, IDC_WAIT));
+
+    // Create event progress bar
+    m_hEventProgressBar = CreateWindowEx(
+        0,
+        PROGRESS_CLASS,
+        NULL,
+        WS_CHILD | WS_VISIBLE,
+        10, 60, 380, 10,
+        m_hWnd, NULL, GetModuleHandle(NULL), NULL
+    );
+
+    // Create event status text
+    m_hEventStatusText = CreateWindowEx(
+        0,
+        L"STATIC",
+        L"Loading...",
+        WS_CHILD | WS_VISIBLE,
+        10, 80, 380, 20,
+        m_hWnd, NULL, GetModuleHandle(NULL), NULL
+    );
+
+    //SendMessage(m_hEventProgressBar, PBM_SETMARQUEE, TRUE, 50);
+    SendMessage(m_hEventProgressBar, PBM_SETRANGE, 0, MAKELPARAM(0, 100));
+    SendMessage(m_hEventProgressBar, PBM_SETSTEP, 1, 0);
+    SendMessage(m_hEventProgressBar, PBM_SETPOS, 0, 0);
+    SetClassLongPtr(m_hEventProgressBar, GCLP_HCURSOR, (LONG_PTR)LoadCursor(NULL, IDC_WAIT));
 
     ShowWindow(m_hWnd, SW_SHOW);
     UpdateWindow(m_hWnd);
@@ -251,31 +277,30 @@ void ProgressLoadDialog::Destroy()
     {
         DestroyWindow(m_hWnd);
         m_hWnd = NULL;
-        m_hProgressBar = NULL;
-        m_hStatusText = NULL;
-        m_hFileText = NULL;
-        m_hEvent = NULL;
-        m_hTrack = NULL;
+        m_hTrackProgressBar = NULL;
+        m_hTrackStatusText = NULL;
+        m_hEventProgressBar = NULL;
+        m_hEventStatusText = NULL;
     }
 }
 
-void ProgressLoadDialog::SetStatus(const std::wstring& sStatus)
+void ProgressLoadDialog::SetStatus(HWND hwnd, const std::wstring& sStatus)
 {
     if (!IsValid())
         return;
 
-    SetWindowText(m_hStatusText, sStatus.c_str());
+    SetWindowText(hwnd, sStatus.c_str());
     ProcessMessages();
 }
 
-void ProgressLoadDialog::SetProgress(int iCurrent, int iTotal)
+void ProgressLoadDialog::SetProgress(HWND hwnd, int iCurrent, int iTotal)
 {
     if (!IsValid())
         return;
 
     int iProgress = (iTotal > 0) ? (iCurrent * 100 / iTotal) : 0;
-    SendMessage(m_hProgressBar, PBM_SETPOS, iProgress, 0);
-	ProcessMessages();
+    SendMessage(hwnd, PBM_SETPOS, iProgress, 0);
+    ProcessMessages();
 }
 
 void ProgressLoadDialog::SetFilename(const std::wstring& sFilename)
@@ -283,26 +308,26 @@ void ProgressLoadDialog::SetFilename(const std::wstring& sFilename)
     if (!IsValid())
         return;
 
-    SetWindowText(m_hWnd, (L"Loading \"" + sFilename + L"\"...").c_str());
+    SetWindowText(m_hWnd, (L"Loading " + sFilename + L"...").c_str());
     ProcessMessages();
 }
 
-void ProgressLoadDialog::SetTrack(int iCurrent, int iTotal)
+void ProgressLoadDialog::SetTrackProgress(int iCurrent, int iTotal)
 {
-    SetStatus(L"Parsing track " +
+    SetStatus(m_hTrackStatusText, L"Parsing track " +
         std::to_wstring(iCurrent) +
         L" of " +
         std::to_wstring(iTotal) + L"...");
-    SetProgress(iCurrent, iTotal);
+    SetProgress(m_hTrackProgressBar, iCurrent, iTotal);
 }
 
-void ProgressLoadDialog::SetEvent(int iCurrent, int iTotal)
+void ProgressLoadDialog::SetEventProgress(int iCurrent, int iTotal)
 {
-    SetStatus(L"Parsing event " +
+    SetStatus(m_hEventStatusText, L"Parsing event " +
         std::to_wstring(iCurrent) +
-        L" / " +
+        L" of " +
         std::to_wstring(iTotal) + L"...");
-    SetProgress(iCurrent, iTotal);
+    SetProgress(m_hEventProgressBar, iCurrent, iTotal);
 }
 
 void ProgressLoadDialog::ProcessMessages()

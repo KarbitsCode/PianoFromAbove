@@ -142,15 +142,19 @@ int MIDIPos::GetNextEvents( int iMicroSecs, vector< MIDIEvent* > &vEvents )
 MIDI::MIDI ( const wstring &sFilename )
 {
     ProgressLoadDialog progressDlg;
-    if ( progressDlg.Create() ) {
+    if ( progressDlg.Create() )
+    {
         progressDlg.SetFilename( PathFindFileName( sFilename.c_str() ) );
-        SetProgressCallback([&progressDlg]( int currentTrack, int totalTracks ) {
-            progressDlg.SetTrack( currentTrack, totalTracks );
+        SetProgressTrackCallback([&progressDlg]( int currentTrack, int totalTracks ) {
+            progressDlg.SetTrackProgress( currentTrack, totalTracks );
+        });
+        SetProgressEventCallback([&progressDlg]( int currentEvent, int totalEvents ) {
+            progressDlg.SetEventProgress( currentEvent, totalEvents );
         });
 
         // Load on background thread
         atomic< bool > bLoadComplete( false );
-        thread scanThread([this, &bLoadComplete, &sFilename]() {
+        thread loadThread([this, &bLoadComplete, &sFilename]() {
             // Open the file
             ifstream ifs( sFilename, ios::in | ios::binary | ios::ate );
             if ( !ifs.is_open() )
@@ -176,7 +180,7 @@ MIDI::MIDI ( const wstring &sFilename )
         while ( !bLoadComplete && progressDlg.IsValid() )
             progressDlg.ProcessMessages();
 
-        scanThread.join();
+        loadThread.join();
     }
 }
 
@@ -329,8 +333,8 @@ int MIDI::ParseMIDI( const unsigned char *pcData, int iMaxSize )
 
     // Reset first. This is the only parsing function that resets/clears first.
     clear();
-    if (m_ProgressCallback)
-        m_ProgressCallback(0, m_Info.iNumTracks);
+    if ( m_ProgressTrackCallback )
+        m_ProgressTrackCallback( 0, 0 );
 
     // Read header info
     if ( ParseNChars( pcData, 4, iMaxSize, pcBuf ) != 4 ) return 0;
@@ -361,15 +365,15 @@ int MIDI::ParseTracks( const unsigned char *pcData, int iMaxSize )
     {
         // Create and parse the track
         MIDITrack *track = new MIDITrack();
-        iCount = track->ParseTrack( pcData + iTotal, iMaxSize - iTotal, iTrack++ );
-        if (m_ProgressCallback)
-            m_ProgressCallback(iTrack, m_Info.iNumTracks);
+        iCount = track->ParseTrack( pcData + iTotal, iMaxSize - iTotal, iTrack++, m_ProgressEventCallback );
 
         // If Success, add it to the list
         if ( iCount > 0 )
         {
             m_vTracks.push_back( track );
             m_Info.AddTrackInfo( *track );
+            if ( m_ProgressTrackCallback )
+                m_ProgressTrackCallback( iTrack, m_Info.iNumTracks );
         }
         else
             delete track;
@@ -378,8 +382,8 @@ int MIDI::ParseTracks( const unsigned char *pcData, int iMaxSize )
     }
     while ( iMaxSize - iTotal > 0 && iCount > 0 && m_Info.iFormatType != 2 );
 
-    if (m_ProgressCallback)
-        m_ProgressCallback(m_Info.iNumTracks, m_Info.iNumTracks);
+    if ( m_ProgressTrackCallback )
+        m_ProgressTrackCallback( m_Info.iNumTracks, m_Info.iNumTracks );
 
     return iTotal;
 }
@@ -388,7 +392,7 @@ int MIDI::ParseEvents( const unsigned char *pcData, int iMaxSize )
 {
     // Create and parse the track
     MIDITrack *track = new MIDITrack();
-    int iCount = track->ParseEvents( pcData, iMaxSize, static_cast< int >( m_vTracks.size() ) );
+    int iCount = track->ParseEvents( pcData, iMaxSize, static_cast< int >( m_vTracks.size() ), m_ProgressEventCallback );
 
     // If Success, add it to the list
     if ( iCount > 0 ) {
@@ -566,13 +570,15 @@ void MIDITrack::clear( void )
     m_TrackInfo.clear();
 }
 
-int MIDITrack::ParseTrack( const unsigned char *pcData, int iMaxSize, int iTrack )
+int MIDITrack::ParseTrack( const unsigned char *pcData, int iMaxSize, int iTrack, ProgressLoadCallback pCallback )
 {
     char pcBuf[4];
     int iTotal, iTrkSize;
 
     // Reset first
     clear();
+    if ( pCallback )
+        pCallback( 0, 0 );
 
     // Read header
     if ( MIDI::ParseNChars( pcData, 4, iMaxSize, pcBuf ) != 4 ) return 0;
@@ -582,14 +588,15 @@ int MIDITrack::ParseTrack( const unsigned char *pcData, int iMaxSize, int iTrack
     // Check header
     if ( strncmp( pcBuf, "MTrk", 4 ) != 0 ) return 0;
 
-    return iTotal + ParseEvents( pcData + iTotal, iMaxSize - iTotal, iTrack );
+    return iTotal + ParseEvents( pcData + iTotal, iMaxSize - iTotal, iTrack, pCallback );
 }
 
-int MIDITrack::ParseEvents( const unsigned char *pcData, int iMaxSize, int iTrack )
+int MIDITrack::ParseEvents( const unsigned char *pcData, int iMaxSize, int iTrack, ProgressLoadCallback pCallback, bool bCountOnly )
 {
-    int iTotal = 0, iDTCode = 0, iCount = 0;
+    int iTotal = 0, iDTCode = 0, iCount = 0, iLastPercent = -1, iEventCount = 0;
     MIDIEvent *pEvent = NULL;
     m_TrackInfo.iSequenceNumber = iTrack;
+    int iTotalEvent = bCountOnly ? 0 : ParseEvents( pcData, iMaxSize, iTrack, NULL, true );
 
     do
     {
@@ -602,8 +609,24 @@ int MIDITrack::ParseEvents( const unsigned char *pcData, int iMaxSize, int iTrac
             if ( iCount > 0 )
             {
                 iTotal += iDTCode + iCount;
-                m_vEvents.push_back( pEvent );
-                m_TrackInfo.AddEventInfo( *pEvent );
+                if ( bCountOnly )
+                {
+                    iEventCount++;
+                    delete pEvent;
+                }
+                else
+                {
+                    m_vEvents.push_back( pEvent );
+                    m_TrackInfo.AddEventInfo( *pEvent );
+                    int iPercent = iTotal * 100 / iMaxSize;
+                    iEventCount++;
+                    if ( iPercent >= iLastPercent + 2 || iPercent == 100 )
+                    {
+                        iLastPercent = iPercent;
+                        if ( pCallback )
+                            pCallback( iEventCount, iTotalEvent );
+                    }
+                }
             }
             else
                 delete pEvent;
@@ -614,7 +637,10 @@ int MIDITrack::ParseEvents( const unsigned char *pcData, int iMaxSize, int iTrac
             ( pEvent->GetEventType() != MIDIEvent::MetaEvent ||
               reinterpret_cast< MIDIMetaEvent* >( pEvent )->GetMetaEventType() != MIDIMetaEvent::EndOfTrack ) );
 
-    return iTotal;
+    if ( pCallback )
+        pCallback( iTotalEvent, iTotalEvent );
+
+    return bCountOnly ? iEventCount : iTotal;
 }
 
 // Computes some of the TrackInfo info
