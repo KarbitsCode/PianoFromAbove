@@ -274,3 +274,43 @@ void Util::CommaPrintf( TCHAR buf[32], int iVal )
     else if ( iAbsVal < 1000000000 ) _stprintf_s( buf, 32, TEXT( "%d,%03d,%03d" ), iVal / 1000000, ( iAbsVal / 1000 ) % 1000, iAbsVal % 1000 );
     else _stprintf_s( buf, 32, TEXT( "%d,%03d,%03d,%03d" ), iVal / 1000000000, ( iAbsVal / 1000000 ) % 1000, ( iAbsVal / 1000 ) % 1000, iAbsVal % 1000 );
 }
+
+vector< GPUInfo > Util::EnumerateGPU()
+{
+    vector< GPUInfo > vGpus;
+
+    IDXGIFactory1* pFactory = NULL;
+    if ( FAILED( CreateDXGIFactory1( __uuidof( IDXGIFactory1 ), reinterpret_cast< void** >( &pFactory ) ) ) )
+        return vGpus;
+
+    UINT iIndex = 0;
+    IDXGIAdapter1* pAdapter = NULL;
+
+    while ( pFactory->EnumAdapters1( iIndex, &pAdapter ) != DXGI_ERROR_NOT_FOUND )
+    {
+        DXGI_ADAPTER_DESC1 desc{};
+        pAdapter->GetDesc1( &desc );
+
+        // Skip Microsoft Basic Render Driver
+        if ( !( desc.Flags & DXGI_ADAPTER_FLAG_SOFTWARE ) )
+        {
+            GPUInfo gpu;
+            gpu.Name = desc.Description;
+            gpu.Desc = desc;
+            vGpus.push_back( gpu );
+        }
+
+        pAdapter->Release();
+        ++iIndex;
+    }
+
+    pFactory->Release();
+    return vGpus;
+}
+
+wstring Util::GetSelfPath()
+{
+    wchar_t wcPath[MAX_PATH];
+    GetModuleFileNameW(NULL, wcPath, MAX_PATH);
+    return wcPath;
+}

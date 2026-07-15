@@ -104,7 +104,7 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalManifestDependencies>"type='Win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='X86' publicKeyToken='6595b64144ccf1df' language='*'";%(AdditionalManifestDependencies)</AdditionalManifestDependencies>
-      <AdditionalDependencies>d3d9.lib;d3dx9d.lib;Comctl32.lib;Advapi32.lib;Msimg32.lib;UxTheme.lib;WinMM.lib;Shlwapi.lib;libprotobuf-lite.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>dxgi.lib;d3d9.lib;d3dx9d.lib;Comctl32.lib;Advapi32.lib;Msimg32.lib;UxTheme.lib;WinMM.lib;Shlwapi.lib;libprotobuf-lite.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <Version>1.1</Version>
       <LargeAddressAware>true</LargeAddressAware>
     </Link>
@@ -126,7 +126,7 @@
       <SubSystem>Windows</SubSystem>
       <GenerateDebugInformation>true</GenerateDebugInformation>
       <AdditionalManifestDependencies>"type='Win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='X86' publicKeyToken='6595b64144ccf1df' language='*'";%(AdditionalManifestDependencies)</AdditionalManifestDependencies>
-      <AdditionalDependencies>d3d9.lib;d3dx9d.lib;Comctl32.lib;Advapi32.lib;Msimg32.lib;UxTheme.lib;WinMM.lib;Shlwapi.lib;libprotobuf-lite.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>dxgi.lib;d3d9.lib;d3dx9d.lib;Comctl32.lib;Advapi32.lib;Msimg32.lib;UxTheme.lib;WinMM.lib;Shlwapi.lib;libprotobuf-lite.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <Version>1.1</Version>
     </Link>
     <Manifest>
@@ -154,7 +154,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalManifestDependencies>"type='Win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='X86' publicKeyToken='6595b64144ccf1df' language='*'";%(AdditionalManifestDependencies)</AdditionalManifestDependencies>
-      <AdditionalDependencies>d3d9.lib;d3dx9.lib;Comctl32.lib;Advapi32.lib;Msimg32.lib;UxTheme.lib;WinMM.lib;Shlwapi.lib;libprotobuf-lite.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>dxgi.lib;d3d9.lib;d3dx9.lib;Comctl32.lib;Advapi32.lib;Msimg32.lib;UxTheme.lib;WinMM.lib;Shlwapi.lib;libprotobuf-lite.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <Version>1.1</Version>
       <LargeAddressAware>true</LargeAddressAware>
       <SetChecksum>true</SetChecksum>
@@ -184,7 +184,7 @@
       <EnableCOMDATFolding>true</EnableCOMDATFolding>
       <OptimizeReferences>true</OptimizeReferences>
       <AdditionalManifestDependencies>"type='Win32' name='Microsoft.Windows.Common-Controls' version='6.0.0.0' processorArchitecture='*' publicKeyToken='6595b64144ccf1df' language='*'";%(AdditionalManifestDependencies)</AdditionalManifestDependencies>
-      <AdditionalDependencies>d3d9.lib;d3dx9.lib;Comctl32.lib;Advapi32.lib;Msimg32.lib;UxTheme.lib;WinMM.lib;Shlwapi.lib;libprotobuf-lite.lib;%(AdditionalDependencies)</AdditionalDependencies>
+      <AdditionalDependencies>dxgi.lib;d3d9.lib;d3dx9.lib;Comctl32.lib;Advapi32.lib;Msimg32.lib;UxTheme.lib;WinMM.lib;Shlwapi.lib;libprotobuf-lite.lib;%(AdditionalDependencies)</AdditionalDependencies>
       <Version>1.1</Version>
       <SetChecksum>true</SetChecksum>
     </Link>

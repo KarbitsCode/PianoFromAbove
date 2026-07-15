@@ -164,6 +164,23 @@ INT WINAPI wWinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpszCm
         }
     }
 
+    auto gpus = Util::EnumerateGPU();
+    for (size_t i = 0; i < gpus.size(); ++i)
+    {
+        wchar_t buffer[512];
+
+        swprintf_s(
+            buffer,
+            L"GPU %zu: %ls\r\nVendor=%04X Device=%04X SubSys=%08X\r\n",
+            i,
+            gpus[i].Name.c_str(),
+            gpus[i].Desc.VendorId,
+            gpus[i].Desc.DeviceId,
+            gpus[i].Desc.SubSysId);
+
+        OutputDebugStringW(buffer);
+    }
+
     // Enter the message loop
     MSG msg = { 0 };
     while( GetMessage( &msg, NULL, 0, 0 ) )
