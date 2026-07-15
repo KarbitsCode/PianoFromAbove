@@ -798,3 +798,121 @@ PFAData::File* SongLibrary::AddFile( const wstring &wsFilename, MIDI *pMidi )
     if ( bIsNew ) delete pMidi;
     return file;
 }
+
+wstring VideoSettings::LoadGPUPreference() const
+{
+    HKEY hKey;
+    wstring wsResult;
+    if ( RegOpenKeyEx(
+        HKEY_CURRENT_USER,
+        GPUREGISTRYPATH,
+        0,
+        KEY_READ,
+        &hKey ) == ERROR_SUCCESS )
+    {
+        DWORD dwType = 0;
+        DWORD dwSize = 0;
+        wstring wsOwnPath = Util::GetSelfPath();
+        if ( RegQueryValueEx(
+            hKey,
+            wsOwnPath.c_str(),
+            NULL,
+            &dwType,
+            NULL,
+            &dwSize ) == ERROR_SUCCESS && dwType == REG_SZ )
+        {
+            vector< wchar_t > buffer( dwSize / sizeof( wchar_t ) );
+            if ( RegQueryValueEx(
+                hKey,
+                wsOwnPath.c_str(),
+                NULL,
+                NULL,
+                reinterpret_cast< LPBYTE >( buffer.data() ),
+                &dwSize ) == ERROR_SUCCESS )
+            {
+                wsResult.assign( buffer.data(), dwSize / sizeof( wchar_t ) );
+                if ( !wsResult.empty() && wsResult.back() == L'\0' )
+                    wsResult.pop_back();
+            }
+        }
+        RegCloseKey( hKey );
+    }
+    return wsResult;
+}
+
+bool VideoSettings::ParseGPUPreferenceString( const wstring &wsPrefString, UINT &uiVdrID, UINT &uiDevID, UINT &uiSubSysID ) const
+{
+    // wsPrefString = "SpecificAdapter=8086&A7A8&171E1025;GpuPreference=1073741824;"
+    const wstring wsPrefix = L"SpecificAdapter=";
+
+    // -> SpecificAdapter=8086&A7A8&171E1025;GpuPreference=1073741824;
+    size_t szStart = wsPrefString.find( wsPrefix );
+    if ( szStart == wstring::npos ) return false;
+    szStart += wsPrefix.length();
+
+    // SpecificAdapter=8086&A7A8&171E1025; <-
+    size_t szEnd = wsPrefString.find( L';', szStart );
+    if ( szEnd == wstring::npos ) return false;
+
+    // 8086&A7A8&171E1025
+    wstring wsAdapter = wsPrefString.substr( szStart, szEnd - szStart );
+
+    // ...086&A7A...
+    size_t szPos1 = wsAdapter.find( L'&' ); if ( szPos1 == wstring::npos ) return false;
+    // ...A7A8&171E...
+    size_t szPos2 = wsAdapter.find( L'&', szPos1 + 1 ); if ( szPos2 == wstring::npos ) return false;
+
+    wstring wsVdrID = wsAdapter.substr( 0, szPos1 );  // "8086"
+    wstring wsDevID = wsAdapter.substr( szPos1 + 1, szPos2 - szPos1 - 1 ); // "A7A8"
+    wstring wsSubSysID = wsAdapter.substr( szPos2 + 1 ); // "171E1025"
+
+    try
+    {
+        uiVdrID = stoul( wsVdrID, nullptr, 16 ); // "8086" -> 0x8086
+        uiDevID = stoul( wsDevID, nullptr, 16 ); // "A7A8" -> 0xA7A8
+        uiSubSysID = stoul( wsSubSysID, nullptr, 16 ); // "171E1025" -> 0x171E1025
+    }
+    catch ( const exception& )
+    {
+        return false;
+    }
+
+    return true;
+}
+
+bool VideoSettings::SaveGPUPreference( UINT uiVdrID, UINT uiDevID, UINT uiSubSysID ) const
+{
+    HKEY hKey;
+    bool bResult = false;
+    if ( RegCreateKeyEx(
+        HKEY_CURRENT_USER,
+        GPUREGISTRYPATH,
+        0,
+        NULL,
+        REG_OPTION_NON_VOLATILE,
+        KEY_SET_VALUE,
+        NULL,
+        &hKey,
+        NULL ) == ERROR_SUCCESS )
+    {
+        wchar_t wcValue[256];
+        swprintf_s(
+            wcValue,
+            size( wcValue ),
+            L"SpecificAdapter=%04X&%04X&%08X;GpuPreference=1073741824;", uiVdrID, uiDevID, uiSubSysID
+        );
+        wstring wsOwnPath = Util::GetSelfPath();
+        if ( RegSetValueEx(
+            hKey,
+            wsOwnPath.c_str(),
+            0,
+            REG_SZ,
+            reinterpret_cast< const BYTE* >( wcValue ),
+            (DWORD)( ( wcslen( wcValue ) + 1 ) * sizeof( wchar_t ) ) ) == ERROR_SUCCESS )
+        {
+            bResult = true;
+        }
+        RegCloseKey( hKey );
+    }
+    return bResult;
+}

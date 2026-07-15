@@ -29,6 +29,7 @@
 #define POSNCLASSNAME  TEXT( "PianoFromAbovePosCtrl" )
 #define MINWIDTH 640
 #define MINHEIGHT 469
+#define GPUREGISTRYPATH TEXT( "Software\\Microsoft\\DirectX\\UserGpuPreferences" )
 
 typedef function< void( int, const wstring& ) > ProgressScanCallback;
 
@@ -76,6 +77,9 @@ struct VideoSettings : public ISettings
     void LoadConfigValues( TiXmlElement *txRoot );
     bool SaveConfigValues( TiXmlElement *txRoot );
 
+    wstring LoadGPUPreference() const;
+    bool ParseGPUPreferenceString( const wstring &wsPrefString, UINT &uiVdrID, UINT &uiDevID, UINT &uiSubSysID ) const;
+    bool SaveGPUPreference( UINT uiVdrID, UINT uiDevID, UINT uiSubSysID ) const;
     enum Renderer { Direct3D, OpenGL, GDI } eRenderer;
     bool bShowFPS, bLimitFPS, bOpaqueStatus;
 };
