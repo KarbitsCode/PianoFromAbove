@@ -554,23 +554,6 @@ void MainScreen::InitNoteMap( const vector< MIDIEvent* > &vEvents )
                 m_vSignature.push_back( pair< long long, int >( pEvent->GetAbsMicroSec(), static_cast< int >(m_vMetaEvents.size() - 1) ) );
         }
     }
-
-    m_vVisibleNotesCount.resize( m_vNoteOns.size() );
-    int count = 0;
-    for ( size_t i = 0; i < m_vNoteOns.size(); ++i )
-    {
-        MIDIChannelEvent* pEvent = m_vEvents[m_vNoteOns[i].second];
-        int track = pEvent->GetTrack();
-        int channel = pEvent->GetChannel();
-
-        if ( !m_vTrackSettings[track].aChannels[channel].bMuted &&
-            !m_vTrackSettings[track].aChannels[channel].bHidden )
-        {
-            ++count;
-        }
-
-        m_vVisibleNotesCount[i] = count;
-    }
 }
 
 // Display colors
@@ -709,6 +692,23 @@ void MainScreen::SetChannelSettings( const vector< bool > &vMuted, const vector<
                     ColorChannel( i, j, 0, true );
                 iPos++;
             }
+    }
+
+    m_vVisibleNotesCount.resize( m_vNoteOns.size() );
+    int count = 0;
+    for ( size_t i = 0; i < m_vNoteOns.size(); ++i )
+    {
+        MIDIChannelEvent* pEvent = m_vEvents[m_vNoteOns[i].second];
+        int track = pEvent->GetTrack();
+        int channel = pEvent->GetChannel();
+
+        if ( !m_vTrackSettings[track].aChannels[channel].bMuted &&
+            !m_vTrackSettings[track].aChannels[channel].bHidden )
+        {
+            ++count;
+        }
+
+        m_vVisibleNotesCount[i] = count;
     }
 }
 
