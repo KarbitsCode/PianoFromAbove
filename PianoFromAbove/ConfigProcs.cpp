@@ -347,6 +347,9 @@ INT_PTR WINAPI VideoProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
                 SendMessage( hWndGPUAdapter, CB_SETCURSEL, 0, 0 ); // Auto
             }
 
+            // Store initial selection for later comparison
+            SetWindowLongPtr( hWndGPUAdapter, GWLP_USERDATA, ( LPARAM )SendMessage( hWndGPUAdapter, CB_GETCURSEL, 0, 0 ) );
+
             return TRUE;
         }
         case WM_COMMAND:
@@ -374,22 +377,36 @@ INT_PTR WINAPI VideoProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
 
                     HWND hWndGPUAdapter = GetDlgItem( hWnd, IDC_GPUADAPTER );
                     int iSel = (int)SendMessage( hWndGPUAdapter, CB_GETCURSEL, 0, 0 );
-                    int iSelStrLen = (int)SendMessage( hWndGPUAdapter, CB_GETLBTEXTLEN, iSel, 0 );
-                    wstring wsGPUName( iSelStrLen, L'\0' );
-                    SendMessage( hWndGPUAdapter, CB_GETLBTEXT, iSel, (LPARAM)wsGPUName.data() );
 
-                    vector< GPUInfo > cGPUs = Util::EnumerateGPU();
-                    for ( size_t i = 0; i < cGPUs.size(); ++i )
-                    {
+                    if ( iSel != CB_ERR && iSel != (int)GetWindowLongPtr( hWndGPUAdapter, GWLP_USERDATA ) )
+                    { // If GPU selection changed
+                        bool bApplied = false;
                         if ( iSel == 0 ) // Auto
                         {
-                            cVideo.SaveGPUPreference( 0, 0, 0 );
-                            break;
+                            bApplied = cVideo.SaveGPUPreference( 0, 0, 0 );
                         }
-                        else if ( wsGPUName == cGPUs[i].Name ) // GPU match
+                        else
                         {
-                            cVideo.SaveGPUPreference( cGPUs[i].Desc.VendorId, cGPUs[i].Desc.DeviceId, cGPUs[i].Desc.SubSysId );
-                            break;
+                            wstring wsGPUName( (int)SendMessage( hWndGPUAdapter, CB_GETLBTEXTLEN, iSel, 0 ), L'\0' );
+                            SendMessage( hWndGPUAdapter, CB_GETLBTEXT, iSel, ( LPARAM )wsGPUName.data() );
+                            vector< GPUInfo > cGPUs = Util::EnumerateGPU();
+                            for ( size_t i = 0; i < cGPUs.size(); ++i )
+                            {
+                                if ( wsGPUName == cGPUs[i].Name ) // GPU match
+                                {
+                                    bApplied = cVideo.SaveGPUPreference( cGPUs[i].Desc.VendorId, cGPUs[i].Desc.DeviceId, cGPUs[i].Desc.SubSysId );
+                                    break;
+                                }
+                            }
+                        }
+                        if ( bApplied )
+                        {
+                            SetWindowLongPtr( hWndGPUAdapter, GWLP_USERDATA, ( LPARAM )iSel ); // Update stored selection
+                            MessageBox( hWnd, TEXT( "GPU adapter selection has been saved. Please restart the application for changes to take effect." ), TEXT( "Information" ), MB_OK | MB_ICONINFORMATION );
+                        }
+                        else
+                        {
+                            MessageBox( hWnd, TEXT( "Failed to save GPU adapter selection." ), TEXT( "Error" ), MB_OK | MB_ICONERROR );
                         }
                     }
 
