@@ -895,13 +895,24 @@ bool VideoSettings::SaveGPUPreference( UINT uiVdrID, UINT uiDevID, UINT uiSubSys
         &hKey,
         NULL ) == ERROR_SUCCESS )
     {
-        wchar_t wcValue[256];
-        swprintf_s(
-            wcValue,
-            size( wcValue ),
-            L"SpecificAdapter=%04X&%04X&%08X;GpuPreference=1073741824;", uiVdrID, uiDevID, uiSubSysID
-        );
         wstring wsOwnPath = Util::GetSelfPath();
+        wchar_t wcValue[256];
+        if ( uiVdrID == 0 && uiDevID == 0 && uiSubSysID == 0 )
+        { // if Auto
+            swprintf_s(
+                wcValue,
+                size(wcValue),
+                L"GpuPreference=%u;", GPUAUTO
+            );
+        }
+        else
+        {
+            swprintf_s(
+                wcValue,
+                size( wcValue ),
+                L"SpecificAdapter=%04X&%04X&%08X;GpuPreference=%u;", uiVdrID, uiDevID, uiSubSysID, GPUSPECIFIC
+            );
+        }
         if ( RegSetValueEx(
             hKey,
             wsOwnPath.c_str(),

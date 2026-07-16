@@ -30,6 +30,8 @@
 #define MINWIDTH 640
 #define MINHEIGHT 469
 #define GPUREGISTRYPATH TEXT( "Software\\Microsoft\\DirectX\\UserGpuPreferences" )
+#define GPUSPECIFIC 1073741824
+#define GPUAUTO 0
 
 typedef function< void( int, const wstring& ) > ProgressScanCallback;
 

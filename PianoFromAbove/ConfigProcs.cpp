@@ -317,6 +317,36 @@ INT_PTR WINAPI VideoProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
             CheckDlgButton( hWnd, IDC_LIMITFPS, cVideo.bLimitFPS ? BST_CHECKED : BST_UNCHECKED );
             CheckDlgButton( hWnd, IDC_OPAQUESTATUS, cVideo.bOpaqueStatus ? BST_CHECKED : BST_UNCHECKED );
 
+            HWND hWndGPUAdapter = GetDlgItem( hWnd, IDC_GPUADAPTER );
+            SendMessage( hWndGPUAdapter, CB_RESETCONTENT, 0, 0 );
+            SendMessage( hWndGPUAdapter, CB_ADDSTRING, 0, ( LPARAM )TEXT( "Auto" ) );
+
+            vector< GPUInfo > cGPUs = Util::EnumerateGPU();
+            for ( size_t i = 0; i < cGPUs.size(); ++i )
+            {
+                wstring wsGPUName = cGPUs[i].Name;
+                SendMessage( hWndGPUAdapter, CB_ADDSTRING, 0, ( LPARAM )wsGPUName.c_str() );
+            }
+
+            UINT uiVdrID = 0, uiDevID = 0, uiSubSysID = 0;
+            bool bSelectedGPU = false;
+            if ( cVideo.ParseGPUPreferenceString( cVideo.LoadGPUPreference(), uiVdrID, uiDevID, uiSubSysID ) )
+            {
+                for ( size_t i = 0; i < cGPUs.size(); ++i )
+                {
+                    if ( cGPUs[i].Desc.VendorId == uiVdrID && cGPUs[i].Desc.DeviceId == uiDevID && cGPUs[i].Desc.SubSysId == uiSubSysID )
+                    {
+                        SendMessage( hWndGPUAdapter, CB_SETCURSEL, i + 1, 0 ); // Whatever the GPU matches
+                        bSelectedGPU = true;
+                        break;
+                    }
+                }
+            }
+            if (!bSelectedGPU)
+            {
+                SendMessage( hWndGPUAdapter, CB_SETCURSEL, 0, 0 ); // Auto
+            }
+
             return TRUE;
         }
         case WM_COMMAND:
@@ -341,6 +371,27 @@ INT_PTR WINAPI VideoProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
                     cVideo.bShowFPS = ( IsDlgButtonChecked( hWnd, IDC_DISPLAYFPS ) == BST_CHECKED );
                     cVideo.bLimitFPS = ( IsDlgButtonChecked( hWnd, IDC_LIMITFPS ) == BST_CHECKED );
                     cVideo.bOpaqueStatus = ( IsDlgButtonChecked( hWnd, IDC_OPAQUESTATUS ) == BST_CHECKED );
+
+                    HWND hWndGPUAdapter = GetDlgItem( hWnd, IDC_GPUADAPTER );
+                    int iSel = (int)SendMessage( hWndGPUAdapter, CB_GETCURSEL, 0, 0 );
+                    int iSelStrLen = (int)SendMessage( hWndGPUAdapter, CB_GETLBTEXTLEN, iSel, 0 );
+                    wstring wsGPUName( iSelStrLen, L'\0' );
+                    SendMessage( hWndGPUAdapter, CB_GETLBTEXT, iSel, (LPARAM)wsGPUName.data() );
+
+                    vector< GPUInfo > cGPUs = Util::EnumerateGPU();
+                    for ( size_t i = 0; i < cGPUs.size(); ++i )
+                    {
+                        if ( iSel == 0 ) // Auto
+                        {
+                            cVideo.SaveGPUPreference( 0, 0, 0 );
+                            break;
+                        }
+                        else if ( wsGPUName == cGPUs[i].Name ) // GPU match
+                        {
+                            cVideo.SaveGPUPreference( cGPUs[i].Desc.VendorId, cGPUs[i].Desc.DeviceId, cGPUs[i].Desc.SubSysId );
+                            break;
+                        }
+                    }
 
                     config.SetVideoSettings( cVideo );
                     SetWindowLongPtr( hWnd, DWLP_MSGRESULT, PSNRET_NOERROR );
