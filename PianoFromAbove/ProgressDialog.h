@@ -37,7 +37,7 @@ public:
     ProgressLoadDialog();
     ~ProgressLoadDialog();
 
-    bool Create();
+    bool Create(HWND hWndParent = NULL);
     void Destroy();
     bool IsValid() const { return m_hWnd != NULL; }
 
@@ -53,6 +53,7 @@ private:
     static LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
 
     HWND m_hWnd;
+    HWND m_hWndParent;
     HWND m_hTrackProgressBar;
     HWND m_hTrackStatusText;
     HWND m_hEventProgressBar;

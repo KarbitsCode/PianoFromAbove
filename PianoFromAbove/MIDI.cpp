@@ -142,7 +142,7 @@ int MIDIPos::GetNextEvents( int iMicroSecs, vector< MIDIEvent* > &vEvents )
 MIDI::MIDI ( const wstring &sFilename )
 {
     ProgressLoadDialog progressDlg;
-    if ( progressDlg.Create() )
+    if ( progressDlg.Create( g_hWnd ) )
     {
         progressDlg.SetFilename( PathFindFileName( sFilename.c_str() ) );
         SetProgressTrackCallback([&progressDlg]( int currentTrack, int totalTracks ) {

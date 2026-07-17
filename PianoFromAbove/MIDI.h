@@ -15,6 +15,7 @@
 #include <functional>
 using namespace std;
 
+#include "Globals.h"
 #include "Misc.h"
 #include "ProgressDialog.h"
 

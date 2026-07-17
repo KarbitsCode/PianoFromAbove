@@ -164,17 +164,23 @@ LRESULT CALLBACK ProgressScanDialog::WndProc(HWND hWnd, UINT msg, WPARAM wParam,
 
 const wchar_t* ProgressLoadDialog::CLASSNAME = L"PianoFromAboveProgressLoad";
 
-ProgressLoadDialog::ProgressLoadDialog() : m_hWnd(NULL), m_hTrackProgressBar(NULL), m_hTrackStatusText(NULL), m_hEventProgressBar(NULL), m_hEventStatusText(NULL) {}
+ProgressLoadDialog::ProgressLoadDialog() : m_hWnd(NULL), m_hWndParent(NULL), m_hTrackProgressBar(NULL), m_hTrackStatusText(NULL), m_hEventProgressBar(NULL), m_hEventStatusText(NULL) {}
 
 ProgressLoadDialog::~ProgressLoadDialog()
 {
     Destroy();
 }
 
-bool ProgressLoadDialog::Create()
+bool ProgressLoadDialog::Create(HWND hWndParent)
 {
     if (m_hWnd != NULL)
         return true;
+
+    if (hWndParent != NULL)
+    {
+        m_hWndParent = hWndParent;
+        EnableWindow(m_hWndParent, FALSE);
+    }
 
     const int width = 420;
     const int height = 160;
@@ -281,6 +287,12 @@ void ProgressLoadDialog::Destroy()
         m_hTrackStatusText = NULL;
         m_hEventProgressBar = NULL;
         m_hEventStatusText = NULL;
+    }
+    if (m_hWndParent)
+    {
+        EnableWindow(m_hWndParent, TRUE);
+        SetForegroundWindow(m_hWndParent);
+        m_hWndParent = NULL;
     }
 }
 
