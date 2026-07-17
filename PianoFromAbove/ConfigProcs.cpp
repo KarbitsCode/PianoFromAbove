@@ -402,7 +402,11 @@ INT_PTR WINAPI VideoProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
                         if ( bApplied )
                         {
                             SetWindowLongPtr( hWndGPUAdapter, GWLP_USERDATA, ( LPARAM )iSel ); // Update stored selection
-                            MessageBox( hWnd, TEXT( "GPU adapter selection has been saved. Please restart the application for changes to take effect." ), TEXT( "Information" ), MB_OK | MB_ICONINFORMATION );
+                            if ( MessageBox( hWnd, TEXT( "GPU adapter selection has been saved. Restart is required for changes to take effect.\n\nRestart now?" ), TEXT( "Information" ), MB_YESNO | MB_ICONQUESTION ) == IDYES )
+                            {
+                                g_bAboutToRestart = TRUE;
+                                PostMessage( g_hWnd, WM_CLOSE, 0, 0 );
+                            }
                         }
                         else
                         {

@@ -37,6 +37,7 @@ TSQueue< MSG > g_MsgQueue; // Producer/consumer to hold events for our game thre
 LPWSTR g_sMIDILoadPending = NULL;
 IMMDeviceEnumerator* g_pDeviceEnumerator = NULL;
 AudioNotificationClient* g_pAudioNotify = NULL;
+BOOL g_bAboutToRestart = FALSE;
 
 //-----------------------------------------------------------------------------
 // Name: wWinMain()
@@ -192,6 +193,11 @@ INT WINAPI wWinMain( HINSTANCE hInstance, HINSTANCE hPrevInstance, LPWSTR lpszCm
     }
     UnregisterClass( CLASSNAME, wc.hInstance );
     CoUninitialize();
+
+    // For restarting
+    if ( g_bAboutToRestart )
+        ShellExecute( NULL, TEXT( "open" ), Util::GetSelfPath().c_str(), NULL, NULL, SW_SHOWNORMAL);
+
     return 0;
 }
 

@@ -22,5 +22,6 @@ extern TSQueue< MSG > g_MsgQueue; // Producer/consumer to hold events for our ga
 extern LPWSTR g_sMIDILoadPending;
 extern IMMDeviceEnumerator* g_pDeviceEnumerator;
 extern AudioNotificationClient* g_pAudioNotify;
+extern BOOL g_bAboutToRestart;
 
 #define ERRORANDRETURN( hwnd, msg, retval ) { MessageBox( ( hwnd ), ( msg ), TEXT( "Error" ), MB_OK | MB_ICONERROR ); return ( retval ); }
