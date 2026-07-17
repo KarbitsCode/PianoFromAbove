@@ -279,6 +279,11 @@ bool ProgressLoadDialog::Create(HWND hWndParent)
 
 void ProgressLoadDialog::Destroy()
 {
+    if (m_hWndParent)
+    {
+        EnableWindow(m_hWndParent, TRUE);
+        m_hWndParent = NULL;
+    }
     if (m_hWnd)
     {
         DestroyWindow(m_hWnd);
@@ -287,12 +292,6 @@ void ProgressLoadDialog::Destroy()
         m_hTrackStatusText = NULL;
         m_hEventProgressBar = NULL;
         m_hEventStatusText = NULL;
-    }
-    if (m_hWndParent)
-    {
-        EnableWindow(m_hWndParent, TRUE);
-        SetForegroundWindow(m_hWndParent);
-        m_hWndParent = NULL;
     }
 }
 
