@@ -12,6 +12,7 @@
 #include <Windows.h>
 #include <map>
 #include <string>
+#include <array>
 using namespace std;
 
 #include "ProtoBuf\MetaData.pb.h"
@@ -236,7 +237,8 @@ private:
     double m_dVolume;
     int m_iTotalNotesHit, m_iLastTotalNotesHit; // For note counter
     int m_iCurrentNotesHit; // Notes currently playing (polyphony)
-    int m_iNotesHitSpeed; // For NPS (Note Per Second) calculation
+    int m_iNoteHitSpeed; // For NPS (Note Per Second) calculation
+    array< int, 2 > m_iNoteHitSpeedBucket; // Also for NPS calculation
     int m_iShownTicks; // For tick-based rendering
     vector< int > m_vVisibleNotesCount; // The notes that's not muted and hidden, basically precomputed
 

@@ -590,7 +590,8 @@ void MainScreen::InitState()
     m_iTotalNotesHit = 0;
     m_iLastTotalNotesHit = 0;
     m_iCurrentNotesHit = 0;
-    m_iNotesHitSpeed = 0;
+    m_iNoteHitSpeed = 0;
+    m_iNoteHitSpeedBucket.fill(0);
 
     m_fZoomX = cView.GetZoomX();
     m_fOffsetX = cView.GetOffsetX();
@@ -964,9 +965,11 @@ GameState::GameError MainScreen::Logic()
     {
         m_dFPS = m_iFPSCount / ( m_llFPSTime / 1000000.0 );
 
-        // Also compute NPS every half a second
-        m_iNotesHitSpeed = m_iTotalNotesHit - m_iLastTotalNotesHit;
+        // Also compute NPS every half a second but still counts per second
+        int iNoteCountDiff = m_iTotalNotesHit - m_iLastTotalNotesHit;
         m_iLastTotalNotesHit = m_iTotalNotesHit;
+        m_iNoteHitSpeedBucket.front() = exchange(m_iNoteHitSpeedBucket.back(), iNoteCountDiff);
+        m_iNoteHitSpeed = m_iNoteHitSpeedBucket.front() + m_iNoteHitSpeedBucket.back();
 
         m_llFPSTime = m_iFPSCount = 0;
     }
@@ -2009,7 +2012,7 @@ void MainScreen::RenderStatus( LPRECT prcStatus )
 
     // Build the note per second counter text
     TCHAR sNPS[128];
-    _stprintf_s( sNPS, TEXT( "%d" ), m_iNotesHitSpeed );
+    _stprintf_s( sNPS, TEXT( "%d" ), m_iNoteHitSpeed );
 
     // Build the note polyphony text
     TCHAR sPoly[128];
