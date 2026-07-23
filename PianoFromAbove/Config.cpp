@@ -36,7 +36,7 @@ Config::Config()
     ProgressScanDialog progressDlg;
     if ( progressDlg.Create() )
     {
-        int iTotalFiles = m_SongLibrary.CountFilesInSource();
+        int iTotalFiles = m_SongLibrary.CountFilesInSources();
         m_SongLibrary.SetProgressCallback([&progressDlg, iTotalFiles]( int iFilesScanned, const wstring& sCurrentFile ) {
             progressDlg.SetProgress( iFilesScanned, iTotalFiles, sCurrentFile );
         });
@@ -653,7 +653,7 @@ int SongLibrary::ExpandSource( const wstring &sPath, Source eSource, vector< PFA
     {
         if ( m_ProgressCallback )
         {
-            wstring sFilename = sPath.compare(0, 4, L"\\\\?\\") == 0 ? sPath.substr(4) : sPath;
+            wstring sFilename = sPath.compare( 0, 4, L"\\\\?\\" ) == 0 ? sPath.substr( 4 ) : sPath;
             m_ProgressCallback( ++m_iFilesScanned, sFilename );
         }
 
@@ -710,27 +710,26 @@ int SongLibrary::ExpandSource( const wstring &sPath, Source eSource, vector< PFA
     }
 }
 
-int SongLibrary::CountFilesInSource()
+int SongLibrary::CountFilesInSources()
 {
     int iTotalFiles = 0;
     TCHAR buf[1024];
 
-    for (const auto& source : m_mSources)
+    for ( const auto& source : m_mSources )
     {
-        if (source.first.length() + 7 > 1024) continue;
-        memcpy(buf, source.first.c_str(), source.first.length() * sizeof(wchar_t));
-        memcpy(buf + source.first.length(), L"\\*.mid", 7 * sizeof(wchar_t));
+        if ( _tcscpy_s( buf, std::size( buf ), source.first.c_str() ) != 0 ) continue;
+        if ( _tcscat_s( buf, std::size( buf ), TEXT( "\\*.mid" ) ) != 0 ) continue;
 
         WIN32_FIND_DATA ffd;
-        HANDLE hFind = FindFirstFile(buf, &ffd);
-        if (hFind != INVALID_HANDLE_VALUE)
+        HANDLE hFind = FindFirstFile( buf, &ffd );
+        if ( hFind != INVALID_HANDLE_VALUE )
         {
             do
             {
-                if (!(ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY))
+                if ( !(ffd.dwFileAttributes & FILE_ATTRIBUTE_DIRECTORY) )
                     iTotalFiles++;
-            } while (FindNextFile(hFind, &ffd));
-            FindClose(hFind);
+            } while ( FindNextFile( hFind, &ffd ) );
+            FindClose( hFind );
         }
     }
 

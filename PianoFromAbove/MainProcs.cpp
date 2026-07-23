@@ -306,7 +306,7 @@ LRESULT WINAPI WndProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
             HandOffMsg( WM_DEVICECHANGE, wParam == DEVICECHANGE_AUDIO_ENDPOINT ? DEVICECHANGE_AUDIO_ENDPOINT : 0, 0 );
             break;
         case WM_TIMER:
-            if (wParam == IDC_LOADQUEUETIMER)
+            if ( wParam == IDC_LOADQUEUETIMER )
             {
                 if ( g_sMIDILoadPending && g_sMIDILoadPending[0] )
                 {

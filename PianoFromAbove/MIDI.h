@@ -155,8 +155,8 @@ public:
     ~MIDITrack( void );
 
     //Parsing functions that load data into the instance
-    int ParseTrack( const unsigned char *pcData, int iMaxSize, int iTrack, ProgressLoadCallback progressCallback = NULL );
-    int ParseEvents( const unsigned char *pcData, int iMaxSize, int iTrack, ProgressLoadCallback progressCallback = NULL, bool bCountOnly = false );
+    int ParseTrack( const unsigned char *pcData, int iMaxSize, int iTrack, ProgressLoadCallback pCallback = NULL );
+    int ParseEvents( const unsigned char *pcData, int iMaxSize, int iTrack, ProgressLoadCallback pCallback = NULL, bool bCountOnly = false );
     void clear( void );
 
     friend class MIDIPos;

@@ -199,9 +199,9 @@ public:
     int AddSource( const wstring &sSource, Source eSource, bool bExpand = true );
     int RemoveSource( const wstring &sSource );
     int ExpandSources();
+    int CountFilesInSources();
     PFAData::File* SongLibrary::AddFile( const wstring &wsFilename, MIDI *pMidi = NULL );
     void clear();
-    int CountFilesInSource();
 
     const map < wstring, Source > &GetSources() const { return m_mSources; }
     const map< wstring, vector< PFAData::File* >* > &GetFiles() const { return m_mFiles; }
