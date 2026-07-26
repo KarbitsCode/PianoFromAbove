@@ -9,7 +9,9 @@
 *
 *************************************************************************************************/
 #include <tchar.h>
-#include <chrono>
+#include <Shlwapi.h>
+#include <thread>
+#include <atomic>
 
 #include "Globals.h"
 #include "GameState.h"
@@ -503,19 +505,38 @@ MainScreen::MainScreen( wstring sMIDIFile, State eGameMode, HWND hWnd, Renderer 
 {
     // Finish off midi processing
     if ( !m_MIDI.IsValid() ) return;
+
+    ProgressStatusDialog progressDlg;
+    atomic< bool > bStatusComplete( false );
+    thread statusThread([&progressDlg, hWnd, &bStatusComplete]() {
+        progressDlg.Create( hWnd );
+        while ( !bStatusComplete && progressDlg.IsValid() )
+            progressDlg.ProcessMessages();
+    });
+
+    Sleep( 50 ); // Just so progress texts are not gonna lost because dialog doesn't exist yet
+    progressDlg.SetFilename( PathFindFileName( sMIDIFile.c_str() ) );
+    progressDlg.SetStatus( L"Processing MIDI..." );
     vector< MIDIEvent* > vEvents;
     vEvents.reserve( m_MIDI.GetInfo().iEventCount );
+    progressDlg.SetStatus( L"Connecting notes..." );
     m_MIDI.ConnectNotes(); // Order's important here
+    progressDlg.SetStatus( L"Post-processing events..." );
     m_MIDI.PostProcess( &vEvents );
 
     // Allocate
+    progressDlg.SetStatus( L"Allocating memory for tracks..." );
     m_vTrackSettings.resize( m_MIDI.GetInfo().iNumTracks );
     m_vState.reserve( 128 );
 
     // Initialize
+    progressDlg.SetStatus( L"Initializing note map, colors and state..." );
     InitNoteMap( vEvents ); // Longish
     InitColors();
     InitState();
+
+    bStatusComplete = true;
+    statusThread.join();
 }
 
 void MainScreen::InitNoteMap( const vector< MIDIEvent* > &vEvents )

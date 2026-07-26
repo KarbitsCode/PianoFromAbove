@@ -16,6 +16,9 @@ bool ProgressScanDialog::Create()
     if (m_hWnd != NULL)
         return true;
 
+    const int width = 400;
+    const int height = 200;
+
     WNDCLASSEX wc = { 0 };
     wc.cbSize = sizeof(WNDCLASSEX);
     wc.style = 0;
@@ -41,12 +44,18 @@ bool ProgressScanDialog::Create()
         CLASSNAME,
         L"Scanning MIDI Library...",
         WS_POPUP | WS_CAPTION,
-        CW_USEDEFAULT, CW_USEDEFAULT, 400, 200,
+        CW_USEDEFAULT, CW_USEDEFAULT, width, height,
         NULL, NULL, GetModuleHandle(NULL), this
     );
 
     if (!m_hWnd)
         return false;
+
+    RECT rc;
+    GetClientRect(m_hWnd, &rc);
+    const int progressBarHeight = 20;
+    const int statusTextHeight = 20;
+    const int spacing = 10;
 
     // Create status text
     m_hStatusText = CreateWindowEx(
@@ -54,7 +63,7 @@ bool ProgressScanDialog::Create()
         L"STATIC",
         L"Scanning for MIDI files...",
         WS_CHILD | WS_VISIBLE,
-        10, 10, 380, 20,
+        spacing, 10, rc.right - 2 * spacing, statusTextHeight,
         m_hWnd, NULL, GetModuleHandle(NULL), NULL
     );
 
@@ -64,7 +73,7 @@ bool ProgressScanDialog::Create()
         PROGRESS_CLASS,
         NULL,
         WS_CHILD | WS_VISIBLE,
-        10, 40, 360, 20,
+        spacing, 40, rc.right - 2 * spacing, progressBarHeight,
         m_hWnd, NULL, GetModuleHandle(NULL), NULL
     );
 
@@ -79,7 +88,7 @@ bool ProgressScanDialog::Create()
         L"STATIC",
         L"",
         WS_CHILD | WS_VISIBLE,
-        10, 60, 380, 110,
+        spacing, 60, rc.right - 2 * spacing, statusTextHeight * 4,
         m_hWnd, NULL, GetModuleHandle(NULL), NULL
     );
 
@@ -184,9 +193,8 @@ bool ProgressLoadDialog::Create(HWND hWndParent)
 
     const int width = 420;
     const int height = 160;
-
-    int x = (GetSystemMetrics(SM_CXSCREEN) - width) / 2;
-    int y = (GetSystemMetrics(SM_CYSCREEN) - height) / 2;
+    const int x = (GetSystemMetrics(SM_CXSCREEN) - width) / 2;
+    const int y = (GetSystemMetrics(SM_CYSCREEN) - height) / 2;
 
     WNDCLASSEX wc = { 0 };
     wc.cbSize = sizeof(WNDCLASSEX);
@@ -220,13 +228,19 @@ bool ProgressLoadDialog::Create(HWND hWndParent)
     if (!m_hWnd)
         return false;
 
+    RECT rc;
+    GetClientRect(m_hWnd, &rc);
+    const int progressBarHeight = 10;
+    const int statusTextHeight = 20;
+    const int spacing = 10;
+
     // Create track progress bar
     m_hTrackProgressBar = CreateWindowEx(
         0,
         PROGRESS_CLASS,
         NULL,
         WS_CHILD | WS_VISIBLE,
-        10, 10, 380, 10,
+        spacing, 10, rc.right - 2 * spacing, progressBarHeight,
         m_hWnd, NULL, GetModuleHandle(NULL), NULL
     );
 
@@ -236,7 +250,7 @@ bool ProgressLoadDialog::Create(HWND hWndParent)
         L"STATIC",
         L"Loading...",
         WS_CHILD | WS_VISIBLE,
-        10, 30, 380, 20,
+        spacing, 30, rc.right - 2 * spacing, statusTextHeight,
         m_hWnd, NULL, GetModuleHandle(NULL), NULL
     );
 
@@ -251,7 +265,7 @@ bool ProgressLoadDialog::Create(HWND hWndParent)
         PROGRESS_CLASS,
         NULL,
         WS_CHILD | WS_VISIBLE,
-        10, 60, 380, 10,
+        spacing, 60, rc.right - 2 * spacing, progressBarHeight,
         m_hWnd, NULL, GetModuleHandle(NULL), NULL
     );
 
@@ -261,11 +275,10 @@ bool ProgressLoadDialog::Create(HWND hWndParent)
         L"STATIC",
         L"Loading...",
         WS_CHILD | WS_VISIBLE,
-        10, 80, 380, 20,
+        spacing, 80, rc.right - 2 * spacing, statusTextHeight,
         m_hWnd, NULL, GetModuleHandle(NULL), NULL
     );
 
-    //SendMessage(m_hEventProgressBar, PBM_SETMARQUEE, TRUE, 50);
     SendMessage(m_hEventProgressBar, PBM_SETRANGE, 0, MAKELPARAM(0, 100));
     SendMessage(m_hEventProgressBar, PBM_SETSTEP, 1, 0);
     SendMessage(m_hEventProgressBar, PBM_SETPOS, 0, 0);
@@ -355,14 +368,189 @@ LRESULT CALLBACK ProgressLoadDialog::WndProc(HWND hWnd, UINT msg, WPARAM wParam,
 {
     switch (msg)
     {
-    case WM_CREATE:
-    {
-        CREATESTRUCT* pCreate = reinterpret_cast<CREATESTRUCT*>(lParam);
-        ProgressLoadDialog* pThis = reinterpret_cast<ProgressLoadDialog*>(pCreate->lpCreateParams);
-        SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG_PTR)pThis);
-        return 0;
+        case WM_CREATE:
+        {
+            CREATESTRUCT* pCreate = reinterpret_cast<CREATESTRUCT*>(lParam);
+            ProgressLoadDialog* pThis = reinterpret_cast<ProgressLoadDialog*>(pCreate->lpCreateParams);
+            SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG_PTR)pThis);
+            return 0;
+        }
+        default:
+            return DefWindowProc(hWnd, msg, wParam, lParam);
     }
-    default:
-        return DefWindowProc(hWnd, msg, wParam, lParam);
+}
+
+
+const wchar_t* ProgressStatusDialog::CLASSNAME = L"PianoFromAboveProgressStatus";
+
+ProgressStatusDialog::ProgressStatusDialog() : m_hWnd(NULL), m_hWndParent(NULL), m_hStatusText(NULL), m_hProgressBar(NULL) {}
+
+ProgressStatusDialog::~ProgressStatusDialog()
+{
+    Destroy();
+}
+
+bool ProgressStatusDialog::Create(HWND hWndParent)
+{
+    if (m_hWnd != NULL)
+        return true;
+
+    if (hWndParent != NULL)
+    {
+        m_hWndParent = hWndParent;
+        EnableWindow(m_hWndParent, FALSE);
+    }
+
+    const int width = 420;
+    const int height = 100;
+    const int x = (GetSystemMetrics(SM_CXSCREEN) - width) / 2;
+    const int y = (GetSystemMetrics(SM_CYSCREEN) - height) / 2;
+
+    WNDCLASSEX wc = { 0 };
+    wc.cbSize = sizeof(WNDCLASSEX);
+    wc.style = 0;
+    wc.lpfnWndProc = WndProc;
+    wc.cbClsExtra = 0;
+    wc.cbWndExtra = sizeof(ProgressStatusDialog*);
+    wc.hInstance = GetModuleHandle(NULL);
+    wc.hCursor = LoadCursor(NULL, IDC_WAIT);
+    wc.hbrBackground = (HBRUSH)(COLOR_BTNFACE + 1);
+    wc.lpszClassName = CLASSNAME;
+
+    if (!RegisterClassEx(&wc))
+    {
+        // Class might already be registered from previous instance
+        DWORD dwErr = GetLastError();
+        if (dwErr != ERROR_CLASS_ALREADY_EXISTS)
+            return false;
+    }
+
+    // Create progress window
+    m_hWnd = CreateWindowEx(
+        WS_EX_DLGMODALFRAME,
+        CLASSNAME,
+        L"Loading...",
+        WS_POPUP | WS_CAPTION | WS_VISIBLE,
+        x, y, width, height,
+        NULL, NULL, GetModuleHandle(NULL), this
+    );
+
+    if (!m_hWnd)
+        return false;
+
+    RECT rc;
+    GetClientRect(m_hWnd, &rc);
+    const int progressBarHeight = 10;
+    const int statusTextHeight = 20;
+    const int spacing = 10;
+
+    // Create status text
+    m_hStatusText = CreateWindowEx(
+        0,
+        L"STATIC",
+        L"Loading...",
+        WS_CHILD | WS_VISIBLE | SS_CENTER,
+        spacing, 0, rc.right - 2 * spacing, statusTextHeight,
+        m_hWnd, NULL, GetModuleHandle(NULL), NULL
+    );
+
+    // Create progress bar
+    m_hProgressBar = CreateWindowEx(
+        0,
+        PROGRESS_CLASS,
+        NULL,
+        WS_CHILD | WS_VISIBLE | PBS_MARQUEE,
+        spacing, 30, rc.right - 2 * spacing, progressBarHeight,
+        m_hWnd, NULL, GetModuleHandle(NULL), NULL
+    );
+
+    SendMessage(m_hProgressBar, PBM_SETMARQUEE, TRUE, 10);
+    SetClassLongPtr(m_hProgressBar, GCLP_HCURSOR, (LONG_PTR)LoadCursor(NULL, IDC_WAIT));
+
+    ShowWindow(m_hWnd, SW_SHOW);
+    UpdateWindow(m_hWnd);
+
+    return true;
+}
+
+void ProgressStatusDialog::Destroy()
+{
+    if (m_hWndParent)
+    {
+        EnableWindow(m_hWndParent, TRUE);
+        m_hWndParent = NULL;
+    }
+    if (m_hWnd)
+    {
+        DestroyWindow(m_hWnd);
+        m_hWnd = NULL;
+        m_hStatusText = NULL;
+        m_hProgressBar = NULL;
+    }
+}
+
+void ProgressStatusDialog::SetStatus(const std::wstring& sStatus)
+{
+    if (!IsValid())
+        return;
+
+    PostMessage(m_hWnd, WM_APP + 1, 0, reinterpret_cast<LPARAM>(new std::wstring(sStatus)));
+    ProcessMessages();
+}
+
+void ProgressStatusDialog::SetFilename(const std::wstring& sFilename)
+{
+    if (!IsValid())
+        return;
+
+    PostMessage(m_hWnd, WM_APP + 2, 0, reinterpret_cast<LPARAM>(new std::wstring(L"Loading " + sFilename + L"...")));
+    ProcessMessages();
+}
+
+void ProgressStatusDialog::ProcessMessages()
+{
+    MSG msg;
+    while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+    {
+        TranslateMessage(&msg);
+        DispatchMessage(&msg);
+    }
+}
+
+LRESULT CALLBACK ProgressStatusDialog::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+    switch (msg)
+    {
+        case WM_CREATE:
+        {
+            CREATESTRUCT* pCreate = reinterpret_cast<CREATESTRUCT*>(lParam);
+            ProgressStatusDialog* pThis = reinterpret_cast<ProgressStatusDialog*>(pCreate->lpCreateParams);
+            SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG_PTR)pThis);
+            return 0;
+        }
+        case WM_APP + 1:
+        {
+            ProgressStatusDialog* pThis = reinterpret_cast<ProgressStatusDialog*>(GetWindowLongPtr(hWnd, GWLP_USERDATA));
+            if (pThis)
+            {
+                std::wstring* pStatus = reinterpret_cast<std::wstring*>(lParam);
+                SetWindowText(pThis->m_hStatusText, pStatus->c_str());
+                delete pStatus;
+            }
+            return 0;
+        }
+        case WM_APP + 2:
+        {
+            ProgressStatusDialog* pThis = reinterpret_cast<ProgressStatusDialog*>(GetWindowLongPtr(hWnd, GWLP_USERDATA));
+            if (pThis)
+            {
+                std::wstring* pTitle = reinterpret_cast<std::wstring*>(lParam);
+                SetWindowText(hWnd, pTitle->c_str());
+                delete pTitle;
+            }
+            return 0;
+        }
+        default:
+            return DefWindowProc(hWnd, msg, wParam, lParam);
     }
 }
