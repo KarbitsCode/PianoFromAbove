@@ -1658,10 +1658,10 @@ BOOL PlayFile( const wstring &sFile, bool bCustomSettings, bool bLibraryEligible
     const GameState::State ePlayMode = GameState::Practice;
 
     // Try loading the file
-    MainScreen *pGameState = NULL;
-    pGameState = new MainScreen( sFile, ePlayMode, NULL, NULL );
+    MainScreen *pGameState = new MainScreen( sFile, ePlayMode, NULL, NULL );
     if ( !pGameState->IsValid() )
     {
+        delete pGameState;
         MessageBox( g_hWnd, ( L"Was not able to load " + sFile ).c_str(), TEXT( "Error" ), MB_OK | MB_ICONEXCLAMATION );
         return FALSE;
     }
@@ -1670,7 +1670,10 @@ BOOL PlayFile( const wstring &sFile, bool bCustomSettings, bool bLibraryEligible
     if ( bCustomSettings )
     {
         if ( !GetCustomSettings( pGameState ) )
+        {
+            delete pGameState;
             return FALSE;
+        }
     }
     else
     {
