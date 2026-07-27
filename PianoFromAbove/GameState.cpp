@@ -508,13 +508,16 @@ MainScreen::MainScreen( wstring sMIDIFile, State eGameMode, HWND hWnd, Renderer 
 
     ProgressStatusDialog progressDlg;
     atomic< bool > bStatusComplete( false );
-    thread statusThread([&progressDlg, hWnd, &bStatusComplete]() {
-        progressDlg.Create( hWnd );
+    atomic< bool > bStatusReady( false );
+    thread statusThread([&progressDlg, &bStatusComplete, &bStatusReady, hWnd]() {
+        bStatusReady = progressDlg.Create( hWnd );
         while ( !bStatusComplete && progressDlg.IsValid() )
             progressDlg.ProcessMessages();
     });
 
-    Sleep( 50 ); // Just so progress texts are not gonna lost because dialog doesn't exist yet
+    while ( !bStatusReady )
+        this_thread::yield(); // Wait for dialog ready
+
     progressDlg.SetFilename( PathFindFileName( sMIDIFile.c_str() ) );
     progressDlg.SetStatus( L"Processing MIDI..." );
     vector< MIDIEvent* > vEvents;
