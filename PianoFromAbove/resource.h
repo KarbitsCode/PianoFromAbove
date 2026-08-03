@@ -25,12 +25,6 @@
 #define IDC_TRACKS                      1001
 #define IDC_HIDEKEYBOARD                1004
 #define IDC_FLIPSCREEN                  1005
-#define IDC_COLOR1                      1006
-#define IDC_COLOR2                      1007
-#define IDC_COLOR3                      1008
-#define IDC_COLOR4                      1009
-#define IDC_COLOR5                      1010
-#define IDC_COLOR6                      1011
 #define IDC_BKGCOLOR                    1012
 #define IDC_SHOWALLKEYS                 1020
 #define IDC_SHOWSONGKEYS                1021
@@ -85,6 +79,22 @@
 #define IDC_RENDERMODE                  1096
 #define IDC_ACDNTDISPLAY                1097
 #define IDC_GPUADAPTER                  1098
+#define IDC_COLOR1                      1100
+#define IDC_COLOR2                      1101
+#define IDC_COLOR3                      1102
+#define IDC_COLOR4                      1103
+#define IDC_COLOR5                      1104
+#define IDC_COLOR6                      1105
+#define IDC_COLOR7                      1106
+#define IDC_COLOR8                      1107
+#define IDC_COLOR9                      1108
+#define IDC_COLOR10                     1109
+#define IDC_COLOR11                     1110
+#define IDC_COLOR12                     1111
+#define IDC_COLOR13                     1112
+#define IDC_COLOR14                     1113
+#define IDC_COLOR15                     1114
+#define IDC_COLOR16                     1115
 #define ID_FILE_PLAYFILE                40001
 #define ID_FILE_ADDFILE                 40002
 #define ID_FILE_ADDFOLDER               40003
@@ -184,7 +194,7 @@
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        153
 #define _APS_NEXT_COMMAND_VALUE         40176
-#define _APS_NEXT_CONTROL_VALUE         1100
+#define _APS_NEXT_CONTROL_VALUE         1133
 #define _APS_NEXT_SYMED_VALUE           102
 #endif
 #endif

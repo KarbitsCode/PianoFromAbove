@@ -88,7 +88,7 @@ INT_PTR WINAPI VisualProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
         case WM_DRAWITEM:
         {
             LPDRAWITEMSTRUCT pdis = (LPDRAWITEMSTRUCT)lParam;
-            if ( ( pdis->CtlID < IDC_COLOR1 || pdis->CtlID > IDC_COLOR6 ) && pdis->CtlID != IDC_BKGCOLOR )
+            if ( ( pdis->CtlID < IDC_COLOR1 || pdis->CtlID > IDC_COLOR16 ) && pdis->CtlID != IDC_BKGCOLOR )
                 return FALSE;
 
             SetDCBrushColor( pdis->hDC, (COLORREF)GetWindowLongPtr( pdis->hwndItem, GWLP_USERDATA ) );
@@ -112,8 +112,10 @@ INT_PTR WINAPI VisualProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
                     EnableWindow( GetDlgItem( hWnd, IDC_LASTKEY ), FALSE );
                     return TRUE;
                 // Color buttons. Pop up color choose dialog and set color.
-                case IDC_COLOR1: case IDC_COLOR2: case IDC_COLOR3:
-                case IDC_COLOR4: case IDC_COLOR5: case IDC_COLOR6: 
+                case IDC_COLOR1: case IDC_COLOR2: case IDC_COLOR3: case IDC_COLOR4:
+                case IDC_COLOR5: case IDC_COLOR6: case IDC_COLOR7: case IDC_COLOR8:
+                case IDC_COLOR9: case IDC_COLOR10: case IDC_COLOR11: case IDC_COLOR12:
+                case IDC_COLOR13: case IDC_COLOR14: case IDC_COLOR15: case IDC_COLOR16:
                 case IDC_BKGCOLOR:
                 {
                     static COLORREF acrCustClr[16] = { 0x00FFFFFF, 0x00FFFFFF, 0x00FFFFFF, 0x00FFFFFF, 0x00FFFFFF, 0x00FFFFFF, 0x00FFFFFF, 0x00FFFFFF, 
@@ -178,7 +180,7 @@ INT_PTR WINAPI VisualProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
                         FillKeysDropdown( hWnd, newAccidentals );
                     cVisual.eAccidentals = newAccidentals;
                     
-                    for ( int i = 0; i < IDC_COLOR6 - IDC_COLOR1 + 1; i++ )
+                    for ( int i = 0; i < IDC_COLOR16 - IDC_COLOR1 + 1; i++ )
                         cVisual.colors[i] = (int)GetWindowLongPtr( GetDlgItem( hWnd, IDC_COLOR1 + i ), GWLP_USERDATA );
                     cVisual.iBkgColor = (int)GetWindowLongPtr( GetDlgItem( hWnd, IDC_BKGCOLOR ), GWLP_USERDATA );
 
@@ -217,7 +219,7 @@ VOID SetVisualProc( HWND hWnd, const VisualSettings &cVisual )
     SendMessage( hWndAccidentalNoteDisplay, CB_SETCURSEL, static_cast< WPARAM >( cVisual.eAccidentals ), 0 );
 
     // Colors
-    for ( int i = 0; i < IDC_COLOR6 - IDC_COLOR1 + 1; i++ )
+    for ( int i = 0; i < IDC_COLOR16 - IDC_COLOR1 + 1; i++ )
         SetWindowLongPtr( GetDlgItem( hWnd, IDC_COLOR1 + i ), GWLP_USERDATA, cVisual.colors[i] );
     SetWindowLongPtr( GetDlgItem( hWnd, IDC_BKGCOLOR ), GWLP_USERDATA, cVisual.iBkgColor );
 }
