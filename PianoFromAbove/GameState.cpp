@@ -767,6 +767,12 @@ GameState::GameError MainScreen::MsgProc( HWND hWnd, UINT msg, WPARAM wParam, LP
                 case ID_PLAY_SKIPBACK:
                     JumpTo( static_cast< long long >( m_llStartTime - cControls.dFwdBackSecs * 1000000 ) );
                     return Success;
+                case ID_PLAY_SKIPFWD2:
+                    JumpTo( static_cast< long long >( m_llStartTime + ( cControls.dFwdBackSecs * 2 ) * 1000000 ) );
+                    return Success;
+                case ID_PLAY_SKIPBACK2:
+                    JumpTo( static_cast< long long >( m_llStartTime - ( cControls.dFwdBackSecs * 2 ) * 1000000 ) );
+                    return Success;
                 case ID_VIEW_RESETDEVICE:
                     m_pRenderer->ResetDevice();
                     return Success;
@@ -840,6 +846,12 @@ GameState::GameError MainScreen::MsgProc( HWND hWnd, UINT msg, WPARAM wParam, LP
                     return Success;
                 case VK_RIGHT:
                     JumpTo( static_cast< long long >( m_llStartTime + cControls.dFwdBackSecs * 1000000 ) );
+                    return Success;
+                case 'J':
+                    JumpTo( static_cast< long long >( m_llStartTime - ( cControls.dFwdBackSecs * 2 ) * 1000000 ) );
+                    return Success;
+                case 'L':
+                    JumpTo( static_cast< long long >( m_llStartTime + ( cControls.dFwdBackSecs * 2 ) * 1000000 ) );
                     return Success;
                 case 'M':
                     cPlayback.ToggleMute( true );

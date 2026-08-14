@@ -184,7 +184,7 @@ LRESULT WINAPI WndProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
                 case ID_PLAY_STOP:
                     if ( cPlayback.GetPlayMode() ) HandOffMsg( msg, wParam, lParam );
                     return 0;
-                case ID_PLAY_SKIPFWD: case ID_PLAY_SKIPBACK:
+                case ID_PLAY_SKIPFWD: case ID_PLAY_SKIPBACK: case ID_PLAY_SKIPFWD2: case ID_PLAY_SKIPBACK2:
                     if ( cPlayback.GetPlayMode() ) HandOffMsg( msg, wParam, lParam );
                     return 0;
                 case ID_PLAY_INCREASERATE:
@@ -662,7 +662,7 @@ HWND CreateRebar( HWND hWndOwner )
         { MAKELONG(2, 0), ID_PLAY_STOP, 0, BTNS_BUTTON, {0}, 0, ( INT_PTR )TEXT( "Stop" ) },
         { 0, 0, TBSTATE_ENABLED, BTNS_SEP, {0}, 0, NULL },
         { MAKELONG(3, 0), ID_PLAY_SKIPBACK, 0, BTNS_BUTTON, {0}, 0, ( INT_PTR )TEXT( "Skip Back" ) },
-        { MAKELONG(4, 0), ID_PLAY_SKIPFWD, 0, BTNS_BUTTON, {0}, 0, ( INT_PTR )TEXT( "Skip Fwd" ) },
+        { MAKELONG(4, 0), ID_PLAY_SKIPFWD, 0, BTNS_BUTTON, {0}, 0, ( INT_PTR )TEXT( "Skip Forward" ) },
         { 0, 0, TBSTATE_ENABLED, BTNS_SEP, {0}, 0, NULL },
         { MAKELONG(5, 0), ID_PLAY_MUTE, TBSTATE_ENABLED, BTNS_BUTTON, {0}, 0, ( INT_PTR )TEXT( "Mute" ) }
     };
@@ -1615,16 +1615,16 @@ VOID SetPlayMode( INT ePlayMode )
     int iPlayButtons[] = { ID_PLAY_PLAY, ID_PLAY_PAUSE, ID_PLAY_STOP };
     for ( int i = 0; i < sizeof( iPlayButtons ) / sizeof( int ); i++ )
         SendMessage( hWndToolbar, TB_ENABLEBUTTON, iPlayButtons[i], bPractice );
-    int iPracticeButtons[] = { ID_PLAY_SKIPFWD, ID_PLAY_SKIPBACK };
+    int iPracticeButtons[] = { ID_PLAY_SKIPFWD, ID_PLAY_SKIPBACK, ID_PLAY_SKIPFWD2, ID_PLAY_SKIPBACK2 };
     for ( int i = 0; i < sizeof( iPracticeButtons ) / sizeof( int ); i++ )
         SendMessage( hWndToolbar, TB_ENABLEBUTTON, iPracticeButtons[i], bPractice );
 
     SendMessage( hWndToolbar, TB_PRESSBUTTON, ID_PLAY_PLAY, TRUE );
     SetZoomMove( FALSE );
 
-    int iMenuItems[][5] = { { 1, ePlayMode, ID_FILE_CLOSEFILE },
+    int iMenuItems[][7] = { { 1, ePlayMode, ID_FILE_CLOSEFILE },
                             { 3, bPractice, ID_PLAY_PLAYPAUSE, ID_PLAY_STOP, ID_VIEW_MOVEANDZOOM },
-                            { 2, bPractice, ID_PLAY_SKIPFWD, ID_PLAY_SKIPBACK },
+                            { 4, bPractice, ID_PLAY_SKIPFWD, ID_PLAY_SKIPBACK, ID_PLAY_SKIPFWD2, ID_PLAY_SKIPBACK2 },
                             { 3, true, ID_PLAY_INCREASERATE, ID_PLAY_DECREASERATE, ID_PLAY_RESETRATE } };
     for ( int i = 0; i < sizeof( iMenuItems ) / sizeof( iMenuItems[0] ); i++ )
     {

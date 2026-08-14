@@ -282,12 +282,14 @@ BEGIN
     BEGIN
         MENUITEM "&Play/Pause\tSpace",          ID_PLAY_PLAYPAUSE
         MENUITEM "&Stop\tPeriod",               ID_PLAY_STOP
-        MENUITEM "Skip &Fwd\tRight",            ID_PLAY_SKIPFWD
+        MENUITEM "Skip &Forward\tRight",        ID_PLAY_SKIPFWD
         MENUITEM "Skip &Back\tLeft",            ID_PLAY_SKIPBACK
+        MENUITEM "Skip &Forward X2\tL",         ID_PLAY_SKIPFWD2
+        MENUITEM "Skip &Back X2\tJ",            ID_PLAY_SKIPBACK2
         MENUITEM SEPARATOR
         MENUITEM "F&aster Playback\tDown",      ID_PLAY_INCREASERATE
         MENUITEM "Sl&ower Playback\tUp",        ID_PLAY_DECREASERATE
-        MENUITEM "&Reset\tR",                   ID_PLAY_RESETRATE
+        MENUITEM "&Reset Speed\tR",             ID_PLAY_RESETRATE
         MENUITEM SEPARATOR
         MENUITEM "Faster &Notes\tShift+Up",     ID_PLAY_FASTERNOTES
         MENUITEM "Slower No&tes\tShift+Down",   ID_PLAY_SLOWERNOTE
@@ -360,12 +362,14 @@ BEGIN
         MENUITEM SEPARATOR
         MENUITEM "&Play/Pause\tSpace",          ID_PLAY_PLAYPAUSE
         MENUITEM "&Stop\tPeriod",               ID_PLAY_STOP
-        MENUITEM "Skip &Fwd\tRight",            ID_PLAY_SKIPFWD
+        MENUITEM "Skip &Forward\tRight",        ID_PLAY_SKIPFWD
         MENUITEM "Skip &Back\tLeft",            ID_PLAY_SKIPBACK
+        MENUITEM "Skip &Forward X2\tL",         ID_PLAY_SKIPFWD2
+        MENUITEM "Skip &Back X2\tJ",            ID_PLAY_SKIPBACK2
         MENUITEM SEPARATOR
         MENUITEM "F&aster Playback\tDown",      ID_PLAY_INCREASERATE
         MENUITEM "Sl&ower Playback\tUp",        ID_PLAY_DECREASERATE
-        MENUITEM "&Reset\tR",                   ID_PLAY_RESETRATE
+        MENUITEM "&Reset Speed\tR",             ID_PLAY_RESETRATE
         MENUITEM SEPARATOR
         MENUITEM "Faster &Notes\tShift+Down",   ID_PLAY_NFASTER
         MENUITEM "Slower No&tes\tShift+Up",     ID_PLAY_NSLOWER
@@ -415,8 +419,10 @@ BEGIN
     VK_UP,          ID_PLAY_NSLOWER,        VIRTKEY, SHIFT, NOINVERT
     VK_SPACE,       ID_PLAY_PLAYPAUSE,      VIRTKEY, CONTROL, NOINVERT
     "R",            ID_PLAY_RESETRATE,      VIRTKEY, CONTROL, NOINVERT
-    VK_LEFT,        ID_PLAY_SKIPBACK,       VIRTKEY, CONTROL, NOINVERT
     VK_RIGHT,       ID_PLAY_SKIPFWD,        VIRTKEY, CONTROL, NOINVERT
+    VK_LEFT,        ID_PLAY_SKIPBACK,       VIRTKEY, CONTROL, NOINVERT
+    "L",            ID_PLAY_SKIPFWD2,       VIRTKEY, CONTROL, NOINVERT
+    "J",            ID_PLAY_SKIPBACK2,      VIRTKEY, CONTROL, NOINVERT
     VK_OEM_PERIOD,  ID_PLAY_STOP,           VIRTKEY, CONTROL, NOINVERT
     VK_DOWN,        ID_PLAY_VOLUMEDOWN,     VIRTKEY, ALT, NOINVERT
     VK_UP,          ID_PLAY_VOLUMEUP,       VIRTKEY, ALT, NOINVERT

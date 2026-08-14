@@ -105,6 +105,8 @@
 #define ID_PLAY_INCREASERATE            40008
 #define ID_PLAY_DECREASERATE            40009
 #define ID_PLAY_RESETRATE               40010
+#define ID_PLAY_SKIPFWD2                40011
+#define ID_PLAY_SKIPBACK2               40012
 #define ID_OPTIONS                      40021
 #define ID_OPTIONS_PREFERENCES          40023
 #define ID_PLAY_VOLUMEDOWN              40040
