@@ -12,6 +12,7 @@
 #include <Shlwapi.h>
 #include <thread>
 #include <atomic>
+#include <chrono>
 
 #include "Globals.h"
 #include "GameState.h"
@@ -530,7 +531,6 @@ MainScreen::MainScreen( wstring sMIDIFile, State eGameMode, HWND hWnd, Renderer 
     // Allocate
     progressDlg.SetStatus( L"Allocating memory for tracks..." );
     m_vTrackSettings.resize( m_MIDI.GetInfo().iNumTracks );
-    m_vState.reserve( 128 );
 
     // Initialize
     progressDlg.SetStatus( L"Initializing note map, colors and state..." );
@@ -626,7 +626,9 @@ void MainScreen::InitState()
     m_llTimeSpan = static_cast< long long >( 3.0 * dNSpeed * 1000000 );
 
     memset( m_pNoteState, -1, sizeof( m_pNoteState ) );
-    
+    for ( int i = 0; i < 128; i++ ) m_vNoteOnStack[i].clear();
+    m_bFastStateAlgo = true; // TODO: configurable in settings
+
     AdvanceIterators( m_llStartTime, true );
 }
 
@@ -1087,7 +1089,9 @@ void MainScreen::UpdateState( int iPos )
     // Turn note on
     if ( eEventType == MIDIChannelEvent::NoteOn && iVelocity > 0 )
     {
-        m_vState.push_back( iPos );
+        list< int >::iterator itNew = m_vState.insert( m_vState.end(), iPos );
+        if ( m_bFastStateAlgo )
+            m_vNoteOnStack[iNote].push_back( make_pair( iPos, itNew ) );
         m_pNoteState[iNote] = iPos;
         if ( !bChannelMuted && !bChannelHidden )
         {
@@ -1098,28 +1102,54 @@ void MainScreen::UpdateState( int iPos )
     }
     else
     {
-        m_pNoteState[iNote] = -1;
-        MIDIChannelEvent *pSearch = pEvent->GetSister();
-        // linear search and erase. No biggie given N is number of simultaneous notes being played
-        vector< int >::iterator it = m_vState.begin();
-        while ( it != m_vState.end() )
+        if ( !m_bFastStateAlgo )
         {
-            if ( m_vEvents[*it] == pSearch )
+            m_pNoteState[iNote] = -1;
+            MIDIChannelEvent *pSearch = pEvent->GetSister();
+            // linear search and erase. No biggie given N is number of simultaneous notes being played
+            list< int >::iterator it = m_vState.begin();
+            while ( it != m_vState.end() )
             {
-                it = m_vState.erase( it );
+                if ( m_vEvents[*it] == pSearch )
+                {
+                    it = m_vState.erase( it );
+
+                    if ( !bChannelMuted && !bChannelHidden )
+                    {
+                        // Decrease since it has been released (NoteOff), but don't pass negative
+                        m_iCurrentNotesHit = max( 0, m_iCurrentNotesHit - 1 );
+                    }
+                }
+                else
+                {
+                    if ( it != m_vState.end() && m_vEvents[*it]->GetParam1() == iNote )
+                        m_pNoteState[iNote] = *it;
+                    ++it;
+                }
+            }
+        }
+        else
+        {
+            // Find the matching NoteOn via the per-pitch stack then erase its
+            // iterator directly. list::erase is O(1) and never reorders anything
+            // else, so draw order is preserved with no extra bookkeeping.
+            MIDIChannelEvent *pSearch = pEvent->GetSister();
+            vector< pair< int, list< int >::iterator > > &vStack = m_vNoteOnStack[iNote];
+            for ( size_t i = 0; i < vStack.size(); ++i )
+            {
+                if ( m_vEvents[vStack[i].first] != pSearch ) continue;
+
+                m_vState.erase( vStack[i].second );
+                vStack.erase( vStack.begin() + i );
 
                 if ( !bChannelMuted && !bChannelHidden )
                 {
                     // Decrease since it has been released (NoteOff), but don't pass negative
                     m_iCurrentNotesHit = max( 0, m_iCurrentNotesHit - 1 );
                 }
+                break;
             }
-            else
-            {
-                if ( it != m_vState.end() && m_vEvents[*it]->GetParam1() == iNote )
-                    m_pNoteState[iNote] = *it;
-                ++it;
-            }
+            m_pNoteState[iNote] = vStack.empty() ? -1 : vStack.back().first;
         }
     }
 }
@@ -1152,6 +1182,7 @@ void MainScreen::JumpTo( long long llStartTime, bool bUpdateGUI )
     // Find the notes that occur simultaneously with the previous note on
     m_vState.clear();
     memset( m_pNoteState, -1, sizeof( m_pNoteState ) );
+    for ( int i = 0; i < 128; i++ ) m_vNoteOnStack[i].clear();
     if ( itMiddle != itBegin )
     {
         eventvec_t::iterator itPrev = itMiddle - 1;
@@ -1165,12 +1196,17 @@ void MainScreen::JumpTo( long long llStartTime, bool bUpdateGUI )
                 iFound++;
             if ( pSister->GetAbsMicroSec() > llStartTime ) // > because we don't care about simultaneous ending notes
             {
-                m_vState.push_back( it->second );
+                list< int >::iterator itNew = m_vState.insert( m_vState.end(), it->second );
+                if ( m_bFastStateAlgo )
+                    m_vNoteOnStack[pEvent->GetParam1()].push_back( make_pair( it->second, itNew ) );
                 if ( m_pNoteState[pEvent->GetParam1()] < 0 )
                     m_pNoteState[pEvent->GetParam1()] = it->second;
             }
         }
-        reverse( m_vState.begin(), m_vState.end() );
+        // list::reverse() relinks nodes in place, it does not move values
+        // between nodes like the generic reverse() algorithm would, so every
+        // iterator captured above still points at the same value afterward.
+        m_vState.reverse();
     }
 
     // End position: a little tricky. Same as logic code. Only needed for paused jumping.
@@ -1343,9 +1379,9 @@ int MainScreen::GetNoteCountAtTime( long long llTime )
 int MainScreen::GetPolyCountAtTime()
 {
     int iCount = 0;
-    for ( int i = 0; i < (int)m_vState.size(); i++ )
+    for ( int iEventPos : m_vState )
     {
-        MIDIChannelEvent *pEvent = m_vEvents[m_vState[i]];
+        MIDIChannelEvent *pEvent = m_vEvents[iEventPos];
         int iTrack = pEvent->GetTrack();
         int iChannel = pEvent->GetChannel();
         bool bChannelMuted = m_vTrackSettings[iTrack].aChannels[iChannel].bMuted;
@@ -1589,7 +1625,7 @@ void MainScreen::RenderNotes()
 
     // Render notes. Regular notes then sharps to  make sure they're not hidden
     bool bHasSharp = false;
-    for ( vector< int >::iterator it = m_vState.begin(); it != m_vState.end(); ++it )
+    for ( list< int >::iterator it = m_vState.begin(); it != m_vState.end(); ++it )
         if ( !MIDI::IsSharp( m_vEvents[*it]->GetParam1() ) )
             RenderNote( *it );
         else
@@ -1611,7 +1647,7 @@ void MainScreen::RenderNotes()
     // Do it all again, but only for the sharps
     if ( bHasSharp )
     {
-        for ( vector< int >::iterator it = m_vState.begin(); it != m_vState.end(); ++it )
+        for ( list< int >::iterator it = m_vState.begin(); it != m_vState.end(); ++it )
             if ( MIDI::IsSharp( m_vEvents[*it]->GetParam1() ) )
                 RenderNote( *it );
 
@@ -1708,7 +1744,7 @@ void MainScreen::RenderLabels()
         return;
 
     bool bSetState = true;
-    for ( vector< int >::iterator it = m_vState.begin(); it != m_vState.end(); ++it )
+    for ( list< int >::iterator it = m_vState.begin(); it != m_vState.end(); ++it )
         bSetState &= !RenderLabel( *it, bSetState );
 
     for ( int i = m_iStartPos; i <= m_iEndPos; i++ )

@@ -13,6 +13,8 @@
 #include <map>
 #include <string>
 #include <array>
+#include <list>
+#include <utility>
 using namespace std;
 
 #include "ProtoBuf\MetaData.pb.h"
@@ -163,6 +165,8 @@ public:
     void ColorChannel( int iTrack, int iChannel, unsigned int iColor, bool bRandom = false );
     ChannelSettings* GetChannelSettings( int iChannel );
     void SetChannelSettings( const vector< bool > &vMuted, const vector< bool > &vHidden, const vector< unsigned > &vColor );
+    void SetFastStateAlgo( bool bFast ) { m_bFastStateAlgo = bFast; }
+    bool GetFastStateAlgo() const { return m_bFastStateAlgo; }
 
 private:
     typedef vector< pair< long long, int > > eventvec_t;
@@ -228,8 +232,14 @@ private:
     int m_iStartPos, m_iEndPos; // Postions of the start and end events that occur in the current window
     long long m_llStartTime, m_llTimeSpan;  // Times of the start and end events of the current window
     int m_iStartTick; // Tick that corresponds with m_llStartTime. Used to help with beat and metronome detection
-    vector< int > m_vState;  // The notes that are on at time m_llStartTime.
+    list< int > m_vState;  // The notes that are on at time m_llStartTime. list (not vector) so removal is O(1) and never reorders survivors.
     int m_pNoteState[128]; // The last note that was turned on
+
+    // Used when m_bFastStateAlgo is true. Per pitch (0-127): the active NoteOn
+    // events for that pitch, paired with their iterator into m_vState so a
+    // note-off can erase in O(1) without scanning m_vState at all.
+    vector< pair< int, list< int >::iterator > > m_vNoteOnStack[128];
+    bool m_bFastStateAlgo; // Settings toggle: true = O(1) removal via per-pitch lookup, false = original O(n) scan
     double m_dSpeed; // Speed multiplier
     bool m_bPaused; // Paused state
     Timer m_Timer; // Frame timers
