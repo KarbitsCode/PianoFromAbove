@@ -2032,14 +2032,18 @@ void MainScreen::RenderText()
     RECT rcStatus;
     switch ( m_eStatusPos )
     {
-        case VideoSettings::StatusPos::TopLeft:
-            rcStatus = { 0, 0, iStatusWidth, iStatusHeight };
+        case VideoSettings::StatusPos::Middle:
+            rcStatus = { (iBufW - iStatusWidth) / 2, (iBufH - iStatusHeight) / 2,
+                          (iBufW + iStatusWidth) / 2, (iBufH + iStatusHeight) / 2 };
+            break;
+        case VideoSettings::StatusPos::BottomLeft:
+            rcStatus = { 0, iBufH - iStatusHeight, iStatusWidth, iBufH };
             break;
         case VideoSettings::StatusPos::BottomRight:
             rcStatus = { iBufW - iStatusWidth, iBufH - iStatusHeight, iBufW, iBufH };
             break;
-        case VideoSettings::StatusPos::BottomLeft:
-            rcStatus = { 0, iBufH - iStatusHeight, iStatusWidth, iBufH };
+        case VideoSettings::StatusPos::TopLeft:
+            rcStatus = { 0, 0, iStatusWidth, iStatusHeight };
             break;
         case VideoSettings::StatusPos::TopRight:
         default:
