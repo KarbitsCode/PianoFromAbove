@@ -622,12 +622,12 @@ void MainScreen::InitState()
     m_fOffsetY = cView.GetOffsetY();
     m_bPaused = false;
     m_bMute = cPlayback.GetMute();
+    m_bFastStateAlgo = cPlayback.GetFastAlgo();
     double dNSpeed = cPlayback.GetNSpeed();
     m_llTimeSpan = static_cast< long long >( 3.0 * dNSpeed * 1000000 );
 
     memset( m_pNoteState, -1, sizeof( m_pNoteState ) );
     for ( int i = 0; i < 128; i++ ) m_vNoteOnStack[i].clear();
-    m_bFastStateAlgo = true; // TODO: configurable in settings
 
     AdvanceIterators( m_llStartTime, true );
 }
@@ -980,6 +980,7 @@ GameState::GameError MainScreen::Logic()
     m_iShownTicks = static_cast< int >( llTickSpan );
     m_eRenderMode = cVisual.eRenderMode;
     m_bUseFlats = ( cVisual.eAccidentals == VisualSettings::Flats );
+    //m_bFastStateAlgo = cPlayback.GetFastAlgo(); // Apparently this just broke the keyboard rendering
 
     if ( cVisual.iBkgColor != m_csBackground.iOrigBGR ) m_csBackground.SetColor( cVisual.iBkgColor, 0.7f, 1.3f );
 

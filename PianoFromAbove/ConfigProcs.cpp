@@ -313,11 +313,13 @@ INT_PTR WINAPI VideoProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
             // Config to fill out the form
             Config &config = Config::GetConfig();
             const VideoSettings &cVideo = config.GetVideoSettings();
+            const PlaybackSettings &cPlayback = config.GetPlaybackSettings();
 
             CheckRadioButton( hWnd, IDC_DIRECT3D, IDC_GDI, IDC_DIRECT3D + cVideo.eRenderer );
             CheckDlgButton( hWnd, IDC_DISPLAYFPS, cVideo.bShowFPS ? BST_CHECKED : BST_UNCHECKED );
             CheckDlgButton( hWnd, IDC_LIMITFPS, cVideo.bLimitFPS ? BST_CHECKED : BST_UNCHECKED );
             CheckDlgButton( hWnd, IDC_OPAQUESTATUS, cVideo.bOpaqueStatus ? BST_CHECKED : BST_UNCHECKED );
+            CheckDlgButton( hWnd, IDC_USENEWALGO, cPlayback.GetFastAlgo() ? BST_CHECKED : BST_UNCHECKED );
 
             HWND hWndGPUAdapter = GetDlgItem( hWnd, IDC_GPUADAPTER );
             SendMessage( hWndGPUAdapter, CB_RESETCONTENT, 0, 0 );
@@ -368,6 +370,7 @@ INT_PTR WINAPI VideoProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
                     // Get a copy of the config to overwrite the settings
                     Config &config = Config::GetConfig();
                     VideoSettings cVideo = config.GetVideoSettings();
+                    PlaybackSettings& cPlayback = config.GetPlaybackSettings();
 
                     cVideo.eRenderer = ( IsDlgButtonChecked( hWnd, IDC_DIRECT3D ) == BST_CHECKED ? cVideo.Direct3D : 
                                          IsDlgButtonChecked( hWnd, IDC_OPENGL ) == BST_CHECKED ? cVideo.OpenGL :
@@ -376,6 +379,13 @@ INT_PTR WINAPI VideoProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
                     cVideo.bShowFPS = ( IsDlgButtonChecked( hWnd, IDC_DISPLAYFPS ) == BST_CHECKED );
                     cVideo.bLimitFPS = ( IsDlgButtonChecked( hWnd, IDC_LIMITFPS ) == BST_CHECKED );
                     cVideo.bOpaqueStatus = ( IsDlgButtonChecked( hWnd, IDC_OPAQUESTATUS ) == BST_CHECKED );
+
+                    bool bUseFastAlgo = ( IsDlgButtonChecked( hWnd, IDC_USENEWALGO ) == BST_CHECKED );
+                    if ( cPlayback.GetFastAlgo() != bUseFastAlgo )
+                    {
+                        cPlayback.SetFastAlgo( bUseFastAlgo );
+                        MessageBox( hWnd, TEXT( "\"Optimize playback\" option requires a reload to take effect." ), TEXT( "Information" ), MB_OK | MB_ICONINFORMATION );
+                    }
 
                     HWND hWndGPUAdapter = GetDlgItem( hWnd, IDC_GPUADAPTER );
                     int iSel = (int)SendMessage( hWndGPUAdapter, CB_GETCURSEL, 0, 0 );

@@ -118,9 +118,10 @@ BEGIN
     CONTROL         "&GDI",IDC_GDI,"Button",BS_AUTORADIOBUTTON | WS_DISABLED,13,55,28,10
     CONTROL         "Display &frame rate",IDC_DISPLAYFPS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,13,68,75,10
     CONTROL         "&Limit frame rate",IDC_LIMITFPS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,13,81,66,10
-    CONTROL         "&Solid background status",IDC_OPAQUESTATUS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,13,94,94,10
+    CONTROL         "&Solid background status",IDC_OPAQUESTATUS,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,138,45,94,10
     LTEXT           "Graphics Adapter:",IDC_STATIC,138,18,60,8
     COMBOBOX        IDC_GPUADAPTER,138,28,144,30,CBS_DROPDOWNLIST | WS_VSCROLL | WS_TABSTOP
+    CONTROL         "Optimized playback",IDC_USENEWALGO,"Button",BS_AUTOCHECKBOX | WS_TABSTOP,13,94,79,10
     GROUPBOX        "Video options (advanced users only)",IDC_STATIC,7,7,286,104
 END
 

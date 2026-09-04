@@ -115,6 +115,7 @@ public:
     void SetNSpeed( double dNSpeed, bool bUpdateGUI = false ) { dNSpeed = max(min(dNSpeed, 10.0), 0.005); if ( bUpdateGUI ) ::SetNSpeed( dNSpeed ); m_dNSpeed = dNSpeed; }
     void SetVolume( double dVolume, bool bUpdateGUI = false ) { if ( bUpdateGUI ) ::SetVolume( dVolume ); m_dVolume = dVolume; }
     void SetMute( bool bMute, bool bUpdateGUI = false ) { if ( bUpdateGUI ) ::SetMute( bMute ); m_bMute = bMute; }
+    void SetFastAlgo( bool bFastAlgo ) { m_bFastAlgo = bFastAlgo; }
 
     // Get accessors. Simple.
     GameState::State GetPlayMode() const { return m_ePlayMode; }
@@ -124,12 +125,14 @@ public:
     double GetSpeed() const { return m_dSpeed; }
     double GetNSpeed() const { return m_dNSpeed; }
     double GetVolume() const { return m_dVolume; }
+    bool GetFastAlgo() const { return m_bFastAlgo; }
 
 private:
     GameState::State m_ePlayMode;
     bool m_bPlayable, m_bPaused;
     bool m_bMute;
     double m_dSpeed, m_dNSpeed, m_dVolume;
+    bool m_bFastAlgo;
 };
 
 class ViewSettings : public ISettings

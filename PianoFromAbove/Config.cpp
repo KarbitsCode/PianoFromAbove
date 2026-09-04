@@ -211,6 +211,7 @@ void PlaybackSettings::LoadDefaultValues()
     this->m_dSpeed = 1.0;
     this->m_dNSpeed = 1.0;
     this->m_dVolume = 1.0;
+    this->m_bFastAlgo = false;
 }
 
 void ViewSettings::LoadDefaultValues()
@@ -404,6 +405,8 @@ void PlaybackSettings::LoadConfigValues( TiXmlElement *txRoot )
     int iAttrVal;
     if ( txPlayback->QueryIntAttribute( "Mute", &iAttrVal ) == TIXML_SUCCESS )
         m_bMute = ( iAttrVal != 0 );
+    if ( txPlayback->QueryIntAttribute( "FastAlgo", &iAttrVal ) == TIXML_SUCCESS )
+        m_bFastAlgo = ( iAttrVal != 0 );
     txPlayback->QueryDoubleAttribute( "NoteSpeed", &m_dNSpeed);
     txPlayback->QueryDoubleAttribute( "Volume", &m_dVolume );
 }
@@ -549,6 +552,7 @@ bool PlaybackSettings::SaveConfigValues( TiXmlElement *txRoot )
     TiXmlElement *txPlayback = new TiXmlElement( "Playback" );
     txRoot->LinkEndChild( txPlayback );
     txPlayback->SetAttribute( "Mute", m_bMute );
+    txPlayback->SetAttribute( "FastAlgo", m_bFastAlgo );
     txPlayback->SetDoubleAttribute( "Volume", m_dVolume );
     txPlayback->SetDoubleAttribute( "NoteSpeed", m_dNSpeed );
     return true;
