@@ -83,6 +83,7 @@ struct VideoSettings : public ISettings
     bool ParseGPUPreferenceString( const wstring &wsPrefString, UINT &uiVdrID, UINT &uiDevID, UINT &uiSubSysID ) const;
     bool SaveGPUPreference( UINT uiVdrID, UINT uiDevID, UINT uiSubSysID ) const;
     enum Renderer { Direct3D, OpenGL, GDI } eRenderer;
+    enum StatusPos { TopRight, TopLeft, BottomRight, BottomLeft } eStatusPos;
     bool bShowFPS, bLimitFPS, bOpaqueStatus;
 };
 

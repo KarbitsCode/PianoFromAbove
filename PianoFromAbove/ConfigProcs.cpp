@@ -316,6 +316,7 @@ INT_PTR WINAPI VideoProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
             const PlaybackSettings &cPlayback = config.GetPlaybackSettings();
 
             CheckRadioButton( hWnd, IDC_DIRECT3D, IDC_GDI, IDC_DIRECT3D + cVideo.eRenderer );
+            CheckRadioButton( hWnd, IDC_STATUSPOSRADIO1, IDC_STATUSPOSRADIO4, IDC_STATUSPOSRADIO1 + cVideo.eStatusPos );
             CheckDlgButton( hWnd, IDC_DISPLAYFPS, cVideo.bShowFPS ? BST_CHECKED : BST_UNCHECKED );
             CheckDlgButton( hWnd, IDC_LIMITFPS, cVideo.bLimitFPS ? BST_CHECKED : BST_UNCHECKED );
             CheckDlgButton( hWnd, IDC_OPAQUESTATUS, cVideo.bOpaqueStatus ? BST_CHECKED : BST_UNCHECKED );
@@ -376,6 +377,11 @@ INT_PTR WINAPI VideoProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
                                          IsDlgButtonChecked( hWnd, IDC_OPENGL ) == BST_CHECKED ? cVideo.OpenGL :
                                          IsDlgButtonChecked( hWnd, IDC_GDI ) == BST_CHECKED ? cVideo.GDI :
                                          cVideo.Direct3D );
+                    cVideo.eStatusPos = ( IsDlgButtonChecked( hWnd, IDC_STATUSPOSRADIO1 ) == BST_CHECKED ? cVideo.TopRight : 
+                                        IsDlgButtonChecked( hWnd, IDC_STATUSPOSRADIO2 ) == BST_CHECKED ? cVideo.TopLeft :
+                                        IsDlgButtonChecked( hWnd, IDC_STATUSPOSRADIO3 ) == BST_CHECKED ? cVideo.BottomRight :
+                                        IsDlgButtonChecked( hWnd, IDC_STATUSPOSRADIO4 ) == BST_CHECKED ? cVideo.BottomLeft :
+                                        cVideo.TopRight );
                     cVideo.bShowFPS = ( IsDlgButtonChecked( hWnd, IDC_DISPLAYFPS ) == BST_CHECKED );
                     cVideo.bLimitFPS = ( IsDlgButtonChecked( hWnd, IDC_LIMITFPS ) == BST_CHECKED );
                     cVideo.bOpaqueStatus = ( IsDlgButtonChecked( hWnd, IDC_OPAQUESTATUS ) == BST_CHECKED );

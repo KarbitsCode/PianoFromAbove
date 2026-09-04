@@ -259,7 +259,7 @@ private:
     static const float SharpRatio;
     static const float KeyRatio;
     bool m_bShowKB, m_bNoteLabels, m_bHaveMouse, m_bOpaqueStatus, m_bUseFlats;
-    int m_eRenderMode, m_eKeysShown, m_iHotNote, m_iNextHotNote, m_iSelectedNote, m_iNotesAlpha;
+    int m_eRenderMode, m_eKeysShown, m_eStatusPos, m_iHotNote, m_iNextHotNote, m_iSelectedNote, m_iNotesAlpha;
     ChannelSettings m_csBackground;
     ChannelSettings m_csKBRed, m_csKBWhite, m_csKBSharp, m_csKBBackground;
     vector< TrackSettings > m_vTrackSettings;

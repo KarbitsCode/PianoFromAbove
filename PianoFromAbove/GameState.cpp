@@ -980,6 +980,7 @@ GameState::GameError MainScreen::Logic()
     m_iShownTicks = static_cast< int >( llTickSpan );
     m_eRenderMode = cVisual.eRenderMode;
     m_bUseFlats = ( cVisual.eAccidentals == VisualSettings::Flats );
+    m_eStatusPos = cVideo.eStatusPos;
     //m_bFastStateAlgo = cPlayback.GetFastAlgo(); // Apparently this just broke the keyboard rendering
 
     if ( cVisual.iBkgColor != m_csBackground.iOrigBGR ) m_csBackground.SetColor( cVisual.iBkgColor, 0.7f, 1.3f );
@@ -2023,7 +2024,28 @@ void MainScreen::RenderText()
     if ( m_bShowFPS ) iLines++;
 
     // Screen info
-    RECT rcStatus = { m_pRenderer->GetBufferWidth() - 156, 0, m_pRenderer->GetBufferWidth(), 6 + 16 * iLines };
+    const int iStatusWidth  = 156;
+    const int iStatusHeight = 6 + 16 * iLines;
+    const int iBufW = m_pRenderer->GetBufferWidth();
+    const int iBufH = m_pRenderer->GetBufferHeight();
+
+    RECT rcStatus;
+    switch ( m_eStatusPos )
+    {
+        case VideoSettings::StatusPos::TopLeft:
+            rcStatus = { 0, 0, iStatusWidth, iStatusHeight };
+            break;
+        case VideoSettings::StatusPos::BottomRight:
+            rcStatus = { iBufW - iStatusWidth, iBufH - iStatusHeight, iBufW, iBufH };
+            break;
+        case VideoSettings::StatusPos::BottomLeft:
+            rcStatus = { 0, iBufH - iStatusHeight, iStatusWidth, iBufH };
+            break;
+        case VideoSettings::StatusPos::TopRight:
+        default:
+            rcStatus = { iBufW - iStatusWidth, 0, iBufW, iStatusHeight };
+            break;
+    }
 
     int iMsgCY = 200;
     RECT rcMsg = { 0, static_cast< int >( m_pRenderer->GetBufferHeight() * ( 1.0f - KBPercent ) - iMsgCY ) / 2 };
