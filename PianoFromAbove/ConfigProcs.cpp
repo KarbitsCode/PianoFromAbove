@@ -315,12 +315,7 @@ INT_PTR WINAPI VideoProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
             const VideoSettings &cVideo = config.GetVideoSettings();
             const PlaybackSettings &cPlayback = config.GetPlaybackSettings();
 
-            CheckRadioButton( hWnd, IDC_DIRECT3D, IDC_GDI, IDC_DIRECT3D + cVideo.eRenderer );
-            CheckRadioButton( hWnd, IDC_STATUSPOSRADIO1, IDC_STATUSPOSRADIO4, IDC_STATUSPOSRADIO1 + cVideo.eStatusPos );
-            CheckDlgButton( hWnd, IDC_DISPLAYFPS, cVideo.bShowFPS ? BST_CHECKED : BST_UNCHECKED );
-            CheckDlgButton( hWnd, IDC_LIMITFPS, cVideo.bLimitFPS ? BST_CHECKED : BST_UNCHECKED );
-            CheckDlgButton( hWnd, IDC_OPAQUESTATUS, cVideo.bOpaqueStatus ? BST_CHECKED : BST_UNCHECKED );
-            CheckDlgButton( hWnd, IDC_USENEWALGO, cPlayback.GetFastAlgo() ? BST_CHECKED : BST_UNCHECKED );
+            SetVideoProc( hWnd, cVideo, cPlayback );
 
             HWND hWndGPUAdapter = GetDlgItem( hWnd, IDC_GPUADAPTER );
             SendMessage( hWndGPUAdapter, CB_RESETCONTENT, 0, 0 );
@@ -358,8 +353,24 @@ INT_PTR WINAPI VideoProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
             return TRUE;
         }
         case WM_COMMAND:
+        {
+            int iId = LOWORD( wParam );
             Changed( hWnd );
+            switch ( iId )
+            {
+                case IDC_RESTOREDEFAULTS:
+                {
+                    VideoSettings cVideoSettings;
+                    PlaybackSettings cPlaybackSettings;
+                    cVideoSettings.LoadDefaultValues();
+                    cPlaybackSettings.LoadDefaultValues();
+                    SetVideoProc( hWnd, cVideoSettings, cPlaybackSettings );
+                }
+                default:
+                    return TRUE;
+            }
             break;
+        }
         case WM_NOTIFY:
         {
             LPNMHDR lpnmhdr = ( LPNMHDR )lParam;
@@ -441,6 +452,17 @@ INT_PTR WINAPI VideoProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
         }
     }
     return FALSE;
+}
+
+VOID SetVideoProc(HWND hWnd, const VideoSettings& cVideo, const PlaybackSettings& cPlayback)
+{
+    CheckRadioButton( hWnd, IDC_DIRECT3D, IDC_GDI, IDC_DIRECT3D + cVideo.eRenderer );
+    CheckRadioButton( hWnd, IDC_STATUSPOSRADIO1, IDC_STATUSPOSRADIO4, IDC_STATUSPOSRADIO1 + cVideo.eStatusPos );
+    CheckDlgButton( hWnd, IDC_DISPLAYFPS, cVideo.bShowFPS ? BST_CHECKED : BST_UNCHECKED );
+    CheckDlgButton( hWnd, IDC_LIMITFPS, cVideo.bLimitFPS ? BST_CHECKED : BST_UNCHECKED );
+    CheckDlgButton( hWnd, IDC_OPAQUESTATUS, cVideo.bOpaqueStatus ? BST_CHECKED : BST_UNCHECKED );
+    CheckDlgButton( hWnd, IDC_USENEWALGO, cPlayback.GetFastAlgo() ? BST_CHECKED : BST_UNCHECKED );
+    SendMessage( GetDlgItem( hWnd, IDC_GPUADAPTER ), CB_SETCURSEL, 0, 0 ); // Auto
 }
 
 INT_PTR WINAPI ControlsProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )

@@ -30,6 +30,7 @@ INT_PTR WINAPI AudioProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam );
 VOID SetAudioProc( HWND hWnd, const AudioSettings &cAudio );
 
 INT_PTR WINAPI VideoProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam );
+VOID SetVideoProc( HWND hWnd, const VideoSettings &cVideo, const PlaybackSettings &cPlayback );
 
 INT_PTR WINAPI ControlsProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam );
 
