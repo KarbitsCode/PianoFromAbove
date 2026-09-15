@@ -401,7 +401,7 @@ INT_PTR WINAPI VideoProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
                     if ( cPlayback.GetFastAlgo() != bUseFastAlgo )
                     {
                         cPlayback.SetFastAlgo( bUseFastAlgo );
-                        MessageBox( hWnd, TEXT( "\"Optimize playback\" option requires a reload to take effect." ), TEXT( "Information" ), MB_OK | MB_ICONINFORMATION );
+                        MessageBox( hWnd, TEXT( "\"Optimized playback\" option requires a reload to take effect." ), TEXT( "Information" ), MB_OK | MB_ICONINFORMATION );
                     }
 
                     HWND hWndGPUAdapter = GetDlgItem( hWnd, IDC_GPUADAPTER );
