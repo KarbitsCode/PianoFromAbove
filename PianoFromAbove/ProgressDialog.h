@@ -2,7 +2,6 @@
 
 #include <Windows.h>
 #include <string>
-using namespace std;
 
 class ProgressScanDialog
 {
@@ -10,12 +9,15 @@ public:
     ProgressScanDialog();
     ~ProgressScanDialog();
 
+    ProgressScanDialog(const ProgressScanDialog&) = delete;
+    ProgressScanDialog& operator=(const ProgressScanDialog&) = delete;
+
     bool Create();
     void Destroy();
     bool IsValid() const { return m_hWnd != NULL; }
 
-    void SetProgress(int iFilesScanned, int iTotalFiles, const wstring& sCurrentFile);
-    void SetStatus(const wstring& sStatus);
+    void SetProgress(int iFilesScanned, int iTotalFiles, const std::wstring& sCurrentFile);
+    void SetStatus(const std::wstring& sStatus);
 
     void ProcessMessages();
 
@@ -37,13 +39,16 @@ public:
     ProgressLoadDialog();
     ~ProgressLoadDialog();
 
+    ProgressLoadDialog(const ProgressLoadDialog&) = delete;
+    ProgressLoadDialog& operator=(const ProgressLoadDialog&) = delete;
+
     bool Create(HWND hWndParent = NULL);
     void Destroy();
     bool IsValid() const { return m_hWnd != NULL; }
 
     void SetFilename(const std::wstring& sFilename);
-    void SetStatus(HWND hWnd, const std::wstring& sStatus);
-    void SetProgress(HWND hWnd, int iCurrent, int iTotal);
+    void SetStatus(const std::wstring& sStatus);
+    void SetProgress(int iCurrent, int iTotal);
     void SetTrackProgress(int iCurrent, int iTotal);
     void SetEventProgress(int iCurrent, int iTotal);
 
@@ -67,6 +72,9 @@ class ProgressStatusDialog
 public:
     ProgressStatusDialog();
     ~ProgressStatusDialog();
+
+    ProgressStatusDialog(const ProgressStatusDialog&) = delete;
+    ProgressStatusDialog& operator=(const ProgressStatusDialog&) = delete;
 
     bool Create(HWND hWndParent = NULL);
     void Destroy();

@@ -110,7 +110,7 @@ void ProgressScanDialog::Destroy()
     }
 }
 
-void ProgressScanDialog::SetProgress(int iFilesScanned, int iTotalFiles, const wstring& sCurrentFile)
+void ProgressScanDialog::SetProgress(int iFilesScanned, int iTotalFiles, const std::wstring& sCurrentFile)
 {
     if (!IsValid())
         return;
@@ -121,7 +121,7 @@ void ProgressScanDialog::SetProgress(int iFilesScanned, int iTotalFiles, const w
     int iProgress = (iTotalFiles > 0) ? (iFilesScanned * 100 / iTotalFiles) : 0;
     SendMessage(m_hProgressBar, PBM_SETPOS, iProgress, 0);
 
-    wstring sDisplay = sCurrentFile;
+    std::wstring sDisplay = sCurrentFile;
     if (sDisplay.length() > 40)
     {
         // Truncate if too long
@@ -135,7 +135,7 @@ void ProgressScanDialog::SetProgress(int iFilesScanned, int iTotalFiles, const w
     ProcessMessages();
 }
 
-void ProgressScanDialog::SetStatus(const wstring& sStatus)
+void ProgressScanDialog::SetStatus(const std::wstring& sStatus)
 {
     if (!IsValid())
         return;
@@ -308,22 +308,22 @@ void ProgressLoadDialog::Destroy()
     }
 }
 
-void ProgressLoadDialog::SetStatus(HWND hwnd, const std::wstring& sStatus)
+void ProgressLoadDialog::SetStatus(const std::wstring& sStatus)
 {
     if (!IsValid())
         return;
 
-    SetWindowText(hwnd, sStatus.c_str());
+    SetWindowText(m_hTrackStatusText, sStatus.c_str());
     ProcessMessages();
 }
 
-void ProgressLoadDialog::SetProgress(HWND hwnd, int iCurrent, int iTotal)
+void ProgressLoadDialog::SetProgress(int iCurrent, int iTotal)
 {
     if (!IsValid())
         return;
 
     int iProgress = (iTotal > 0) ? (iCurrent * 100 / iTotal) : 0;
-    SendMessage(hwnd, PBM_SETPOS, iProgress, 0);
+    SendMessage(m_hTrackProgressBar, PBM_SETPOS, iProgress, 0);
     ProcessMessages();
 }
 
@@ -338,20 +338,20 @@ void ProgressLoadDialog::SetFilename(const std::wstring& sFilename)
 
 void ProgressLoadDialog::SetTrackProgress(int iCurrent, int iTotal)
 {
-    SetStatus(m_hTrackStatusText, L"Parsing track " +
+    SetStatus(L"Parsing track " +
         std::to_wstring(iCurrent) +
         L" of " +
         std::to_wstring(iTotal) + L"...");
-    SetProgress(m_hTrackProgressBar, iCurrent, iTotal);
+    SetProgress(iCurrent, iTotal);
 }
 
 void ProgressLoadDialog::SetEventProgress(int iCurrent, int iTotal)
 {
-    SetStatus(m_hEventStatusText, L"Parsing event " +
+    SetStatus(L"Parsing event " +
         std::to_wstring(iCurrent) +
         L" of " +
         std::to_wstring(iTotal) + L"...");
-    SetProgress(m_hEventProgressBar, iCurrent, iTotal);
+    SetProgress(iCurrent, iTotal);
 }
 
 void ProgressLoadDialog::ProcessMessages()
@@ -494,7 +494,10 @@ void ProgressStatusDialog::SetStatus(const std::wstring& sStatus)
     if (!IsValid())
         return;
 
-    PostMessage(m_hWnd, WM_APP + 1, 0, reinterpret_cast<LPARAM>(new std::wstring(sStatus)));
+    std::wstring* pStatus = new std::wstring(sStatus);
+    if (!PostMessage(m_hWnd, WM_APP + 1, 0, reinterpret_cast<LPARAM>(pStatus)))
+        delete pStatus;
+
     ProcessMessages();
 }
 
@@ -503,7 +506,10 @@ void ProgressStatusDialog::SetFilename(const std::wstring& sFilename)
     if (!IsValid())
         return;
 
-    PostMessage(m_hWnd, WM_APP + 2, 0, reinterpret_cast<LPARAM>(new std::wstring(L"Loading " + sFilename + L"...")));
+    std::wstring* pTitle = new std::wstring(L"Loading " + sFilename + L"...");
+    if (!PostMessage(m_hWnd, WM_APP + 2, 0, reinterpret_cast<LPARAM>(pTitle)))
+        delete pTitle;
+
     ProcessMessages();
 }
 
