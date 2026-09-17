@@ -10,7 +10,7 @@ HRESULT AudioNotificationClient::OnDefaultDeviceChanged(
     LPCWSTR pwstrDefaultDeviceId)
 {
     // Just so it won't reload 4 times
-    if (flow == eRender || role == eMultimedia || !pwstrDefaultDeviceId)
+    if (flow == eRender && role == eMultimedia && pwstrDefaultDeviceId != NULL)
         PostMessage(g_hWnd, WM_DEVICECHANGE, DEVICECHANGE_AUDIO_ENDPOINT, 0);
     return S_OK;
 }

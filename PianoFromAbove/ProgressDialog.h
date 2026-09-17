@@ -46,9 +46,9 @@ public:
     void Destroy();
     bool IsValid() const { return m_hWnd != NULL; }
 
+    void SetStatus(HWND hwnd, const std::wstring& sStatus);
+    void SetProgress(HWND hwnd, int iCurrent, int iTotal);
     void SetFilename(const std::wstring& sFilename);
-    void SetStatus(const std::wstring& sStatus);
-    void SetProgress(int iCurrent, int iTotal);
     void SetTrackProgress(int iCurrent, int iTotal);
     void SetEventProgress(int iCurrent, int iTotal);
 
