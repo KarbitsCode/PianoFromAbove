@@ -71,6 +71,7 @@ struct AudioSettings : public ISettings
     vector< wstring > vMIDIOutDevices;
     int iOutDevice;
     wstring sDesiredOut;
+    bool bJustUsePlainVolume;
 };
 
 struct VideoSettings : public ISettings

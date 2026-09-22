@@ -171,6 +171,7 @@ void AudioSettings::LoadDefaultValues()
 {
     this->iOutDevice = -1;
     LoadMIDIDevices();
+    this->bJustUsePlainVolume = false;
 }
 
 void VideoSettings::LoadDefaultValues()
@@ -312,6 +313,10 @@ void AudioSettings::LoadConfigValues( TiXmlElement *txRoot )
             if ( this->vMIDIOutDevices[i] == this->sDesiredOut )
                 this->iOutDevice = (int)i;
     }
+
+    int iAttrVal;
+    if ( txAudio->QueryIntAttribute( "UseDefaultVolume", &iAttrVal ) == TIXML_SUCCESS )
+        this->bJustUsePlainVolume = ( iAttrVal != 0 );
 }
 
 void VideoSettings::LoadConfigValues( TiXmlElement *txRoot )
@@ -489,6 +494,8 @@ bool AudioSettings::SaveConfigValues( TiXmlElement *txRoot )
 
     if ( this->sDesiredOut.length() > 0 )
         txAudio->SetAttribute( "MIDIOutDevice", Util::WstringToString( this->sDesiredOut ) );
+
+    txAudio->SetAttribute( "UseDefaultVolume", this->bJustUsePlainVolume );
 
     return true;
 }

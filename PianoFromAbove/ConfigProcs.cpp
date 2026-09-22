@@ -251,7 +251,7 @@ INT_PTR WINAPI AudioProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
         {
             int iId = LOWORD( wParam );
             int iCode = HIWORD( wParam );
-            if ( iCode == LBN_SELCHANGE ) 
+            if ( iCode == LBN_SELCHANGE || iCode == BN_CLICKED )
                 Changed( hWnd );
             break;
         }
@@ -274,6 +274,7 @@ INT_PTR WINAPI AudioProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
                     // Get the values
                     cAudio.iOutDevice = (int)SendDlgItemMessage( hWnd, IDC_MIDIOUT, LB_GETCURSEL, 0, 0 );
                     if ( cAudio.iOutDevice >= 0 ) cAudio.sDesiredOut = cAudio.vMIDIOutDevices[cAudio.iOutDevice];
+                    cAudio.bJustUsePlainVolume = ( IsDlgButtonChecked( hWnd, IDC_JUSTUSEPLAINVOLUME ) == BST_CHECKED );
 
                     // Set the values
                     bool bChanged = ( cAudio.iOutDevice != config.GetAudioSettings().iOutDevice );
@@ -302,6 +303,7 @@ VOID SetAudioProc( HWND hWnd, const AudioSettings &cAudio )
     for ( vector< wstring >::const_iterator it = cAudio.vMIDIOutDevices.begin(); it != cAudio.vMIDIOutDevices.end(); ++it )
         SendMessage( hWndOutDevs, LB_ADDSTRING, 0, ( LPARAM )( it->c_str() ) );
     SendMessage( hWndOutDevs, LB_SETCURSEL, cAudio.iOutDevice, 0 );
+    SendMessage( GetDlgItem( hWnd, IDC_JUSTUSEPLAINVOLUME ), BM_SETCHECK, cAudio.bJustUsePlainVolume ? BST_CHECKED : BST_UNCHECKED, 0 );
 }
 
 INT_PTR WINAPI VideoProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )

@@ -944,6 +944,7 @@ GameState::GameError MainScreen::Logic()
     static const ViewSettings &cView = config.GetViewSettings();
     static const VisualSettings &cVisual = config.GetVisualSettings();
     static const VideoSettings &cVideo = config.GetVideoSettings();
+    static const AudioSettings &cAudio = config.GetAudioSettings();
     const MIDI::MIDIInfo &mInfo = m_MIDI.GetInfo();
 
     // Detect changes in state
@@ -987,7 +988,10 @@ GameState::GameError MainScreen::Logic()
 
     double dMaxCorrect = ( mInfo.iMaxVolume > 0 ? 127.0 / mInfo.iMaxVolume : 1.0 );
     double dVolumeCorrect = ( mInfo.iVolumeSum > 0 ? ( m_dVolume * 127.0 * mInfo.iNoteCount ) / mInfo.iVolumeSum : 1.0 );
-    dVolumeCorrect = min( dVolumeCorrect, dMaxCorrect );
+    if ( !cAudio.bJustUsePlainVolume )
+        dVolumeCorrect = min( dVolumeCorrect, dMaxCorrect );
+    else
+        dVolumeCorrect = m_dVolume;
 
     m_iHotNote = m_iNextHotNote;
     m_iNextHotNote = -1;
