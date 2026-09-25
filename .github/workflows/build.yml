@@ -34,9 +34,14 @@ jobs:
         with:
           args: upgrade directx-sdk nsis.portable -y
 
+      - name: Refresh environment
+        shell: pwsh
+        run: |
+          $dxsdk = [Environment]::GetEnvironmentVariable("DXSDK_DIR","Machine")
+          echo "DXSDK_DIR=$dxsdk" >> $env:GITHUB_ENV
+
       - name: Verify build environment
         shell: pwsh
-        working-directory: ./
         run: |
           where.exe cl makensis
           "cl","makensis" | ForEach-Object { Get-Command $_ -ErrorAction Stop }
