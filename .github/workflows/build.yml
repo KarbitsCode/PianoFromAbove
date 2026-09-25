@@ -76,6 +76,6 @@ jobs:
         with:
           vt_api_key: ${{ secrets.VT_KEY }}
           files: |
-            ./Debug/*
-            ./Release/*
+            ./Debug/*.exe
+            ./Release/*.exe
             ./Dist/*
