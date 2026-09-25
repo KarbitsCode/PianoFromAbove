@@ -32,7 +32,7 @@ jobs:
       - name: Set up chocolatey packages
         uses: crazy-max/ghaction-chocolatey@v4.1.0
         with:
-          args: upgrade nsis -y
+          args: upgrade nsis.portable -y
 
       - name: Verify build environment
         shell: pwsh
