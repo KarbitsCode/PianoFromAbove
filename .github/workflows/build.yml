@@ -1,0 +1,77 @@
+name: PianoFromAbove build
+on:
+  push:
+    branches:
+      - master
+    paths-ignore:
+      - .github/**
+      - .gitignore
+      - README.md
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: false
+  queue: max
+
+jobs:
+  build:
+    runs-on: windows-latest
+    timeout-minutes: 30
+    steps:
+      - name: Checkout repository
+        uses: actions/checkout@v7.0.1
+        with:
+          fetch-depth: 0
+
+      - name: Set up MSVC compiler
+        uses: ilammy/msvc-dev-cmd@v1.13.0
+        with:
+          arch: x64
+
+      - name: Set up chocolatey packages
+        if: matrix.os == 'windows-latest'
+        uses: crazy-max/ghaction-chocolatey@v4.1.0
+        with:
+          args: upgrade nsis -y
+
+      - name: Verify build environment
+        shell: pwsh
+        working-directory: ./
+        run: |
+          where.exe cl makensis
+          "cl","makensis" | ForEach-Object { Get-Command $_ -ErrorAction Stop }
+          cl
+          makensis /VERSION
+
+      - name: Build executable
+        shell: pwsh
+        working-directory: ./
+        run: |
+          cmd.exe /c "ci.bat"
+
+      - name: Compare artifact build
+        uses: KarbitsCode/artifact-comparer@43db522959d21d1bad41a884670eaa59035878fd
+        with:
+          artifact-name: windows-build
+          path: Dist/
+          artifact-subpath: Dist/
+
+      - name: Upload artifact
+        uses: actions/upload-artifact@v7.0.1
+        with:
+          name: windows-build
+          compression-level: 9
+          path: |
+            Debug/
+            Release/
+            Dist/
+
+      - name: Scan with VirusTotal
+        uses: crazy-max/ghaction-virustotal@v5.0.0
+        with:
+          vt_api_key: ${{ secrets.VT_KEY }}
+          files: |
+            ./Debug/*
+            ./Release/*
+            ./Dist/*
