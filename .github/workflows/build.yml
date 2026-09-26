@@ -49,13 +49,13 @@ jobs:
         working-directory: ./
         run: |
           cmd.exe /c "ci.bat"
+          Copy-Item Release\*.exe Dist -Verbose
 
       - name: Compare artifact build
         uses: KarbitsCode/artifact-comparer@43db522959d21d1bad41a884670eaa59035878fd
         with:
           artifact-name: windows-build
           path: Dist/
-          artifact-subpath: Dist/
 
       - name: Upload artifact
         uses: actions/upload-artifact@v7.0.1
@@ -63,8 +63,6 @@ jobs:
           name: windows-build
           compression-level: 9
           path: |
-            Debug/
-            Release/
             Dist/
 
       - name: Scan with VirusTotal
