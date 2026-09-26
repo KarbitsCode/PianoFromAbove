@@ -28,7 +28,6 @@ jobs:
         shell: pwsh
         run: |
           choco upgrade directx-sdk nsis.portable -y
-          choco upgrade visualstudio2022-workload-vctools -y --package-parameters --includeOptional
           $vsPath = & "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vswhere.exe" -latest -prerelease -property installationPath
           & "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vs_installer.exe" modify --installPath $vsPath --add Microsoft.VisualStudio.Component.VC.ATL --quiet --norestart --wait
           $dxsdk = [Environment]::GetEnvironmentVariable("DXSDK_DIR","Machine")
