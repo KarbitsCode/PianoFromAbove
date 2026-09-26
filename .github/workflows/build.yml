@@ -27,11 +27,10 @@ jobs:
       - name: Set up build tools
         shell: pwsh
         run: |
-          choco upgrade visualstudio2022-workload-vctools -y --package-parameters --includeOptional
           choco upgrade directx-sdk nsis.portable -y
+          choco upgrade visualstudio2022-workload-vctools -y --package-parameters --includeOptional
           $dxsdk = [Environment]::GetEnvironmentVariable("DXSDK_DIR","Machine")
           echo "DXSDK_DIR=$dxsdk" >> $env:GITHUB_ENV
-          & "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vswhere.exe" -all -products * -format json
 
       - name: Refresh environment
         uses: ilammy/msvc-dev-cmd@v1.13.0
