@@ -28,18 +28,9 @@ jobs:
         shell: pwsh
         run: |
           choco upgrade directx-sdk nsis.portable -y
-          $vsPath = & "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vswhere.exe" -latest -prerelease -property installationPath
-          $proc = Start-Process -FilePath "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vs_installer.exe" -ArgumentList @(
-            "modify", "--installPath", "`"$vsPath`"",
-            "--add", "Microsoft.VisualStudio.Component.VC.ATL",
-            "--quiet", "--norestart", "--wait"
-          ) -Wait -NoNewWindow -PassThru
-          Write-Host "vs_installer exit code: $($proc.ExitCode)"
-          $found = Get-ChildItem "$vsPath\VC\Tools\MSVC" -Recurse -Filter atlbase.h -ErrorAction SilentlyContinue
-          Write-Host "atlbase.h found: $($found -ne $null)"
-          if ($found) { Write-Host $found.FullName }
           $dxsdk = [Environment]::GetEnvironmentVariable("DXSDK_DIR","Machine")
           echo "DXSDK_DIR=$dxsdk" >> $env:GITHUB_ENV
+          echo "VCToolsVersion=14.51.36231" >> $env:GITHUB_ENV
 
       - name: Refresh environment
         uses: ilammy/msvc-dev-cmd@v1.13.0
