@@ -32,11 +32,6 @@ jobs:
           echo "DXSDK_DIR=$dxsdk" >> $env:GITHUB_ENV
           echo "VCToolsVersion=14.51.36231" >> $env:GITHUB_ENV
 
-      - name: Refresh environment
-        uses: ilammy/msvc-dev-cmd@v1.13.0
-        with:
-          arch: x64
-
       - name: Verify build environment
         shell: pwsh
         run: |
