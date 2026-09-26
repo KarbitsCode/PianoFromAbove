@@ -30,7 +30,21 @@ jobs:
           choco upgrade directx-sdk nsis.portable -y
           $dxsdk = [Environment]::GetEnvironmentVariable("DXSDK_DIR","Machine")
           echo "DXSDK_DIR=$dxsdk" >> $env:GITHUB_ENV
-          echo "VCToolsVersion=14.51.36231" >> $env:GITHUB_ENV
+          $atlToolset = Get-ChildItem "C:\Program Files\Microsoft Visual Studio\*\*\VC\Tools\MSVC\*\atlmfc\include\atlbase.h" -ErrorAction SilentlyContinue
+            | ForEach-Object { $_.FullName -replace '.*\\MSVC\\([\d.]+)\\.*', '$1' }
+            | Sort-Object { [version]$_ } -Descending
+            | Select-Object -First 1
+          if (-not $atlToolset) { throw "No installed MSVC toolset has the ATL component." }
+          Write-Host "Using toolset with ATL: $atlToolset"
+          $propsPath = "ThirdVendor\ShellExecAsUser\sources\Directory.Build.props"
+          $propsContent = "<Project>`n  <PropertyGroup>`n    <VCToolsVersion>$atlToolset</VCToolsVersion>`n  </PropertyGroup>`n</Project>`n"
+          Set-Content -Path $propsPath -Value $propsContent -Encoding UTF8
+          Write-Host "Wrote $propsPath"
+
+      - name: Refresh environment
+        uses: ilammy/msvc-dev-cmd@v1.13.0
+        with:
+          arch: x64
 
       - name: Verify build environment
         shell: pwsh
