@@ -24,15 +24,15 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Set up MSVC compiler
-        uses: ilammy/msvc-dev-cmd@v1.13.0
-        with:
-          arch: x64
-
       - name: Set up chocolatey packages
         uses: crazy-max/ghaction-chocolatey@v4.1.0
         with:
           args: upgrade visualstudio2026-workload-vctools directx-sdk nsis.portable -y
+
+      - name: Set up MSVC compiler
+        uses: ilammy/msvc-dev-cmd@v1.13.0
+        with:
+          arch: x64
 
       - name: Refresh environment
         shell: pwsh
