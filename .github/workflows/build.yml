@@ -29,7 +29,7 @@ jobs:
         run: |
           choco upgrade directx-sdk nsis.portable -y
           $vsPath = & "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vswhere.exe" -latest -prerelease -property installationPath
-          $proc = Start-Process -FilePath $installer -ArgumentList @(
+          $proc = Start-Process -FilePath "C:\Program Files (x86)\Microsoft Visual Studio\Installer\vs_installer.exe" -ArgumentList @(
             "modify", "--installPath", "`"$vsPath`"",
             "--add", "Microsoft.VisualStudio.Component.VC.ATL",
             "--quiet", "--norestart", "--wait"
