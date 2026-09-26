@@ -76,11 +76,22 @@ jobs:
           files: |
             ./Dist/*
 
+      - name: Get previous release
+        id: previous
+        shell: pwsh
+        run: |
+          $tag = gh api "repos/${{ github.repository }}/git/ref/tags/continuous" --jq '.object.sha'
+          if ($LASTEXITCODE -eq 0) {
+            "sha=$tag" >> $env:GITHUB_OUTPUT
+          }
+
       - name: Create release assets
         uses: softprops/action-gh-release@v3.0.3
         with:
           tag_name: continuous
           name: Continuous build
+          body: |
+            Compare changes: [${{ steps.previous.outputs.sha }}...${{ github.sha }}](https://github.com/${{ github.repository }}/compare/${{ steps.previous.outputs.sha }}...${{ github.sha }})
           files: |
             ./Dist/*
           overwrite_files: true
