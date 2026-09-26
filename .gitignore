@@ -15,8 +15,10 @@
 # Build results
 [Dd]ebug/
 [Dd]ebugPublic/
+[Dd]ebugUnicode/
 [Rr]elease/
 [Rr]eleases/
+[Rr]eleaseUnicode/
 x64/
 x86/
 bld/

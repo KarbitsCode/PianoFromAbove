@@ -3,6 +3,11 @@ if not exist ThirdVendor\protobuf-2.5.0\vsprojects\Release (
   cmd /c make.bat
   popd
 )
+if not exist ThirdVendor\ShellExecAsUser\unicode (
+  pushd ThirdVendor\ShellExecAsUser
+  cmd /c make.bat
+  popd
+)
 msbuild PianoFromAbove.sln /t:Build /p:Configuration=Debug /p:Platform=Win32
 msbuild PianoFromAbove.sln /t:Build /p:Configuration=Debug /p:Platform=x64
 msbuild PianoFromAbove.sln /t:Build /p:Configuration=Release /p:Platform=Win32

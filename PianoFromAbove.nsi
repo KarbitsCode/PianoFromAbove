@@ -8,7 +8,7 @@
 ;General
 
 !system "if not exist Dist md Dist"
-!addplugindir "ThirdVendor\ShellExecAsUser\unicode\"
+!addplugindir "ThirdVendor\ShellExecAsUser\dist\"
 !define Version 1.1.0
 Name "Piano From Above"
 OutFile "Dist\KPFA-${Version}-setup.exe"
