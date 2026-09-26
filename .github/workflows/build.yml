@@ -32,7 +32,7 @@ jobs:
       - name: Set up chocolatey packages
         uses: crazy-max/ghaction-chocolatey@v4.1.0
         with:
-          args: upgrade directx-sdk nsis.portable -y
+          args: upgrade visualstudio2026-workload-vctools directx-sdk nsis.portable -y
 
       - name: Refresh environment
         shell: pwsh
