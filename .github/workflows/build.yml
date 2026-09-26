@@ -24,21 +24,18 @@ jobs:
         with:
           fetch-depth: 0
 
-      - name: Set up chocolatey packages
-        uses: crazy-max/ghaction-chocolatey@v4.1.0
-        with:
-          args: upgrade visualstudio2022-workload-vctools directx-sdk nsis.portable -y
+      - name: Set up build tools
+        shell: pwsh
+        run: |
+          choco upgrade visualstudio2022-workload-vctools -y --package-parameters --includeOptional
+          choco upgrade directx-sdk nsis.portable -y
+          $dxsdk = [Environment]::GetEnvironmentVariable("DXSDK_DIR","Machine")
+          echo "DXSDK_DIR=$dxsdk" >> $env:GITHUB_ENV
 
       - name: Set up MSVC compiler
         uses: ilammy/msvc-dev-cmd@v1.13.0
         with:
           arch: x64
-
-      - name: Refresh environment
-        shell: pwsh
-        run: |
-          $dxsdk = [Environment]::GetEnvironmentVariable("DXSDK_DIR","Machine")
-          echo "DXSDK_DIR=$dxsdk" >> $env:GITHUB_ENV
 
       - name: Verify build environment
         shell: pwsh
