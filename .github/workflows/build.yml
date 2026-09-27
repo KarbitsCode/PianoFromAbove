@@ -16,8 +16,10 @@ concurrency:
 
 jobs:
   build:
-    runs-on: windows-2022
+    runs-on: windows-latest
     timeout-minutes: 30
+    permissions:
+      contents: write
     steps:
       - name: Checkout repository
         uses: actions/checkout@v7.0.1
@@ -28,6 +30,7 @@ jobs:
         shell: pwsh
         run: |
           choco upgrade directx-sdk nsis.portable -y
+          choco upgrade visualstudio2022-workload-vctools -y --package-parameters "--add Microsoft.VisualStudio.Component.VC.ATL"
           $dxsdk = [Environment]::GetEnvironmentVariable("DXSDK_DIR","Machine")
           echo "DXSDK_DIR=$dxsdk" >> $env:GITHUB_ENV
 
@@ -35,6 +38,7 @@ jobs:
         uses: ilammy/msvc-dev-cmd@v1.13.0
         with:
           arch: x64
+          vsversion: 2022
 
       - name: Verify build environment
         shell: pwsh
@@ -70,6 +74,31 @@ jobs:
         with:
           vt_api_key: ${{ secrets.VT_KEY }}
           files: |
-            ./Debug/*.exe
-            ./Release/*.exe
             ./Dist/*
+
+      - name: Prepare commit SHA
+        id: sha
+        shell: pwsh
+        env:
+          GH_TOKEN: ${{ github.token }}
+        run: |
+          $tag = gh api "repos/${{ github.repository }}/git/ref/tags/continuous" --jq '.object.sha'
+          if ($LASTEXITCODE -eq 0) {
+            "prev=$tag" >> $env:GITHUB_OUTPUT
+            "prev-short=$(git rev-parse --short $tag)" >> $env:GITHUB_OUTPUT
+          }
+          "curr-short=$(git rev-parse --short HEAD)" >> $env:GITHUB_OUTPUT
+          git tag -f continuous $env:GITHUB_SHA
+          git push origin refs/tags/continuous --force
+
+      - name: Create release assets
+        uses: softprops/action-gh-release@v3.0.3
+        with:
+          tag_name: continuous
+          name: Continuous build
+          body: |
+            Compare changes: [${{ steps.sha.outputs.prev-short }}...${{ steps.sha.outputs.curr-short }}](https://github.com/${{ github.repository }}/compare/${{ steps.sha.outputs.prev }}...${{ github.sha }})
+          files: |
+            ./Dist/*
+          overwrite_files: true
+          make_latest: true
