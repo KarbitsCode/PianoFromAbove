@@ -81,6 +81,7 @@ jobs:
         shell: pwsh
         env:
           GH_TOKEN: ${{ github.token }}
+          GH_DEBUG: 1
         run: |
           $tag = gh api "repos/${{ github.repository }}/git/ref/tags/continuous" --jq '.object.sha'
           if ($LASTEXITCODE -eq 0) {
