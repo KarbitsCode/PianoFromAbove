@@ -86,8 +86,10 @@ jobs:
           if ($LASTEXITCODE -eq 0) {
             "prev=$tag" >> $env:GITHUB_OUTPUT
             "prev-short=$(git rev-parse --short $tag)" >> $env:GITHUB_OUTPUT
-            "curr-short=$(git rev-parse --short HEAD)" >> $env:GITHUB_OUTPUT
           }
+          "curr-short=$(git rev-parse --short HEAD)" >> $env:GITHUB_OUTPUT
+          git tag -f continuous $env:GITHUB_SHA
+          git push origin refs/tags/continuous --force
 
       - name: Create release assets
         uses: softprops/action-gh-release@v3.0.3
