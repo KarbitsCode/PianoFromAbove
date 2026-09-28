@@ -56,7 +56,7 @@ jobs:
           Copy-Item Release\*.exe Dist -Verbose
 
       - name: Compare artifact build
-        uses: KarbitsCode/artifact-comparer@43db522959d21d1bad41a884670eaa59035878fd
+        uses: KarbitsCode/artifact-comparer@2c9a24b182f79dfbb05e0b244cf62d3faf560108
         with:
           artifact-name: windows-build
           path: Dist/
@@ -76,7 +76,7 @@ jobs:
           files: |
             ./Dist/*
 
-      - name: Prepare commit SHA
+      - name: Prepare releases
         id: sha
         shell: pwsh
         env:
@@ -89,6 +89,11 @@ jobs:
             "prev-short=$(git rev-parse --short $tag)" >> $env:GITHUB_OUTPUT
           }
           "curr-short=$(git rev-parse --short HEAD)" >> $env:GITHUB_OUTPUT
+          $release = gh api "repos/${{ github.repository }}/releases/tags/continuous"
+          if ($LASTEXITCODE -eq 0) {
+            $releaseId = ($release | ConvertFrom-Json).id
+            gh api "repos/${{ github.repository }}/releases/$releaseId" --method DELETE
+          }
           git tag -f continuous $env:GITHUB_SHA
           git push origin refs/tags/continuous --force
 
