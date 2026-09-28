@@ -1,1 +1,1 @@
-git pull -v --prune && git gc && make.bat
+git pull -v --prune --no-edit && git gc && make.bat
