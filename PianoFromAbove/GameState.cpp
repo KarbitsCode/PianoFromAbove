@@ -1863,13 +1863,21 @@ void MainScreen::RenderKeys()
     float fStartX = ( MIDI::IsSharp( m_iStartNote ) ? m_fWhiteCX * ( SharpRatio / 2.0f - 1.0f ) : 0.0f );
     float fSharpCY = fTopCY * 0.67f;
 
+    auto bShowPress = [&]( int iNote )
+    {
+        if ( m_pNoteState[iNote] < 0 ) return false;
+        const MIDIChannelEvent *pEvent = m_vEvents[m_pNoteState[iNote]];
+        const ChannelSettings &cs = m_vTrackSettings[pEvent->GetTrack()].aChannels[pEvent->GetChannel()];
+        return !( cs.bMuted && cs.bHidden );
+    };
+
     // Draw the white keys
     float fCurX = m_fNotesX + fStartX;
     float fCurY = fKeysY + fTransitionCY + fRedCY + fSpacerCY;
     for ( int i = iStartRender; i <= iEndRender; i++ )
         if ( !MIDI::IsSharp( i ) )
         {
-            if ( m_pNoteState[i] == -1 )
+            if ( !bShowPress( i ) )
             {
                 m_pRenderer->DrawRect( fCurX + fKeyGap1 , fCurY, m_fWhiteCX - fKeyGap, fTopCY + fNearCY,
                     m_csKBWhite.iDarkRGB, m_csKBWhite.iDarkRGB, m_csKBWhite.iPrimaryRGB, m_csKBWhite.iPrimaryRGB );
@@ -1934,7 +1942,7 @@ void MainScreen::RenderKeys()
             const float fSharpTopX1 = x + m_fWhiteCX * ( SharpRatio - fSharpTop ) / 2.0f;
             const float fSharpTopX2 = fSharpTopX1 + m_fWhiteCX * fSharpTop;
 
-            if ( m_pNoteState[i] == -1 )
+            if ( !bShowPress( i ) )
             {
                 m_pRenderer->DrawSkew( fSharpTopX1, fCurY + fSharpCY - fNearCY,
                                        fSharpTopX2, fCurY + fSharpCY - fNearCY,
