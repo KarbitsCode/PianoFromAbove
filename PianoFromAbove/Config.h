@@ -57,7 +57,7 @@ struct VisualSettings : public ISettings
     enum RenderMode { Time, Tick, Tick2 } eRenderMode;
     enum Accidentals { Sharps, Flats } eAccidentals;
     int iFirstKey, iLastKey;
-    bool bAlwaysShowControls, bAssociateFiles;
+    bool bAlwaysShowControls, bAssociateFiles, bHiddenNotesKeyPress;
     unsigned int colors[16], iBkgColor;
 };
 

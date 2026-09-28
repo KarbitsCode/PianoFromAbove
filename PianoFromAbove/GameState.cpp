@@ -1865,6 +1865,7 @@ void MainScreen::RenderKeys()
 
     // Scanning all active notes for hidden notes that stacked on top,
     // so it won't hide the one behind it.
+    static const VisualSettings &cVisual = Config::GetConfig().GetVisualSettings();
     int iKeyNote[128];
     memset( iKeyNote, -1, sizeof( iKeyNote ) );
     for ( int iEventPos : m_vState )
@@ -1873,7 +1874,7 @@ void MainScreen::RenderKeys()
         const ChannelSettings &csState = m_vTrackSettings[pStateEvent->GetTrack()].aChannels[pStateEvent->GetChannel()];
         bool bChannelMuted = csState.bMuted;
         bool bChannelHidden = csState.bHidden;
-        if ( bChannelMuted && bChannelHidden ) continue;
+        if ( ( bChannelMuted && bChannelHidden ) && !cVisual.bHiddenNotesKeyPress ) continue;
         iKeyNote[pStateEvent->GetParam1()] = iEventPos;
     }
 

@@ -151,6 +151,7 @@ void VisualSettings::LoadDefaultValues()
     this->eKeysShown = All;
     this->eRenderMode = Time;
     this->eAccidentals = Sharps;
+    this->bHiddenNotesKeyPress = true;
     this->bAlwaysShowControls = false;
     this->bAssociateFiles = false;
     this->iFirstKey = MIDI::A0;
@@ -269,6 +270,8 @@ void VisualSettings::LoadConfigValues( TiXmlElement *txRoot )
     int iAttrVal;
     if ( txVisual->QueryIntAttribute( "KeysShown", &iAttrVal ) == TIXML_SUCCESS )
         this->eKeysShown = static_cast< KeysShown >( iAttrVal );
+    if ( txVisual->QueryIntAttribute( "HiddenNoteKeyPress", &iAttrVal ) == TIXML_SUCCESS )
+        this->bHiddenNotesKeyPress = ( iAttrVal != 0 );
     if ( txVisual->QueryIntAttribute( "AlwaysShowControls", &iAttrVal ) == TIXML_SUCCESS )
         this->bAlwaysShowControls = ( iAttrVal != 0 );
     if ( txVisual->QueryIntAttribute( "AssociateFiles", &iAttrVal ) == TIXML_SUCCESS )
@@ -454,6 +457,7 @@ bool VisualSettings::SaveConfigValues( TiXmlElement *txRoot )
     TiXmlElement *txVisual = new TiXmlElement( "Visual" );
     txRoot->LinkEndChild( txVisual );
     txVisual->SetAttribute( "KeysShown", this->eKeysShown );
+    txVisual->SetAttribute( "HiddenNoteKeyPress", this->bHiddenNotesKeyPress );
     txVisual->SetAttribute( "AlwaysShowControls", this->bAlwaysShowControls );
     txVisual->SetAttribute( "AssociateFiles", this->bAssociateFiles );
     txVisual->SetAttribute( "RenderMode", this->eRenderMode );

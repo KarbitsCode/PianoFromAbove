@@ -170,6 +170,7 @@ INT_PTR WINAPI VisualProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
                                            IsDlgButtonChecked( hWnd, IDC_SHOWSONGKEYS ) == BST_CHECKED ? cVisual.Song :
                                            IsDlgButtonChecked( hWnd, IDC_SHOWCUSTOMKEYS ) == BST_CHECKED ? cVisual.Custom :
                                            cVisual.Song );
+                    cVisual.bHiddenNotesKeyPress = ( IsDlgButtonChecked( hWnd, IDC_HIDEKEYPRESSES ) == BST_CHECKED );
                     cVisual.bAlwaysShowControls = ( IsDlgButtonChecked( hWnd, IDC_SHOWCONTROLS ) == BST_CHECKED );
                     cVisual.bAssociateFiles = ( IsDlgButtonChecked( hWnd, IDC_ASSOCIATEFILES ) == BST_CHECKED );
                     cVisual.iFirstKey = (int)SendMessage( GetDlgItem( hWnd, IDC_FIRSTKEY ), CB_GETCURSEL, 0, 0 ) + MIDI::CM1;
@@ -210,6 +211,7 @@ VOID SetVisualProc( HWND hWnd, const VisualSettings &cVisual )
 
     // Set values
     CheckRadioButton( hWnd, IDC_SHOWALLKEYS, IDC_SHOWALLKEYS2, IDC_SHOWALLKEYS + cVisual.eKeysShown );
+    CheckDlgButton( hWnd, IDC_HIDEKEYPRESSES, cVisual.bHiddenNotesKeyPress ? BST_CHECKED : BST_UNCHECKED );
     CheckDlgButton( hWnd, IDC_SHOWCONTROLS, cVisual.bAlwaysShowControls ? BST_CHECKED : BST_UNCHECKED );
     CheckDlgButton( hWnd, IDC_ASSOCIATEFILES, cVisual.bAssociateFiles ? BST_CHECKED : BST_UNCHECKED );
     SendMessage( hWnd, WM_COMMAND, IDC_SHOWALLKEYS + cVisual.eKeysShown, 0 );
