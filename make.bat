@@ -3,7 +3,7 @@ if not exist ThirdVendor\protobuf-2.5.0\vsprojects\Release (
   cmd /c make.bat
   popd
 )
-if not exist ThirdVendor\ShellExecAsUser\unicode (
+if not exist ThirdVendor\ShellExecAsUser\dist (
   pushd ThirdVendor\ShellExecAsUser
   cmd /c make.bat
   popd
