@@ -21,6 +21,7 @@ using namespace std;
 #include "Renderer.h"
 #include "MIDI.h"
 #include "Misc.h"
+#include "VideoRecorder.h"
 
 //Abstract base class
 class GameState
@@ -144,6 +145,7 @@ public:
     static const float KBPercent;
 
     MainScreen( wstring sMIDIFile, State eGameMode, HWND hWnd, Renderer *pRenderer );
+    ~MainScreen() { StopRecording( true ); }
 
     // GameState functions
     GameError MsgProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam );
@@ -153,6 +155,7 @@ public:
 
     // Info
     bool IsValid() const { return m_MIDI.IsValid(); }
+    bool IsRecording() const { return m_bRecording; }
     const MIDI& GetMIDI() const { return m_MIDI; }
 
     // Settings
@@ -209,6 +212,12 @@ private:
     void RenderStatus( LPRECT prcPos );
     void RenderMessage( LPRECT prcMsg, TCHAR *sMsg );
 
+    // Video recording
+    void StartRecording( const wstring &sFile );
+    void StopRecording( bool bKeepVideo, const wstring &sReason = L"", UINT uIcon = MB_ICONINFORMATION );
+    void CaptureFrame();
+    long long GetRecordStepMicroSecs() const;
+
     // MIDI info
     MIDI m_MIDI; // The song to display
     vector< MIDIChannelEvent* > m_vEvents; // The channel events of the song
@@ -254,6 +263,15 @@ private:
 
     // Devices
     MIDIOutDevice m_OutDevice;
+
+    // Video recording
+    static const int RecordFPS = 60;
+    bool m_bRecording = false;
+    VideoRecorder m_Recorder;
+    wstring m_sRecordFile;
+    long long m_llRecordFrames = 0; // Frames written so far. Frame N is shown at song time N / RecordFPS.
+    int m_iRecordWidth = 0, m_iRecordHeight = 0; // Fixed by the first captured frame
+    vector< BYTE > m_vRecordPixels;
 
     // Visual
     static const float SharpRatio;

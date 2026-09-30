@@ -12,6 +12,7 @@
 #include <Windows.h>
 #include <d3d9.h>
 #include <d3dx9.h>
+#include <vector>
 
 class Renderer
 {
@@ -38,6 +39,8 @@ public:
     virtual HRESULT DrawSkew( float x1, float y1, float x2, float y2, float x3, float y3, float x4, float y4, DWORD color ) = 0;
     virtual HRESULT DrawSkew( float x1, float y1, float x2, float y2, float x3, float y3, float x4, float y4,
                               DWORD c1, DWORD c2, DWORD c3, DWORD c4 ) = 0;
+
+    virtual HRESULT CaptureBackBuffer( std::vector< BYTE > &vPixels, int &iWidth, int &iHeight ) { return E_NOTIMPL; }
 
     bool GetLimitFPS() const { return m_bLimitFPS; }
     HRESULT SetLimitFPS( bool bLimitFPS );
@@ -67,7 +70,7 @@ public:
     D3D9Renderer() : m_pD3D( NULL ), m_pd3dDevice( NULL ), m_pTextSprite( NULL ),
                      m_pVertexBuffer( NULL ), m_pStaticVertexBuffer( NULL ),
                      m_pSmallFont( NULL ), m_pSmallBoldFont( NULL ), m_pSmallComicFont( NULL ),
-                     m_pMediumFont( NULL ), m_pLargeFont( NULL ),
+                     m_pMediumFont( NULL ), m_pLargeFont( NULL ), m_pCaptureSurface( NULL ),
                      m_iTriangle( 0 ), m_bIsDeviceValid( false ),
                      m_iStaticTriangle( 0 ), m_iStaticMaxTriangles( 0 ), m_bStatic( false ) {}
     ~D3D9Renderer();
@@ -92,6 +95,7 @@ public:
     HRESULT BeginStaticBuffer( int iTriangles );
     HRESULT EndStaticBuffer();
     HRESULT DrawStaticBuffer();
+    HRESULT CaptureBackBuffer( std::vector< BYTE > &vPixels, int &iWidth, int &iHeight );
 
 private:
     HRESULT RestoreDeviceObjects();
@@ -105,6 +109,7 @@ private:
     LPD3DXFONT m_pSmallComicFont;
     LPD3DXFONT m_pMediumFont;
     LPD3DXFONT m_pLargeFont;
+    LPDIRECT3DSURFACE9 m_pCaptureSurface; // System-memory staging surface for CaptureBackBuffer
     D3DPRESENT_PARAMETERS m_d3dPP; // Presentation parameters
     bool m_bIsDeviceValid;
     

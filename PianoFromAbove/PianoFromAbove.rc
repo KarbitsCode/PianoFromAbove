@@ -283,6 +283,8 @@ BEGIN
         MENUITEM "O&pen Using Custom Settings...", ID_FILE_PRACTICESONGCUSTOM
         MENUITEM "&Close File\tCtrl+W",         ID_FILE_CLOSEFILE
         MENUITEM SEPARATOR
+        MENUITEM "&Record Video...",            ID_FILE_RECORDVIDEO
+        MENUITEM SEPARATOR
         POPUP "Librar&y"
         BEGIN
             MENUITEM "Add &File(s)...\tCtrl+F",     ID_FILE_ADDFILE

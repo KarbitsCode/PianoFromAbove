@@ -196,13 +196,16 @@
 #define ID_GRAPHICS_SLOWERNOTES         40170
 #define ID_GRAPHICS_RESET               40171
 #define ID_VIEW_NOTELABELS              40172
+#define ID_FILE_RECORDVIDEO             40176
+#define ID_RECORD_STOP                  40177
+#define ID_RECORD_START                 40178
 
 // Next default values for new objects
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
 #define _APS_NEXT_RESOURCE_VALUE        154
-#define _APS_NEXT_COMMAND_VALUE         40176
+#define _APS_NEXT_COMMAND_VALUE         40179
 #define _APS_NEXT_CONTROL_VALUE         1140
 #define _APS_NEXT_SYMED_VALUE           102
 #endif

@@ -24,4 +24,8 @@ extern IMMDeviceEnumerator* g_pDeviceEnumerator;
 extern AudioNotificationClient* g_pAudioNotify;
 extern BOOL g_bAboutToRestart;
 
+// Video recording notifications
+#define WM_RECORDPROGRESS ( WM_APP + 10 ) // wParam: seconds of video written, lParam: percent of the song done
+#define WM_RECORDDONE     ( WM_APP + 11 ) // wParam: MB_ICON* for the message, lParam: heap-allocated wstring* to show (receiver deletes)
+
 #define ERRORANDRETURN( hwnd, msg, retval ) { MessageBox( ( hwnd ), ( msg ), TEXT( "Error" ), MB_OK | MB_ICONERROR ); return ( retval ); }

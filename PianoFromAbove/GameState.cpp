@@ -759,6 +759,19 @@ GameState::GameError MainScreen::MsgProc( HWND hWnd, UINT msg, WPARAM wParam, LP
                 case ID_CHANGESTATE:
                     m_pNextState = reinterpret_cast< GameState* >( lParam );
                     return Success;
+                case ID_RECORD_START:
+                {
+                    wstring *psFile = reinterpret_cast< wstring* >( lParam );
+                    if ( psFile )
+                    {
+                        StartRecording( *psFile );
+                        delete psFile;
+                    }
+                    return Success;
+                }
+                case ID_RECORD_STOP:
+                    StopRecording( true );
+                    return Success;
                 case ID_PLAY_STOP:
                     JumpTo( GetMinTime() );
                     cPlayback.SetStopped( true );
@@ -862,7 +875,7 @@ GameState::GameError MainScreen::MsgProc( HWND hWnd, UINT msg, WPARAM wParam, LP
             break;
         }
         case WM_DEVICECHANGE:
-            if ( ( cAudio.iOutDevice >= 0 && m_OutDevice.GetDevice() != cAudio.vMIDIOutDevices[cAudio.iOutDevice] ) || wParam == DEVICECHANGE_AUDIO_ENDPOINT )
+            if ( !m_bRecording && ( ( cAudio.iOutDevice >= 0 && m_OutDevice.GetDevice() != cAudio.vMIDIOutDevices[cAudio.iOutDevice] ) || wParam == DEVICECHANGE_AUDIO_ENDPOINT ) )
                 m_OutDevice.Open( cAudio.iOutDevice );
             break;
         case TBM_SETPOS:
@@ -976,7 +989,7 @@ GameState::GameError MainScreen::Logic()
     m_iStartNote = min( cVisual.iFirstKey, cVisual.iLastKey );
     m_iEndNote = max( cVisual.iFirstKey, cVisual.iLastKey );
     m_bShowFPS = cVideo.bShowFPS;
-    m_pRenderer->SetLimitFPS( cVideo.bLimitFPS );
+    m_pRenderer->SetLimitFPS( m_bRecording ? false : cVideo.bLimitFPS );
     m_bOpaqueStatus = cVideo.bOpaqueStatus;
     m_iShownTicks = static_cast< int >( llTickSpan );
     m_eRenderMode = cVisual.eRenderMode;
@@ -1001,6 +1014,12 @@ GameState::GameError MainScreen::Logic()
     long long llMaxTime = GetMaxTime();
     long long llElapsed = m_Timer.GetMicroSecs();
     m_Timer.Start();
+
+    // While recording, song time advances by exactly one video frame per Logic() call no matter how
+    // long the frame took to render. That is what lets a light load export faster than real time and
+    // a heavy load export slower, with the video always coming out smooth.
+    if ( m_bRecording )
+        llElapsed = GetRecordStepMicroSecs();
 
     // Compute FPS every half a second
     m_llFPSTime += llElapsed;
@@ -1470,7 +1489,12 @@ const float MainScreen::KeyRatio = 0.1775f;
 
 GameState::GameError MainScreen::Render() 
 {
-    if ( FAILED( m_pRenderer->ResetDeviceIfNeeded() ) ) return DirectXError;
+    if ( FAILED( m_pRenderer->ResetDeviceIfNeeded() ) )
+    {
+        // Lost the device (locked screen, etc.). Keep whatever was recorded so far.
+        StopRecording( true, L"The graphics device was lost, so recording stopped.", MB_ICONWARNING );
+        return DirectXError;
+    }
 
     m_pRenderer->Clear( 0x00000000 );
 
@@ -1484,9 +1508,144 @@ GameState::GameError MainScreen::Render()
     RenderText();
     m_pRenderer->EndScene();
 
+    // Grab the finished frame before Present(), after which the backbuffer contents are undefined
+    if ( m_bRecording )
+        CaptureFrame();
+
     // Present the backbuffer contents to the display
     m_pRenderer->Present();
     return Success;
+}
+
+// Song time (in microseconds) to advance before drawing the next video frame.
+// Frame N is shown at exactly N / RecordFPS seconds (at 1x speed). Taking the difference of two rounded
+// timestamps, rather than a fixed 16666us, keeps the video from slowly drifting away from the song.
+long long MainScreen::GetRecordStepMicroSecs() const
+{
+    if ( m_llRecordFrames == 0 ) return 0; // The first frame is the starting position itself
+    return ( m_llRecordFrames * 1000000 ) / RecordFPS - ( ( m_llRecordFrames - 1 ) * 1000000 ) / RecordFPS;
+}
+
+void MainScreen::StartRecording( const wstring &sFile )
+{
+    static PlaybackSettings &cPlayback = Config::GetConfig().GetPlaybackSettings();
+    if ( m_bRecording ) return;
+    if ( !m_MIDI.IsValid() )
+    {
+        wstring *psMessage = new wstring( L"There is no MIDI to record." );
+        if ( !PostMessage( g_hWnd, WM_RECORDDONE, MB_ICONERROR, reinterpret_cast< LPARAM >( psMessage ) ) )
+            delete psMessage;
+        return;
+    }
+
+    m_sRecordFile = sFile;
+    m_llRecordFrames = 0;
+    m_iRecordWidth = m_iRecordHeight = 0;
+    m_bRecording = true;
+
+    // Live MIDI sound output can't be sped up or slowed down to follow the export, so keep it silent.
+    m_OutDevice.AllNotesOff();
+    m_OutDevice.Close();
+
+    // Always start from the beginning
+    JumpTo( GetMinTime() );
+    cPlayback.SetPaused( false, true );
+}
+
+void MainScreen::StopRecording( bool bKeepVideo, const wstring &sReason, UINT uIcon )
+{
+    static const AudioSettings &cAudio = Config::GetConfig().GetAudioSettings();
+    if ( !m_bRecording ) return;
+    m_bRecording = false;
+
+    wstring sMessage = sReason;
+    if ( bKeepVideo && m_llRecordFrames > 0 )
+    {
+        if ( m_Recorder.Finish() )
+        {
+            if ( sReason.empty() )
+                sMessage = L"Video saved to:\n" + m_sRecordFile;
+            else
+                sMessage = sReason + L"\n\nThe video up to that point was saved to:\n" + m_sRecordFile;
+        }
+        else
+        {
+            sMessage = L"ffmpeg reported an error while finishing the video. Its log was saved to:\n" + m_Recorder.GetLogFile();
+            uIcon = MB_ICONERROR;
+        }
+    }
+    else
+    {
+        m_Recorder.Abort();
+        if ( sMessage.empty() )
+            sMessage = L"Recording stopped before any frames were captured, so no video was saved.";
+    }
+
+    // Give out device back
+    if ( cAudio.iOutDevice >= 0 )
+        m_OutDevice.Open( cAudio.iOutDevice );
+    m_OutDevice.SetVolume( 1.0 );
+
+    wstring *psMessage = new wstring( sMessage );
+    if ( !PostMessage( g_hWnd, WM_RECORDDONE, uIcon, reinterpret_cast< LPARAM >( psMessage ) ) )
+        delete psMessage;
+}
+
+// Called from Render() after the frame is drawn but before it is presented
+void MainScreen::CaptureFrame()
+{
+    // Nothing new to record while paused
+    if ( m_bPaused )
+    {
+        Sleep( 10 );
+        return;
+    }
+
+    int iWidth = 0, iHeight = 0;
+    if ( FAILED( m_pRenderer->CaptureBackBuffer( m_vRecordPixels, iWidth, iHeight ) ) )
+    {
+        StopRecording( true, L"Could not read a frame back from the graphics device, so recording stopped.", MB_ICONERROR );
+        return;
+    }
+
+    if ( !m_Recorder.IsActive() )
+    {
+        // Started lazily so ffmpeg gets the true size of the frames rather than a possibly stale window size
+        wstring sError;
+        if ( !m_Recorder.Start( m_sRecordFile, iWidth, iHeight, RecordFPS, sError ) )
+        {
+            StopRecording( false, sError, MB_ICONERROR );
+            return;
+        }
+        m_iRecordWidth = iWidth;
+        m_iRecordHeight = iHeight;
+    }
+    else if ( iWidth != m_iRecordWidth || iHeight != m_iRecordHeight )
+    {
+        StopRecording( true, L"The window was resized, so recording stopped.", MB_ICONWARNING );
+        return;
+    }
+
+    if ( !m_Recorder.WriteFrame( m_vRecordPixels.data(), m_vRecordPixels.size() ) )
+    {
+        StopRecording( false, L"The ffmpeg stopped unexpectedly. Log file was saved to:\n" + m_Recorder.GetLogFile(), MB_ICONERROR );
+        return;
+    }
+    m_llRecordFrames++;
+
+    // Tell main window how far along this is, about once per second of video
+    if ( m_llRecordFrames % RecordFPS == 0 )
+    {
+        long long llSpan = GetMaxTime() - GetMinTime();
+        int iPercent = ( llSpan > 0 ? static_cast< int >( ( m_llStartTime - GetMinTime() ) * 100 / llSpan ) : 0 );
+        PostMessage( g_hWnd, WM_RECORDPROGRESS, static_cast< WPARAM >( m_llRecordFrames / RecordFPS ), iPercent );
+    }
+
+    // The last frame of the song has just been captured
+    if ( m_llStartTime >= GetMaxTime() )
+    {
+        StopRecording( true );
+    }
 }
 
 // These used to be created as local variables inside each Render* function, but too much copying of code :/

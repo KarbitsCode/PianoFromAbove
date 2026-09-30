@@ -34,6 +34,8 @@ LRESULT WINAPI WndProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
     static const ControlsSettings &cControls = Config::GetConfig().GetControlsSettings();
     static SongLibrary &cLibrary = Config::GetConfig().GetSongLibrary();
     static bool bInSizeMove = false;
+    static bool bRecording = false; // A video export is running on the game thread
+    static wstring sTitleBeforeRecording;
 
     switch( msg )
     {
@@ -73,6 +75,35 @@ LRESULT WINAPI WndProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
                         PlayFile( sFilename, iId == ID_FILE_PRACTICESONGCUSTOM, true );
                     return 0;
                 }
+                case ID_FILE_RECORDVIDEO:
+                {
+                    if ( bRecording || cPlayback.GetPlayMode() != GameState::Practice ) return 0;
+                    CheckActivity( TRUE );
+
+                    OPENFILENAME ofn = { 0 };
+                    TCHAR sFilename[1024] = { 0 };
+                    ofn.lStructSize = sizeof( OPENFILENAME );
+                    ofn.hwndOwner = hWnd;
+                    ofn.lpstrFilter = TEXT( "MP4 Video\0*.mp4\0" );
+                    ofn.lpstrDefExt = TEXT( "mp4" );
+                    ofn.lpstrFile = sFilename;
+                    ofn.nMaxFile = sizeof( sFilename ) / sizeof( TCHAR );
+                    ofn.lpstrTitle = TEXT( "Save video as" );
+                    ofn.Flags = OFN_EXPLORER | OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT | OFN_PATHMUSTEXIST;
+                    if ( GetSaveFileName( &ofn ) )
+                    {
+                        TCHAR sTitle[512] = { 0 };
+                        GetWindowText( hWnd, sTitle, sizeof( sTitle ) / sizeof( TCHAR ) );
+                        sTitleBeforeRecording = sTitle;
+                        bRecording = true;
+                        // The game thread owns the string from here on
+                        HandOffMsg( WM_COMMAND, ID_RECORD_START, reinterpret_cast< LPARAM >( new wstring( sFilename ) ) );
+                    }
+                    return 0;
+                }
+                case ID_RECORD_STOP:
+                    if ( bRecording ) HandOffMsg( WM_COMMAND, ID_RECORD_STOP, 0 );
+                    return 0;
                 case ID_FILE_CLOSEFILE:
                 {
                     if ( !cPlayback.GetPlayMode() ) break;
@@ -250,10 +281,38 @@ LRESULT WINAPI WndProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
                     DialogBox( g_hInstance, MAKEINTRESOURCE( IDD_ABOUT ), g_hWnd, AboutProc );
                     return 0;
                 case ID_GAMEERROR:
-                    MessageBoxW( hWnd, GameState::Errors[lParam].c_str(), L"Error", MB_OK | MB_ICONEXCLAMATION );
+                    MessageBox( hWnd, GameState::Errors[lParam].c_str(), L"Error", MB_OK | MB_ICONEXCLAMATION );
                     return 0;
             }
             break;
+        }
+        case WM_RECORDPROGRESS:
+        {
+            // Sent by the game thread about once per second of video written
+            int iSecs = static_cast< int >( wParam );
+            TCHAR sTitle[600] = { 0 };
+            _stprintf_s( sTitle, TEXT( "%s - Recording video: %d:%02d (%d%%)" ), sTitleBeforeRecording.c_str(),
+                         iSecs / 60, iSecs % 60, static_cast< int >( lParam ) );
+            SetWindowText( hWnd, sTitle );
+            return 0;
+        }
+        case WM_RECORDDONE:
+        {
+            bRecording = false;
+
+            // Put the title back, unless a different song was opened in the meantime
+            TCHAR sTitle[600] = { 0 };
+            GetWindowText( hWnd, sTitle, sizeof( sTitle ) / sizeof( TCHAR ) );
+            if ( _tcsstr( sTitle, TEXT( " - Recording video" ) ) )
+                SetWindowText( hWnd, sTitleBeforeRecording.c_str() );
+
+            wstring *psMessage = reinterpret_cast< wstring* >( lParam );
+            if ( psMessage )
+            {
+                MessageBox( hWnd, psMessage->c_str(), L"Record Video", MB_OK | static_cast< UINT >( wParam ) );
+                delete psMessage;
+            }
+            return 0;
         }
         case WM_ACTIVATE:
             if ( LOWORD( wParam ) != WA_INACTIVE )
@@ -1624,6 +1683,7 @@ VOID SetPlayMode( INT ePlayMode )
 
     int iMenuItems[][7] = { { 1, ePlayMode, ID_FILE_CLOSEFILE },
                             { 3, bPractice, ID_PLAY_PLAYPAUSE, ID_PLAY_STOP, ID_VIEW_MOVEANDZOOM },
+                            { 2, bPractice, ID_FILE_RECORDVIDEO },
                             { 4, bPractice, ID_PLAY_SKIPFWD, ID_PLAY_SKIPBACK, ID_PLAY_SKIPFWD2, ID_PLAY_SKIPBACK2 },
                             { 3, true, ID_PLAY_INCREASERATE, ID_PLAY_DECREASERATE, ID_PLAY_RESETRATE } };
     for ( int i = 0; i < sizeof( iMenuItems ) / sizeof( iMenuItems[0] ); i++ )

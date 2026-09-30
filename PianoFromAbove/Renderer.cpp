@@ -7,6 +7,8 @@
 * Copyright (c) 2010 Brian Pantano. All rights reserved.
 *
 *************************************************************************************************/
+
+#include <string.h>
 #include "Renderer.h"
 
 HRESULT Renderer::SetLimitFPS( bool bLimitFPS )
@@ -46,6 +48,7 @@ void D3D9Renderer::DestroyDeviceObjects()
 
     if( m_pVertexBuffer ) m_pVertexBuffer->Release();
     if( m_pStaticVertexBuffer ) ReleaseStaticBuffer();
+    if( m_pCaptureSurface ) { m_pCaptureSurface->Release(); m_pCaptureSurface = NULL; }
 
     m_bIsDeviceValid = false;
 }
@@ -237,6 +240,64 @@ HRESULT D3D9Renderer::Present()
     if ( hr == D3DERR_DEVICELOST )
         DestroyDeviceObjects();
     return hr;
+}
+
+HRESULT D3D9Renderer::CaptureBackBuffer( std::vector< BYTE > &vPixels, int &iWidth, int &iHeight )
+{
+    if ( !m_bIsDeviceValid ) return D3DERR_DEVICELOST;
+
+    LPDIRECT3DSURFACE9 pBackBuffer = NULL;
+    HRESULT hr = m_pd3dDevice->GetBackBuffer( 0, 0, D3DBACKBUFFER_TYPE_MONO, &pBackBuffer );
+    if ( FAILED( hr ) ) return hr;
+
+    D3DSURFACE_DESC desc;
+    pBackBuffer->GetDesc( &desc );
+    if ( desc.Format != D3DFMT_X8R8G8B8 && desc.Format != D3DFMT_A8R8G8B8 )
+    {
+        pBackBuffer->Release();
+        return D3DERR_INVALIDCALL; // We only know how to hand ffmpeg 32-bit BGRX
+    }
+
+    // (Re)create the staging surface if the backbuffer changed size
+    if ( m_pCaptureSurface )
+    {
+        D3DSURFACE_DESC descCapture;
+        m_pCaptureSurface->GetDesc( &descCapture );
+        if ( descCapture.Width != desc.Width || descCapture.Height != desc.Height || descCapture.Format != desc.Format )
+        {
+            m_pCaptureSurface->Release();
+            m_pCaptureSurface = NULL;
+        }
+    }
+    if ( !m_pCaptureSurface )
+    {
+        hr = m_pd3dDevice->CreateOffscreenPlainSurface( desc.Width, desc.Height, desc.Format,
+                                                        D3DPOOL_SYSTEMMEM, &m_pCaptureSurface, NULL );
+        if ( FAILED( hr ) )
+        {
+            pBackBuffer->Release();
+            return hr;
+        }
+    }
+
+    hr = m_pd3dDevice->GetRenderTargetData( pBackBuffer, m_pCaptureSurface );
+    pBackBuffer->Release();
+    if ( FAILED( hr ) ) return hr;
+
+    D3DLOCKED_RECT lr;
+    hr = m_pCaptureSurface->LockRect( &lr, NULL, D3DLOCK_READONLY );
+    if ( FAILED( hr ) ) return hr;
+
+    // Pitch can be larger than width * 4, so copy row by row into a packed buffer
+    iWidth = static_cast< int >( desc.Width );
+    iHeight = static_cast< int >( desc.Height );
+    size_t cbRow = static_cast< size_t >( iWidth ) * 4;
+    vPixels.resize( cbRow * iHeight );
+    for ( int y = 0; y < iHeight; y++ )
+        memcpy( &vPixels[cbRow * y], static_cast< const BYTE* >( lr.pBits ) + static_cast< size_t >( lr.Pitch ) * y, cbRow );
+
+    m_pCaptureSurface->UnlockRect();
+    return S_OK;
 }
 
 HRESULT D3D9Renderer::DrawRect( float x, float y, float cx, float cy, DWORD color )
