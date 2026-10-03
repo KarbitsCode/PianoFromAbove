@@ -22,6 +22,7 @@
 #define IDD_ABOUT                       138
 #define IDB_LOCK                        146
 #define IDR_SPLASHMIDI                  149
+#define IDD_RENDERSETTINGS              154
 #define IDC_TRACKS                      1001
 #define IDC_HIDEKEYBOARD                1004
 #define IDC_FLIPSCREEN                  1005
@@ -67,7 +68,9 @@
 #define IDC_RESET                       1076
 #define IDC_PIANOGROUP                  1078
 #define IDC_EDIT1                       1079
-#define IDC_BUTTON7                     1081
+#define IDC_RENDER_MIDI                 1079
+#define IDC_RENDER_DEST                 1080
+#define IDC_RENDER_FFMPEG               1081
 #define IDC_RADIO1                      1086
 #define IDC_RADIO2                      1087
 #define IDC_RADIO3                      1088
@@ -102,6 +105,11 @@
 #define IDC_STATUSPOSRADIO4             1137
 #define IDC_JUSTUSEPLAINVOLUME          1138
 #define IDC_HIDEKEYPRESSES              1139
+#define IDC_BROWSE_MIDI                 1141
+#define IDC_BROWSE_DEST                 1142
+#define IDC_BROWSE_FFMPEG               1143
+#define IDC_VISUAL_SETTINGS             1144
+#define IDC_MIDI_SETTINGS               1145
 #define ID_FILE_PLAYFILE                40001
 #define ID_FILE_ADDFILE                 40002
 #define ID_FILE_ADDFOLDER               40003
@@ -196,7 +204,7 @@
 #define ID_GRAPHICS_SLOWERNOTES         40170
 #define ID_GRAPHICS_RESET               40171
 #define ID_VIEW_NOTELABELS              40172
-#define ID_FILE_RECORDVIDEO             40176
+#define ID_FILE_RENDERVIDEO             40176
 #define ID_RECORD_STOP                  40177
 #define ID_RECORD_START                 40178
 
@@ -204,9 +212,9 @@
 // 
 #ifdef APSTUDIO_INVOKED
 #ifndef APSTUDIO_READONLY_SYMBOLS
-#define _APS_NEXT_RESOURCE_VALUE        154
-#define _APS_NEXT_COMMAND_VALUE         40179
-#define _APS_NEXT_CONTROL_VALUE         1140
+#define _APS_NEXT_RESOURCE_VALUE        156
+#define _APS_NEXT_COMMAND_VALUE         40180
+#define _APS_NEXT_CONTROL_VALUE         1146
 #define _APS_NEXT_SYMED_VALUE           102
 #endif
 #endif

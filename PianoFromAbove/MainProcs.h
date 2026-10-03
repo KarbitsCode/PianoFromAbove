@@ -11,8 +11,11 @@
 
 #include <Windows.h>
 #include <CommCtrl.h>
+#include <memory>
 #include <string>
 using namespace std;
+
+class MainScreen;
 
 // Message handlers for the main windows
 LRESULT WINAPI WndProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam );
@@ -58,4 +61,8 @@ VOID SetPlayable( BOOL bPlayable );
 VOID SetPlayMode( INT ePlayMode );
 VOID SetPlayPauseStop( BOOL bPlay, BOOL bPause, BOOL bStop );
 BOOL PlayFile( const wstring &sFile, bool bCustomSettings = false, bool bLibraryEligible = false );
+BOOL RenderVideo( MainScreen *pGameState, const wstring &sOutFile, const wstring &sFFmpegPath, HWND hWndNotify = NULL, shared_ptr< void > pRenderGuard = nullptr );
+
+VOID ShowRenderDialog( HWND hWndOwner );
+INT_PTR WINAPI RenderSettingsProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam );
 VOID CheckActivity( BOOL bIsActive, POINT *ptNew = NULL, BOOL bToggleEnable = false );

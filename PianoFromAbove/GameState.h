@@ -15,6 +15,7 @@
 #include <array>
 #include <list>
 #include <utility>
+#include <memory>
 using namespace std;
 
 #include "ProtoBuf\MetaData.pb.h"
@@ -169,6 +170,16 @@ public:
     ChannelSettings* GetChannelSettings( int iChannel );
     void SetChannelSettings( const vector< bool > &vMuted, const vector< bool > &vHidden, const vector< unsigned > &vColor );
 
+    // Makes rendering sOutFile the whole point of this screen, recording starts by itself in Init()
+    void SetRenderJob(const wstring& sOutFile, const wstring& sFFmpegPath, HWND hWndNotify, shared_ptr< void > pRenderGuard = nullptr)
+    {
+        m_bRenderJob = true;
+        m_sRecordFile = sOutFile;
+        m_sFFmpegPath = sFFmpegPath;
+        m_hWndRecordNotify = hWndNotify;
+        m_pRenderGuard = pRenderGuard;
+    }
+
 private:
     typedef vector< pair< long long, int > > eventvec_t;
 
@@ -217,6 +228,7 @@ private:
     void StopRecording( bool bKeepVideo, const wstring &sReason = L"", UINT uIcon = MB_ICONINFORMATION );
     void CaptureFrame();
     long long GetRecordStepMicroSecs() const;
+    HWND GetRecordNotifyWindow() const;
 
     // MIDI info
     MIDI m_MIDI; // The song to display
@@ -269,6 +281,11 @@ private:
     bool m_bRecording = false;
     VideoRecorder m_Recorder;
     wstring m_sRecordFile;
+    bool m_bRenderJob = false;
+    wstring m_sFFmpegPath;
+    HWND m_hWndRecordNotify = NULL;
+    shared_ptr< void > m_pRenderGuard;
+    ProgressRenderDialog m_pRenderProgress;
     long long m_llRecordFrames = 0; // Frames written so far. Frame N is shown at song time N / RecordFPS.
     int m_iRecordWidth = 0, m_iRecordHeight = 0; // Fixed by the first captured frame
     vector< BYTE > m_vRecordPixels;

@@ -34,8 +34,6 @@ LRESULT WINAPI WndProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
     static const ControlsSettings &cControls = Config::GetConfig().GetControlsSettings();
     static SongLibrary &cLibrary = Config::GetConfig().GetSongLibrary();
     static bool bInSizeMove = false;
-    static bool bRecording = false; // A video export is running on the game thread
-    static wstring sTitleBeforeRecording;
 
     switch( msg )
     {
@@ -75,34 +73,11 @@ LRESULT WINAPI WndProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
                         PlayFile( sFilename, iId == ID_FILE_PRACTICESONGCUSTOM, true );
                     return 0;
                 }
-                case ID_FILE_RECORDVIDEO:
-                {
-                    if ( bRecording || cPlayback.GetPlayMode() != GameState::Practice ) return 0;
-                    CheckActivity( TRUE );
-
-                    OPENFILENAME ofn = { 0 };
-                    TCHAR sFilename[1024] = { 0 };
-                    ofn.lStructSize = sizeof( OPENFILENAME );
-                    ofn.hwndOwner = hWnd;
-                    ofn.lpstrFilter = TEXT( "MP4 Video\0*.mp4\0" );
-                    ofn.lpstrDefExt = TEXT( "mp4" );
-                    ofn.lpstrFile = sFilename;
-                    ofn.nMaxFile = sizeof( sFilename ) / sizeof( TCHAR );
-                    ofn.lpstrTitle = TEXT( "Save video as" );
-                    ofn.Flags = OFN_EXPLORER | OFN_HIDEREADONLY | OFN_OVERWRITEPROMPT | OFN_PATHMUSTEXIST;
-                    if ( GetSaveFileName( &ofn ) )
-                    {
-                        TCHAR sTitle[512] = { 0 };
-                        GetWindowText( hWnd, sTitle, sizeof( sTitle ) / sizeof( TCHAR ) );
-                        sTitleBeforeRecording = sTitle;
-                        bRecording = true;
-                        // The game thread owns the string from here on
-                        HandOffMsg( WM_COMMAND, ID_RECORD_START, reinterpret_cast< LPARAM >( new wstring( sFilename ) ) );
-                    }
+                case ID_FILE_RENDERVIDEO:
+                    ShowRenderDialog( hWnd );
                     return 0;
-                }
                 case ID_RECORD_STOP:
-                    if ( bRecording ) HandOffMsg( WM_COMMAND, ID_RECORD_STOP, 0 );
+                    HandOffMsg( WM_COMMAND, ID_RECORD_STOP, 0 );
                     return 0;
                 case ID_FILE_CLOSEFILE:
                 {
@@ -286,30 +261,13 @@ LRESULT WINAPI WndProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
             }
             break;
         }
-        case WM_RECORDPROGRESS:
-        {
-            // Sent by the game thread about once per second of video written
-            int iSecs = static_cast< int >( wParam );
-            TCHAR sTitle[600] = { 0 };
-            _stprintf_s( sTitle, TEXT( "%s - Recording video: %d:%02d (%d%%)" ), sTitleBeforeRecording.c_str(),
-                         iSecs / 60, iSecs % 60, static_cast< int >( lParam ) );
-            SetWindowText( hWnd, sTitle );
-            return 0;
-        }
         case WM_RECORDDONE:
         {
-            bRecording = false;
-
-            // Put the title back, unless a different song was opened in the meantime
-            TCHAR sTitle[600] = { 0 };
-            GetWindowText( hWnd, sTitle, sizeof( sTitle ) / sizeof( TCHAR ) );
-            if ( _tcsstr( sTitle, TEXT( " - Recording video" ) ) )
-                SetWindowText( hWnd, sTitleBeforeRecording.c_str() );
-
+            // From the game thread when a render is over
             wstring *psMessage = reinterpret_cast< wstring* >( lParam );
             if ( psMessage )
             {
-                MessageBox( hWnd, psMessage->c_str(), L"Record Video", MB_OK | static_cast< UINT >( wParam ) );
+                MessageBox( hWnd, psMessage->c_str(), TEXT( "Render to Video" ), MB_OK | static_cast< UINT >( wParam ) );
                 delete psMessage;
             }
             return 0;
@@ -1683,7 +1641,6 @@ VOID SetPlayMode( INT ePlayMode )
 
     int iMenuItems[][7] = { { 1, ePlayMode, ID_FILE_CLOSEFILE },
                             { 3, bPractice, ID_PLAY_PLAYPAUSE, ID_PLAY_STOP, ID_VIEW_MOVEANDZOOM },
-                            { 2, bPractice, ID_FILE_RECORDVIDEO },
                             { 4, bPractice, ID_PLAY_SKIPFWD, ID_PLAY_SKIPBACK, ID_PLAY_SKIPFWD2, ID_PLAY_SKIPBACK2 },
                             { 3, true, ID_PLAY_INCREASERATE, ID_PLAY_DECREASERATE, ID_PLAY_RESETRATE } };
     for ( int i = 0; i < sizeof( iMenuItems ) / sizeof( iMenuItems[0] ); i++ )
@@ -1760,6 +1717,231 @@ BOOL PlayFile( const wstring &sFile, bool bCustomSettings, bool bLibraryEligible
     // Switch game state
     HandOffMsg( WM_COMMAND, ID_CHANGESTATE, ( LPARAM )pGameState );
     return TRUE;
+}
+
+// Render dialog state
+struct RenderSettingsState
+{
+    MainScreen* pGameState = NULL;
+    wstring sLoadedFile;
+    shared_ptr< PreferencesSnapshot > pSnapshot;
+};
+
+// Hands a loaded MIDI over to the game thread to be rendered to a video from start to finish.
+// On TRUE the game thread owns pGameState. On FALSE it never started and the caller still owns it.
+// hWndNotify gets WM_RECORDPROGRESS and WM_RECORDDONE, or the main window if NULL.
+BOOL RenderVideo( MainScreen *pGameState, const wstring &sOutFile, const wstring &sFFmpegPath, HWND hWndNotify, shared_ptr< void > pRenderGuard )
+{
+    PlaybackSettings &cPlayback = Config::GetConfig().GetPlaybackSettings();
+    ViewSettings &cView = Config::GetConfig().GetViewSettings();
+
+    const GameState::State ePlayMode = GameState::Practice;
+
+    wstring sFFmpeg, sError;
+    if ( !VideoRecorder::Locate( sFFmpegPath, sFFmpeg, sError ) )
+    {
+        MessageBox( hWndNotify ? hWndNotify : g_hWnd, sError.c_str(), TEXT( "Error" ), MB_OK | MB_ICONEXCLAMATION );
+        return FALSE;
+    }
+
+    // Set up the GUI for playback
+    if ( !cPlayback.GetPlayable() ) cPlayback.SetPlayable( true, true );
+    if ( cPlayback.GetPlayMode() != ePlayMode ) cPlayback.SetPlayMode( ePlayMode, true );
+    cPlayback.SetPaused( false, true );
+    cPlayback.SetPosition( 0 );
+    cView.SetZoomMove( false, true );
+
+    // Switch game state
+    pGameState->SetRenderJob( sOutFile, sFFmpeg, hWndNotify, pRenderGuard );
+    HandOffMsg( WM_COMMAND, ID_CHANGESTATE, ( LPARAM )pGameState );
+    return TRUE;
+}
+
+// Get edit box text
+static wstring GetPathText( HWND hWnd, int iId )
+{
+    HWND hWndEdit = GetDlgItem( hWnd, iId );
+    int iLength = GetWindowTextLength( hWndEdit );
+    wstring sText( iLength + 1, L'\0' );
+    GetWindowText( hWndEdit, &sText[0], iLength + 1 );
+    sText.resize( iLength );
+
+    if ( sText.size() >= 2 && sText.front() == L'"' && sText.back() == L'"' )
+        sText = sText.substr( 1, sText.size() - 2 );
+    return sText;
+}
+
+// Picks a file into an edit box
+static bool BrowseForFile( HWND hWnd, int iEditId, LPCTSTR sFilter, LPCTSTR sTitle, bool bSave, LPCTSTR sDefExt )
+{
+    TCHAR sFilename[1024] = { 0 };
+    lstrcpyn( sFilename, GetPathText( hWnd, iEditId ).c_str(), sizeof( sFilename ) / sizeof( TCHAR ) );
+
+    OPENFILENAME ofn = { 0 };
+    ofn.lStructSize = sizeof( OPENFILENAME );
+    ofn.hwndOwner = hWnd;
+    ofn.lpstrFilter = sFilter;
+    ofn.lpstrFile = sFilename;
+    ofn.nMaxFile = sizeof( sFilename ) / sizeof( TCHAR );
+    ofn.lpstrTitle = sTitle;
+    ofn.lpstrDefExt = sDefExt;
+    ofn.Flags = OFN_EXPLORER | OFN_HIDEREADONLY | OFN_PATHMUSTEXIST | ( bSave ? OFN_OVERWRITEPROMPT : OFN_FILEMUSTEXIST );
+    if ( !( bSave ? GetSaveFileName( &ofn ) : GetOpenFileName( &ofn ) ) ) return false;
+
+    SetDlgItemText( hWnd, iEditId, sFilename );
+    return true;
+}
+
+// Load the MIDI in a bit different way than PlayFile
+static bool LoadMIDIForRender( HWND hWnd, RenderSettingsState &state, const wstring &sFile )
+{
+    const VisualSettings &cVisual = Config::GetConfig().GetVisualSettings();
+
+    delete state.pGameState;
+    state.pGameState = NULL;
+    state.sLoadedFile.clear();
+
+    MainScreen *pGameState = new MainScreen( sFile, GameState::Practice, NULL, NULL );
+    if ( !pGameState->IsValid() )
+    {
+        MessageBox( hWnd, ( L"Was not able to load " + sFile ).c_str(), TEXT( "Error" ), MB_OK | MB_ICONEXCLAMATION );
+        delete pGameState;
+        return false;
+    }
+
+    pGameState->SetChannelSettings(
+        vector< bool >(),
+        vector< bool >(),
+        vector< unsigned >( cVisual.colors, cVisual.colors + sizeof( cVisual.colors ) / sizeof( cVisual.colors[0] ) ) );
+
+    state.pGameState = pGameState;
+    state.sLoadedFile = sFile;
+    return true;
+}
+
+static bool EnsureMIDILoad( HWND hWnd, RenderSettingsState &state )
+{
+    wstring sFile = GetPathText( hWnd, IDC_RENDER_MIDI );
+    if ( sFile.empty() )
+    {
+        MessageBox( hWnd, TEXT( "Choose a MIDI to render." ), TEXT( "Render to Video" ), MB_OK | MB_ICONINFORMATION );
+        SetFocus( GetDlgItem( hWnd, IDC_RENDER_MIDI ) );
+        return false;
+    }
+
+    if ( state.pGameState && _wcsicmp( state.sLoadedFile.c_str(), sFile.c_str() ) == 0 ) return true;
+    return LoadMIDIForRender( hWnd, state, sFile );
+}
+
+// Prepare the render settings
+static bool StartRender( HWND hWnd, RenderSettingsState &state )
+{
+    if ( !EnsureMIDILoad( hWnd, state ) ) return false;
+
+    // Where the video goes
+    wstring sDest = GetPathText( hWnd, IDC_RENDER_DEST );
+    if ( sDest.empty() )
+    {
+        MessageBox( hWnd, TEXT( "Choose where to save the video." ), TEXT( "Render to Video" ), MB_OK | MB_ICONINFORMATION );
+        SetFocus( GetDlgItem( hWnd, IDC_RENDER_DEST ) );
+        return false;
+    }
+
+    size_t iDot = sDest.find_last_of( L'.' );
+    size_t iSlash = sDest.find_last_of( L"\\/" );
+    if ( iDot == wstring::npos || ( iSlash != wstring::npos && iDot < iSlash ) )
+    {
+        // mp4 for now
+        sDest += L".mp4";
+        SetDlgItemText( hWnd, IDC_RENDER_DEST, sDest.c_str() );
+    }
+
+    if ( iSlash != wstring::npos )
+    {
+        DWORD dwAttrib = GetFileAttributes( sDest.substr( 0, iSlash ).c_str() );
+        if ( dwAttrib == INVALID_FILE_ATTRIBUTES || !( dwAttrib & FILE_ATTRIBUTE_DIRECTORY ) )
+        {
+            MessageBox( hWnd, TEXT( "The folder for the video doesn't exist." ), TEXT( "Render to Video" ), MB_OK | MB_ICONEXCLAMATION );
+            SetFocus( GetDlgItem( hWnd, IDC_RENDER_DEST ) );
+            return false;
+        }
+    }
+
+    // ffmpeg is told to overwrite, and a typed path never saw the Save As dialog's prompt
+    if ( GetFileAttributes( sDest.c_str() ) != INVALID_FILE_ATTRIBUTES )
+    {
+        if ( MessageBox( hWnd, std::wstring(sDest + L"\nalready exists. Do you want to replace it?").c_str(), TEXT("Render to Video"), MB_YESNO | MB_ICONQUESTION | MB_DEFBUTTON2) != IDYES)
+            return false;
+    }
+
+    wstring sFFmpeg, sError;
+    if ( !VideoRecorder::Locate( GetPathText( hWnd, IDC_RENDER_FFMPEG ), sFFmpeg, sError ) )
+    {
+        MessageBox( hWnd, sError.c_str(), TEXT( "Render to Video" ), MB_OK | MB_ICONEXCLAMATION );
+        SetFocus( GetDlgItem( hWnd, IDC_RENDER_FFMPEG ) );
+        return false;
+    }
+
+    // Start!
+    SetWindowText( g_hWnd, state.sLoadedFile.c_str() + ( state.sLoadedFile.find_last_of( L'\\' ) + 1 ) );
+    if ( !RenderVideo( state.pGameState, sDest, sFFmpeg, NULL, state.pSnapshot ) ) return false;
+
+    state.pGameState = NULL; // The game thread owns it now
+    return true;
+}
+
+INT_PTR WINAPI RenderSettingsProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
+{
+    RenderSettingsState *pState = reinterpret_cast< RenderSettingsState* >( GetWindowLongPtr( hWnd, DWLP_USER ) );
+
+    switch ( msg )
+    {
+        case WM_INITDIALOG:
+            SetWindowLongPtr( hWnd, DWLP_USER, lParam );
+            SetFocus( GetDlgItem( hWnd, IDC_RENDER_MIDI ) );
+            return FALSE;
+        case WM_COMMAND:
+            switch ( LOWORD( wParam ) )
+            {
+                case IDC_BROWSE_MIDI:
+                    // Loads the MIDI right away and shows the custom settings. Cancelling them keeps the default colors
+                    if ( BrowseForFile( hWnd, IDC_RENDER_MIDI, TEXT( "MIDI Files\0*.mid\0" ), TEXT( "Open MIDI" ), false, NULL ) && EnsureMIDILoad( hWnd, *pState ) )
+                        GetCustomSettings( pState->pGameState, hWnd );
+                    return TRUE;
+                case IDC_MIDI_SETTINGS:
+                    if ( EnsureMIDILoad( hWnd, *pState ) )
+                        GetCustomSettings( pState->pGameState, hWnd );
+                    return TRUE;
+                case IDC_VISUAL_SETTINGS:
+                    DoPreferences( hWnd, PP_VISUAL | PP_VIDEO, PPF_RENDER );
+                    return TRUE;
+                case IDC_BROWSE_DEST:
+                    BrowseForFile( hWnd, IDC_RENDER_DEST, TEXT( "MP4 Video\0*.mp4\0" ), TEXT( "Save video as" ), true, TEXT( "mp4" ) );
+                    return TRUE;
+                case IDC_BROWSE_FFMPEG:
+                    BrowseForFile( hWnd, IDC_RENDER_FFMPEG, TEXT( "Programs\0*.exe\0" ), TEXT( "Find ffmpeg" ), false, NULL );
+                    return TRUE;
+                case IDOK:
+                    if ( StartRender( hWnd, *pState ) )
+                        EndDialog( hWnd, IDOK );
+                    return TRUE;
+                case IDCANCEL:
+                    EndDialog( hWnd, IDCANCEL );
+                    return TRUE;
+            }
+            break;
+    }
+
+    return FALSE;
+}
+
+// File > Render Video...
+VOID ShowRenderDialog( HWND hWndOwner )
+{
+    RenderSettingsState state;
+    state.pSnapshot = make_shared< PreferencesSnapshot >();
+    DialogBoxParam( g_hInstance, MAKEINTRESOURCE( IDD_RENDERSETTINGS ), hWndOwner, RenderSettingsProc, ( LPARAM )&state );
+    delete state.pGameState;
 }
 
 VOID CheckActivity( BOOL bIsActive, POINT *ptNew, BOOL bToggleEnable )

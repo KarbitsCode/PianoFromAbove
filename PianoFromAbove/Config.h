@@ -283,3 +283,21 @@ private:
     PlaybackSettings m_PlaybackSettings;
     ViewSettings m_ViewSettings;
 };
+
+class PreferencesSnapshot
+{
+public:
+    PreferencesSnapshot() : m_Visual( Config::GetConfig().GetVisualSettings() ), m_Video( Config::GetConfig().GetVideoSettings() ) {}
+    ~PreferencesSnapshot()
+    {
+        Config::GetConfig().SetVisualSettings( m_Visual );
+        Config::GetConfig().SetVideoSettings( m_Video );
+    }
+
+    PreferencesSnapshot( const PreferencesSnapshot& ) = delete;
+    PreferencesSnapshot& operator=( const PreferencesSnapshot& ) = delete;
+
+private:
+    VisualSettings m_Visual;
+    VideoSettings m_Video;
+};

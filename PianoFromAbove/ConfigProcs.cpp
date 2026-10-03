@@ -20,7 +20,7 @@
 
 #include "GameState.h"
 
-VOID DoPreferences( HWND hWndOwner )
+VOID DoPreferences( HWND hWndOwner, UINT uPages, UINT uFlags )
 {
     int pDialogs[] = { IDD_PP1_VISUAL, IDD_PP2_AUDIO, IDD_PP3_VIDEO, IDD_PP4_CONTROLS, IDD_PP5_LIBRARY };
     DLGPROC pProcs[] = { VisualProc, AudioProc, VideoProc, ControlsProc, LibraryProc };
@@ -28,25 +28,31 @@ VOID DoPreferences( HWND hWndOwner )
     PROPSHEETPAGE psp[5]{};
     PROPSHEETHEADER psh{};
 
+    int iPages = 0;
     for ( int i = 0; i < sizeof( psp ) / sizeof( PROPSHEETPAGE ); i++ )
     {
-        psp[i].dwSize = sizeof( PROPSHEETPAGE );
-        psp[i].dwFlags = PSP_USETITLE;
-        psp[i].hInstance = g_hInstance;
-        psp[i].pszTemplate = MAKEINTRESOURCE( pDialogs[i] );
-        psp[i].pszIcon = NULL;
-        psp[i].pfnDlgProc = pProcs[i];
-        psp[i].pszTitle = pTitles[i];
-        psp[i].lParam = 0;
-        psp[i].pfnCallback = NULL;
+        if ( uPages & ( 1 << i ) )
+        {
+            psp[iPages].dwSize = sizeof( PROPSHEETPAGE );
+            psp[iPages].dwFlags = PSP_USETITLE;
+            psp[iPages].hInstance = g_hInstance;
+            psp[iPages].pszTemplate = MAKEINTRESOURCE( pDialogs[i] );
+            psp[iPages].pszIcon = NULL;
+            psp[iPages].pfnDlgProc = pProcs[i];
+            psp[iPages].pszTitle = pTitles[i];
+            psp[iPages].lParam = uFlags; // Pass to page procs
+            psp[iPages].pfnCallback = NULL;
+            iPages++;
+        }
     }
+    if ( iPages == 0 ) return;
     psh.dwSize = sizeof( PROPSHEETHEADER );
     psh.dwFlags = PSH_PROPSHEETPAGE | PSH_NOCONTEXTHELP;
     psh.hwndParent = hWndOwner;
     psh.hInstance = g_hInstance;
     psh.pszIcon = NULL;
     psh.pszCaption = TEXT( "Preferences" );
-    psh.nPages = sizeof( psp ) / sizeof( PROPSHEETPAGE );
+    psh.nPages = iPages;
     psh.nStartPage = 0;
     psh.ppsp = (LPCPROPSHEETPAGE) &psp;
     psh.pfnCallback = NULL;
@@ -82,6 +88,12 @@ INT_PTR WINAPI VisualProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
 
             FillKeysDropdown( hWnd, cVisual.eAccidentals );
             SetVisualProc( hWnd, cVisual );
+
+            // The palette is only applied to tracks when a MIDI loads, which has already happened in render mode
+            const PROPSHEETPAGE *pVisualPage = reinterpret_cast< const PROPSHEETPAGE* >( lParam );
+            if ( pVisualPage && ( pVisualPage->lParam & PPF_RENDER ) )
+                for ( int i = IDC_COLOR1; i <= IDC_COLOR16; i++ )
+                    EnableWindow( GetDlgItem( hWnd, i ), FALSE );
             return TRUE;
         }
         // Draws the colored buttons
@@ -321,6 +333,10 @@ INT_PTR WINAPI VideoProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
 
             SetVideoProc( hWnd, cVideo, cPlayback );
 
+            // lParam is the PROPSHEETPAGE this page was made from
+            const PROPSHEETPAGE *pPage = reinterpret_cast< const PROPSHEETPAGE* >( lParam );
+            SetWindowLongPtr( hWnd, DWLP_USER, pPage ? pPage->lParam : 0 );
+
             HWND hWndGPUAdapter = GetDlgItem( hWnd, IDC_GPUADAPTER );
             SendMessage( hWndGPUAdapter, CB_RESETCONTENT, 0, 0 );
             SendMessage( hWndGPUAdapter, CB_ADDSTRING, 0, ( LPARAM )TEXT( "Auto" ) );
@@ -353,6 +369,13 @@ INT_PTR WINAPI VideoProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
 
             // Store initial selection for later comparison
             SetWindowLongPtr( hWndGPUAdapter, GWLP_USERDATA, ( LPARAM )SendMessage( hWndGPUAdapter, CB_GETCURSEL, 0, 0 ) );
+
+            // Neither makes sense render mode
+            if ( GetWindowLongPtr( hWnd, DWLP_USER ) & PPF_RENDER )
+            {
+                EnableWindow( hWndGPUAdapter, FALSE );
+                EnableWindow( GetDlgItem( hWnd, IDC_USENEWALGO ), FALSE );
+            }
 
             return TRUE;
         }
@@ -387,6 +410,7 @@ INT_PTR WINAPI VideoProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
                     Config &config = Config::GetConfig();
                     VideoSettings cVideo = config.GetVideoSettings();
                     PlaybackSettings& cPlayback = config.GetPlaybackSettings();
+                    bool bRender = ( GetWindowLongPtr( hWnd, DWLP_USER ) & PPF_RENDER ) != 0; // Restore Defaults can still change the two disabled ones
 
                     cVideo.eRenderer = ( IsDlgButtonChecked( hWnd, IDC_DIRECT3D ) == BST_CHECKED ? cVideo.Direct3D : 
                                          IsDlgButtonChecked( hWnd, IDC_OPENGL ) == BST_CHECKED ? cVideo.OpenGL :
@@ -402,7 +426,7 @@ INT_PTR WINAPI VideoProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
                     cVideo.bOpaqueStatus = ( IsDlgButtonChecked( hWnd, IDC_OPAQUESTATUS ) == BST_CHECKED );
 
                     bool bUseFastAlgo = ( IsDlgButtonChecked( hWnd, IDC_USENEWALGO ) == BST_CHECKED );
-                    if ( cPlayback.GetFastAlgo() != bUseFastAlgo )
+                    if ( !bRender && cPlayback.GetFastAlgo() != bUseFastAlgo )
                     {
                         cPlayback.SetFastAlgo( bUseFastAlgo );
                         MessageBox( hWnd, TEXT( "\"Optimized playback\" option requires a reload to take effect." ), TEXT( "Information" ), MB_OK | MB_ICONINFORMATION );
@@ -411,7 +435,7 @@ INT_PTR WINAPI VideoProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
                     HWND hWndGPUAdapter = GetDlgItem( hWnd, IDC_GPUADAPTER );
                     int iSel = (int)SendMessage( hWndGPUAdapter, CB_GETCURSEL, 0, 0 );
 
-                    if ( iSel != CB_ERR && iSel != (int)GetWindowLongPtr( hWndGPUAdapter, GWLP_USERDATA ) )
+                    if ( !bRender && iSel != CB_ERR && iSel != (int)GetWindowLongPtr( hWndGPUAdapter, GWLP_USERDATA ) )
                     { // If GPU selection changed
                         bool bApplied = false;
                         if ( iSel == 0 ) // Auto
@@ -828,10 +852,10 @@ BOOL ToggleYN( HWND hWndListview, int iItem )
     return TRUE;
 }
 
-BOOL GetCustomSettings( MainScreen *pGameState )
+BOOL GetCustomSettings( MainScreen *pGameState, HWND hWndOwner )
 {
     INT_PTR iDlgResult = DialogBoxParam( g_hInstance, MAKEINTRESOURCE( IDD_TRACKSETTINGS ),
-                                         g_hWnd, TracksProc, ( LPARAM )pGameState );
+                                         hWndOwner ? hWndOwner : g_hWnd, TracksProc, ( LPARAM )pGameState );
     return iDlgResult == IDOK;
 }
 

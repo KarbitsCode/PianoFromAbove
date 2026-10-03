@@ -46,8 +46,8 @@ void D3D9Renderer::DestroyDeviceObjects()
     m_pMediumFont->OnLostDevice();
     m_pLargeFont->OnLostDevice();
 
-    if( m_pVertexBuffer ) m_pVertexBuffer->Release();
-    if( m_pStaticVertexBuffer ) ReleaseStaticBuffer();
+    if( m_pVertexBuffer ) { m_pVertexBuffer->Release(); m_pVertexBuffer = NULL; }
+    if( m_pStaticVertexBuffer ) { ReleaseStaticBuffer(); m_pStaticVertexBuffer = NULL; }
     if( m_pCaptureSurface ) { m_pCaptureSurface->Release(); m_pCaptureSurface = NULL; }
 
     m_bIsDeviceValid = false;

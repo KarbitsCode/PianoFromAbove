@@ -2,7 +2,33 @@
 #include <vector>
 #include "VideoRecorder.h"
 
-bool VideoRecorder::Start( const std::wstring &sOutFile, int iWidth, int iHeight, int iFPS, std::wstring &sError )
+bool VideoRecorder::Locate( const std::wstring &sFFmpegPath, std::wstring &sResolved, std::wstring &sError )
+{
+    if ( !sFFmpegPath.empty() )
+    {
+        DWORD dwAttrib = GetFileAttributes( sFFmpegPath.c_str() );
+        if ( dwAttrib == INVALID_FILE_ATTRIBUTES || ( dwAttrib & FILE_ATTRIBUTE_DIRECTORY ) )
+        {
+            sError = L"Could not find ffmpeg at:\n" + sFFmpegPath;
+            return false;
+        }
+        sResolved = sFFmpegPath;
+        return true;
+    }
+
+    // Same places CreateProcess would look, PATH included
+    TCHAR sFound[MAX_PATH];
+    DWORD dwLength = SearchPath( NULL, L"ffmpeg.exe", NULL, MAX_PATH, sFound, NULL );
+    if ( dwLength == 0 || dwLength >= MAX_PATH )
+    {
+        sError = L"Could not find ffmpeg.exe in your PATH.";
+        return false;
+    }
+    sResolved = sFound;
+    return true;
+}
+
+bool VideoRecorder::Start( const std::wstring &sOutFile, int iWidth, int iHeight, int iFPS, const std::wstring &sFFmpegPath, std::wstring &sError )
 {
     if ( m_hProcess )
     {
@@ -19,13 +45,16 @@ bool VideoRecorder::Start( const std::wstring &sOutFile, int iWidth, int iHeight
         return false;
     }
 
+    std::wstring sFFmpeg;
+    if ( !Locate( sFFmpegPath, sFFmpeg, sError ) ) return false;
+
     m_sOutFile = sOutFile;
     m_sLogFile = sOutFile + L".ffmpeg.log";
 
     // Raw BGRX in -> H.264 mp4 out. The scale filter tags the RGB->YUV conversion
     // as BT.709 so colors match what players assume for HD video.
     std::wostringstream cmd;
-    cmd << L"ffmpeg.exe -y -hide_banner -loglevel warning"
+    cmd << L"\"" << sFFmpeg << L"\" -y -hide_banner -loglevel warning"
         << L" -f rawvideo -pixel_format bgr0 -video_size " << iWidth << L"x" << iHeight
         << L" -framerate " << iFPS << L" -i -"
         << L" -vf \"crop=" << iEvenWidth << L":" << iEvenHeight
@@ -76,10 +105,7 @@ bool VideoRecorder::Start( const std::wstring &sOutFile, int iWidth, int iHeight
     {
         CloseHandle( hWrite );
         DeleteFile( m_sLogFile.c_str() );
-        if ( dwError == ERROR_FILE_NOT_FOUND || dwError == ERROR_PATH_NOT_FOUND )
-            sError = L"Could not find ffmpeg.exe. Put it next to this program or add it to your PATH.";
-        else
-            sError = L"Could not launch ffmpeg.exe (error " + std::to_wstring( dwError ) + L").";
+        sError = L"Could not launch ffmpeg (error " + std::to_wstring( dwError ) + L").";
         return false;
     }
 
@@ -89,14 +115,14 @@ bool VideoRecorder::Start( const std::wstring &sOutFile, int iWidth, int iHeight
     return true;
 }
 
-bool VideoRecorder::WriteFrame( const void *pData, size_t cbData )
+bool VideoRecorder::WriteFrame( const void *pData, size_t cbData ) const
 {
     if ( !m_hPipe ) return false;
 
     const BYTE *pBytes = static_cast< const BYTE* >( pData );
     while ( cbData > 0 )
     {
-        DWORD cbChunk = static_cast< DWORD >( cbData > ( 1u << 20 ) ? ( 1u << 20 ) : cbData );
+        DWORD cbChunk = static_cast< DWORD >( cbData > ( static_cast< unsigned long long >( 1u ) << 20 ) ? ( static_cast< unsigned long long >( 1u ) << 20 ) : cbData );
         DWORD cbWritten = 0;
         if ( !WriteFile( m_hPipe, pBytes, cbChunk, &cbWritten, NULL ) || cbWritten == 0 )
             return false; // ffmpeg died (broken pipe)

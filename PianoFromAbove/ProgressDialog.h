@@ -95,3 +95,33 @@ private:
 
     static const wchar_t* CLASSNAME;
 };
+
+class ProgressRenderDialog
+{
+public:
+    ProgressRenderDialog();
+    ~ProgressRenderDialog();
+
+    ProgressRenderDialog(const ProgressRenderDialog&) = delete;
+    ProgressRenderDialog& operator=(const ProgressRenderDialog&) = delete;
+
+    bool Create(HWND hWndParent = NULL);
+    void Destroy();
+    bool IsValid() const { return m_hWnd != NULL; }
+
+    void SetFilename(const std::wstring& sFilename);
+    void SetProgress(int iSeconds, int iPercent);
+
+    void ProcessMessages();
+
+private:
+    static LRESULT CALLBACK WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam);
+
+    HWND m_hWnd;
+    HWND m_hWndParent;
+    HWND m_hStatusText;
+    HWND m_hProgressBar;
+    HWND m_hStopButton;
+
+    static const wchar_t* CLASSNAME;
+};

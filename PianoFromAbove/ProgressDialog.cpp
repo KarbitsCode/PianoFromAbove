@@ -1,6 +1,8 @@
 #include <Windows.h>
 #include <CommCtrl.h>
 #include "ProgressDialog.h"
+#include "Globals.h"
+#include "resource.h"
 
 const wchar_t* ProgressScanDialog::CLASSNAME = L"PianoFromAboveProgressScan";
 
@@ -562,6 +564,214 @@ LRESULT CALLBACK ProgressStatusDialog::WndProc(HWND hWnd, UINT msg, WPARAM wPara
             }
             return 0;
         }
+        default:
+            return DefWindowProc(hWnd, msg, wParam, lParam);
+    }
+}
+
+
+const wchar_t* ProgressRenderDialog::CLASSNAME = L"PianoFromAboveProgressRender";
+
+ProgressRenderDialog::ProgressRenderDialog() : m_hWnd(NULL), m_hWndParent(NULL), m_hStatusText(NULL), m_hProgressBar(NULL), m_hStopButton(NULL) {}
+
+ProgressRenderDialog::~ProgressRenderDialog()
+{
+    Destroy();
+}
+
+bool ProgressRenderDialog::Create(HWND hWndParent)
+{
+    if (m_hWnd != NULL)
+        return true;
+
+    if (hWndParent != NULL)
+    {
+        m_hWndParent = hWndParent;
+        EnableWindow(m_hWndParent, FALSE);
+    }
+
+    const int width = 420;
+    const int height = 135;
+    const int x = (GetSystemMetrics(SM_CXSCREEN) - width) / 2;
+    const int y = (GetSystemMetrics(SM_CYSCREEN) - height) / 2;
+
+    WNDCLASSEX wc = { 0 };
+    wc.cbSize = sizeof(WNDCLASSEX);
+    wc.style = 0;
+    wc.lpfnWndProc = WndProc;
+    wc.cbClsExtra = 0;
+    wc.cbWndExtra = sizeof(ProgressRenderDialog*);
+    wc.hInstance = GetModuleHandle(NULL);
+    wc.hCursor = LoadCursor(NULL, IDC_WAIT);
+    wc.hbrBackground = (HBRUSH)(COLOR_BTNFACE + 1);
+    wc.lpszClassName = CLASSNAME;
+
+    if (!RegisterClassEx(&wc))
+    {
+        // Class might already be registered from previous instance
+        DWORD dwErr = GetLastError();
+        if (dwErr != ERROR_CLASS_ALREADY_EXISTS)
+            return false;
+    }
+
+    // Create progress window
+    m_hWnd = CreateWindowEx(
+        WS_EX_DLGMODALFRAME,
+        CLASSNAME,
+        L"Loading...",
+        WS_POPUP | WS_CAPTION | WS_VISIBLE,
+        x, y, width, height,
+        NULL, NULL, GetModuleHandle(NULL), this
+    );
+
+    if (!m_hWnd)
+        return false;
+
+    RECT rc;
+    GetClientRect(m_hWnd, &rc);
+    const int progressBarHeight = 10;
+    const int statusTextHeight = 20;
+    const int spacing = 10;
+
+    // Create status text
+    m_hStatusText = CreateWindowEx(
+        0,
+        L"STATIC",
+        L"Loading...",
+        WS_CHILD | WS_VISIBLE | SS_CENTER,
+        spacing, 0, rc.right - 2 * spacing, statusTextHeight,
+        m_hWnd, NULL, GetModuleHandle(NULL), NULL
+    );
+
+    // Create progress bar
+    m_hProgressBar = CreateWindowEx(
+        0,
+        PROGRESS_CLASS,
+        NULL,
+        WS_CHILD | WS_VISIBLE,
+        spacing, 30, rc.right - 2 * spacing, progressBarHeight,
+        m_hWnd, NULL, GetModuleHandle(NULL), NULL
+    );
+
+    // Create the stop button
+    m_hStopButton = CreateWindowExW(
+        0,
+        L"BUTTON",
+        L"Cancel",
+        WS_CHILD | WS_VISIBLE | BS_PUSHBUTTON,
+        (rc.right - 80) / 2, 50, 80, 30,
+        m_hWnd, NULL, GetModuleHandle(NULL), NULL
+    );
+
+    SendMessage(m_hProgressBar, PBM_SETRANGE, 0, MAKELPARAM(0, 100));
+    SetClassLongPtr(m_hProgressBar, GCLP_HCURSOR, (LONG_PTR)LoadCursor(NULL, IDC_WAIT));
+
+    ShowWindow(m_hWnd, SW_SHOW);
+    UpdateWindow(m_hWnd);
+	SetForegroundWindow(m_hWnd);
+
+    return true;
+}
+
+void ProgressRenderDialog::Destroy()
+{
+    if (m_hWndParent)
+    {
+        EnableWindow(m_hWndParent, TRUE);
+        m_hWndParent = NULL;
+    }
+    if (m_hWnd)
+    {
+        DestroyWindow(m_hWnd);
+        m_hWnd = NULL;
+        m_hStatusText = NULL;
+        m_hProgressBar = NULL;
+        m_hStopButton = NULL;
+    }
+}
+
+void ProgressRenderDialog::SetFilename(const std::wstring& sFilename)
+{
+    if (!IsValid())
+        return;
+
+    std::wstring* pTitle = new std::wstring(L"Rendering to " + sFilename + L"...");
+    if (!PostMessage(m_hWnd, WM_APP + 2, 0, reinterpret_cast<LPARAM>(pTitle)))
+        delete pTitle;
+
+    ProcessMessages();
+}
+
+void ProgressRenderDialog::SetProgress(int iSeconds, int iPercent)
+{
+    if (!IsValid())
+        return;
+
+    PostMessage(m_hProgressBar, PBM_SETPOS, iPercent, 0);
+
+    std::wstring* pStatus = new std::wstring(L"Rendering: " + std::to_wstring((iSeconds - 3) / 60) + L":" + ((iSeconds - 3) % 60 < 10 ? L"0" : L"") + std::to_wstring((iSeconds - 3) % 60) + L" (" + std::to_wstring(iPercent) + L"%)");
+    if (!PostMessage(m_hWnd, WM_APP + 1, 0, reinterpret_cast<LPARAM>(pStatus)))
+        delete pStatus;
+
+    ProcessMessages();
+}
+
+void ProgressRenderDialog::ProcessMessages()
+{
+    MSG msg;
+    while (PeekMessage(&msg, NULL, 0, 0, PM_REMOVE))
+    {
+        TranslateMessage(&msg);
+        DispatchMessage(&msg);
+    }
+}
+
+LRESULT CALLBACK ProgressRenderDialog::WndProc(HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam)
+{
+    switch (msg)
+    {
+        case WM_CREATE:
+        {
+            CREATESTRUCT* pCreate = reinterpret_cast<CREATESTRUCT*>(lParam);
+            ProgressRenderDialog* pThis = reinterpret_cast<ProgressRenderDialog*>(pCreate->lpCreateParams);
+            SetWindowLongPtr(hWnd, GWLP_USERDATA, (LONG_PTR)pThis);
+            return 0;
+        }
+        case WM_COMMAND:
+        {
+            ProgressRenderDialog* pThis = reinterpret_cast<ProgressRenderDialog*>(GetWindowLongPtr(hWnd, GWLP_USERDATA));
+            if (pThis && reinterpret_cast<HWND>(lParam) == pThis->m_hStopButton && HIWORD(wParam) == BN_CLICKED)
+            {
+                // Once is enough
+                EnableWindow(pThis->m_hStopButton, FALSE);
+                PostMessage(g_hWnd, WM_COMMAND, ID_RECORD_STOP, 0);
+            }
+            return 0;
+        }
+        case WM_APP + 1:
+        {
+            ProgressRenderDialog* pThis = reinterpret_cast<ProgressRenderDialog*>(GetWindowLongPtr(hWnd, GWLP_USERDATA));
+            if (pThis)
+            {
+                std::wstring* pStatus = reinterpret_cast<std::wstring*>(lParam);
+                SetWindowText(pThis->m_hStatusText, pStatus->c_str());
+                delete pStatus;
+            }
+            return 0;
+        }
+        case WM_APP + 2:
+        {
+            ProgressRenderDialog* pThis = reinterpret_cast<ProgressRenderDialog*>(GetWindowLongPtr(hWnd, GWLP_USERDATA));
+            if (pThis)
+            {
+                std::wstring* pTitle = reinterpret_cast<std::wstring*>(lParam);
+                SetWindowText(hWnd, pTitle->c_str());
+                delete pTitle;
+            }
+            return 0;
+        }
+        case WM_CLOSE:
+            return 0; // Only the stop button ends this early
         default:
             return DefWindowProc(hWnd, msg, wParam, lParam);
     }

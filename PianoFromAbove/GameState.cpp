@@ -636,10 +636,13 @@ void MainScreen::InitState()
 GameState::GameError MainScreen::Init()
 {
     static const AudioSettings &cAudio = Config::GetConfig().GetAudioSettings();
-    if ( cAudio.iOutDevice >= 0 )
+    if ( cAudio.iOutDevice >= 0 && !m_bRenderJob )
         m_OutDevice.Open( cAudio.iOutDevice );
 
     m_OutDevice.SetVolume( 1.0 );
+
+    if ( m_bRenderJob )
+        StartRecording( m_sRecordFile );
     return Success;
 }
 
@@ -770,7 +773,9 @@ GameState::GameError MainScreen::MsgProc( HWND hWnd, UINT msg, WPARAM wParam, LP
                     return Success;
                 }
                 case ID_RECORD_STOP:
-                    StopRecording( true );
+                    if ( !m_bRecording ) return Success;
+                    StopRecording( false, L"Rendering was stopped." );
+                    DeleteFile( m_Recorder.GetLogFile().c_str() ); // It's an abort anyway
                     return Success;
                 case ID_PLAY_STOP:
                     JumpTo( GetMinTime() );
@@ -961,7 +966,7 @@ GameState::GameError MainScreen::Logic()
     const MIDI::MIDIInfo &mInfo = m_MIDI.GetInfo();
 
     // Detect changes in state
-    bool bPaused = cPlayback.GetPaused();
+    bool bPaused = !m_bRecording && cPlayback.GetPaused();
     double dSpeed = cPlayback.GetSpeed();
     double dNSpeed = cPlayback.GetNSpeed();
     bool bMute = cPlayback.GetMute();
@@ -1181,6 +1186,8 @@ void MainScreen::UpdateState( int iPos )
 
 void MainScreen::JumpTo( long long llStartTime, bool bUpdateGUI )
 {
+    if ( m_bRecording ) return;
+
     // Kill the music!
     m_OutDevice.AllNotesOff();
 
@@ -1532,8 +1539,9 @@ void MainScreen::StartRecording( const wstring &sFile )
     if ( m_bRecording ) return;
     if ( !m_MIDI.IsValid() )
     {
+        m_pRenderGuard.reset();
         wstring *psMessage = new wstring( L"There is no MIDI to record." );
-        if ( !PostMessage( g_hWnd, WM_RECORDDONE, MB_ICONERROR, reinterpret_cast< LPARAM >( psMessage ) ) )
+        if ( !PostMessage( GetRecordNotifyWindow(), WM_RECORDDONE, MB_ICONERROR, reinterpret_cast< LPARAM >( psMessage ) ) )
             delete psMessage;
         return;
     }
@@ -1541,7 +1549,6 @@ void MainScreen::StartRecording( const wstring &sFile )
     m_sRecordFile = sFile;
     m_llRecordFrames = 0;
     m_iRecordWidth = m_iRecordHeight = 0;
-    m_bRecording = true;
 
     // Live MIDI sound output can't be sped up or slowed down to follow the export, so keep it silent.
     m_OutDevice.AllNotesOff();
@@ -1550,6 +1557,18 @@ void MainScreen::StartRecording( const wstring &sFile )
     // Always start from the beginning
     JumpTo( GetMinTime() );
     cPlayback.SetPaused( false, true );
+    m_bRecording = true;
+
+    if (m_bRenderJob)
+    {
+        m_pRenderProgress.Create( g_hWnd );
+        m_pRenderProgress.SetFilename( PathFindFileName( m_sRecordFile.c_str() ) );
+    }
+}
+
+HWND MainScreen::GetRecordNotifyWindow() const
+{
+    return m_hWndRecordNotify ? m_hWndRecordNotify : g_hWnd;
 }
 
 void MainScreen::StopRecording( bool bKeepVideo, const wstring &sReason, UINT uIcon )
@@ -1586,21 +1605,18 @@ void MainScreen::StopRecording( bool bKeepVideo, const wstring &sReason, UINT uI
         m_OutDevice.Open( cAudio.iOutDevice );
     m_OutDevice.SetVolume( 1.0 );
 
+    // Revert preferences and clean up
+    m_pRenderGuard.reset();
+    m_pRenderProgress.Destroy();
+
     wstring *psMessage = new wstring( sMessage );
-    if ( !PostMessage( g_hWnd, WM_RECORDDONE, uIcon, reinterpret_cast< LPARAM >( psMessage ) ) )
+    if ( !PostMessage( GetRecordNotifyWindow(), WM_RECORDDONE, uIcon, reinterpret_cast< LPARAM >( psMessage ) ) )
         delete psMessage;
 }
 
 // Called from Render() after the frame is drawn but before it is presented
 void MainScreen::CaptureFrame()
 {
-    // Nothing new to record while paused
-    if ( m_bPaused )
-    {
-        Sleep( 10 );
-        return;
-    }
-
     int iWidth = 0, iHeight = 0;
     if ( FAILED( m_pRenderer->CaptureBackBuffer( m_vRecordPixels, iWidth, iHeight ) ) )
     {
@@ -1612,7 +1628,7 @@ void MainScreen::CaptureFrame()
     {
         // Started lazily so ffmpeg gets the true size of the frames rather than a possibly stale window size
         wstring sError;
-        if ( !m_Recorder.Start( m_sRecordFile, iWidth, iHeight, RecordFPS, sError ) )
+        if ( !m_Recorder.Start( m_sRecordFile, iWidth, iHeight, RecordFPS, m_sFFmpegPath, sError ) )
         {
             StopRecording( false, sError, MB_ICONERROR );
             return;
@@ -1622,7 +1638,7 @@ void MainScreen::CaptureFrame()
     }
     else if ( iWidth != m_iRecordWidth || iHeight != m_iRecordHeight )
     {
-        StopRecording( true, L"The window was resized, so recording stopped.", MB_ICONWARNING );
+        StopRecording( true, L"The window was resized, recording has been stopped.", MB_ICONWARNING );
         return;
     }
 
@@ -1633,12 +1649,13 @@ void MainScreen::CaptureFrame()
     }
     m_llRecordFrames++;
 
-    // Tell main window how far along this is, about once per second of video
+    // Tell progress window how far along this is in once per second
     if ( m_llRecordFrames % RecordFPS == 0 )
     {
         long long llSpan = GetMaxTime() - GetMinTime();
         int iPercent = ( llSpan > 0 ? static_cast< int >( ( m_llStartTime - GetMinTime() ) * 100 / llSpan ) : 0 );
-        PostMessage( g_hWnd, WM_RECORDPROGRESS, static_cast< WPARAM >( m_llRecordFrames / RecordFPS ), iPercent );
+        PostMessage( GetRecordNotifyWindow(), WM_RECORDPROGRESS, static_cast< WPARAM >( m_llRecordFrames / RecordFPS ), iPercent );
+        m_pRenderProgress.SetProgress( static_cast< int >( m_llRecordFrames / RecordFPS ), iPercent );
     }
 
     // The last frame of the song has just been captured
