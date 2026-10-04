@@ -1719,14 +1719,6 @@ BOOL PlayFile( const wstring &sFile, bool bCustomSettings, bool bLibraryEligible
     return TRUE;
 }
 
-// Render dialog state
-struct RenderSettingsState
-{
-    MainScreen* pGameState = NULL;
-    wstring sLoadedFile;
-    shared_ptr< PreferencesSnapshot > pSnapshot;
-};
-
 // Hands a loaded MIDI over to the game thread to be rendered to a video from start to finish.
 // On TRUE the game thread owns pGameState. On FALSE it never started and the caller still owns it.
 // hWndNotify gets WM_RECORDPROGRESS and WM_RECORDDONE, or the main window if NULL.
@@ -1758,7 +1750,7 @@ BOOL RenderVideo( MainScreen *pGameState, const wstring &sOutFile, const wstring
 }
 
 // Get edit box text
-static wstring GetPathText( HWND hWnd, int iId )
+wstring GetPathText( HWND hWnd, int iId )
 {
     HWND hWndEdit = GetDlgItem( hWnd, iId );
     int iLength = GetWindowTextLength( hWndEdit );
@@ -1772,10 +1764,10 @@ static wstring GetPathText( HWND hWnd, int iId )
 }
 
 // Picks a file into an edit box
-static bool BrowseForFile( HWND hWnd, int iEditId, LPCTSTR sFilter, LPCTSTR sTitle, bool bSave, LPCTSTR sDefExt )
+bool BrowseForFile( HWND hWnd, int iEditId, LPCTSTR sFilter, LPCTSTR sTitle, bool bSave, LPCTSTR sDefExt )
 {
     TCHAR sFilename[1024] = { 0 };
-    lstrcpyn( sFilename, GetPathText( hWnd, iEditId ).c_str(), sizeof( sFilename ) / sizeof( TCHAR ) );
+    ( void )lstrcpyn( sFilename, GetPathText( hWnd, iEditId ).c_str(), sizeof( sFilename ) / sizeof( TCHAR ) );
 
     OPENFILENAME ofn = { 0 };
     ofn.lStructSize = sizeof( OPENFILENAME );
@@ -1793,7 +1785,7 @@ static bool BrowseForFile( HWND hWnd, int iEditId, LPCTSTR sFilter, LPCTSTR sTit
 }
 
 // Load the MIDI in a bit different way than PlayFile
-static bool LoadMIDIForRender( HWND hWnd, RenderSettingsState &state, const wstring &sFile )
+bool LoadMIDIForRender( HWND hWnd, RenderSettingsState &state, const wstring &sFile )
 {
     const VisualSettings &cVisual = Config::GetConfig().GetVisualSettings();
 
@@ -1819,7 +1811,7 @@ static bool LoadMIDIForRender( HWND hWnd, RenderSettingsState &state, const wstr
     return true;
 }
 
-static bool EnsureMIDILoad( HWND hWnd, RenderSettingsState &state )
+bool EnsureMIDILoad( HWND hWnd, RenderSettingsState &state )
 {
     wstring sFile = GetPathText( hWnd, IDC_RENDER_MIDI );
     if ( sFile.empty() )
@@ -1834,7 +1826,7 @@ static bool EnsureMIDILoad( HWND hWnd, RenderSettingsState &state )
 }
 
 // Prepare the render settings
-static bool StartRender( HWND hWnd, RenderSettingsState &state )
+bool StartRender( HWND hWnd, RenderSettingsState &state )
 {
     if ( !EnsureMIDILoad( hWnd, state ) ) return false;
 

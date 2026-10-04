@@ -1647,7 +1647,10 @@ void MainScreen::CaptureFrame()
         StopRecording( false, L"The ffmpeg stopped unexpectedly. Log file was saved to:\n" + m_Recorder.GetLogFile(), MB_ICONERROR );
         return;
     }
+
     m_llRecordFrames++;
+    if ( m_bRenderJob )
+        m_pRenderProgress.ProcessMessages();
 
     // Tell progress window how far along this is in once per second
     if ( m_llRecordFrames % RecordFPS == 0 )

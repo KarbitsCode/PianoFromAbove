@@ -16,6 +16,13 @@
 using namespace std;
 
 class MainScreen;
+class PreferencesSnapshot;
+struct RenderSettingsState
+{
+    MainScreen *pGameState = NULL;
+    wstring sLoadedFile;
+    shared_ptr< PreferencesSnapshot > pSnapshot;
+};
 
 // Message handlers for the main windows
 LRESULT WINAPI WndProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam );
@@ -61,8 +68,14 @@ VOID SetPlayable( BOOL bPlayable );
 VOID SetPlayMode( INT ePlayMode );
 VOID SetPlayPauseStop( BOOL bPlay, BOOL bPause, BOOL bStop );
 BOOL PlayFile( const wstring &sFile, bool bCustomSettings = false, bool bLibraryEligible = false );
-BOOL RenderVideo( MainScreen *pGameState, const wstring &sOutFile, const wstring &sFFmpegPath, HWND hWndNotify = NULL, shared_ptr< void > pRenderGuard = nullptr );
 
+BOOL RenderVideo( MainScreen *pGameState, const wstring &sOutFile, const wstring &sFFmpegPath, HWND hWndNotify = NULL, shared_ptr< void > pRenderGuard = nullptr );
+wstring GetPathText( HWND hWnd, int iId );
+bool BrowseForFile( HWND hWnd, int iEditId, LPCTSTR sFilter, LPCTSTR sTitle, bool bSave, LPCTSTR sDefExt );
+bool LoadMIDIForRender( HWND hWnd, RenderSettingsState &state, const wstring &sFile );
+bool EnsureMIDILoad( HWND hWnd, RenderSettingsState &state );
+bool StartRender( HWND hWnd, RenderSettingsState &state );
 VOID ShowRenderDialog( HWND hWndOwner );
 INT_PTR WINAPI RenderSettingsProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam );
+
 VOID CheckActivity( BOOL bIsActive, POINT *ptNew = NULL, BOOL bToggleEnable = false );

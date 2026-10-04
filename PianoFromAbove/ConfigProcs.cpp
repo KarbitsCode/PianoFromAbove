@@ -89,11 +89,10 @@ INT_PTR WINAPI VisualProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
             FillKeysDropdown( hWnd, cVisual.eAccidentals );
             SetVisualProc( hWnd, cVisual );
 
-            // The palette is only applied to tracks when a MIDI loads, which has already happened in render mode
-            const PROPSHEETPAGE *pVisualPage = reinterpret_cast< const PROPSHEETPAGE* >( lParam );
-            if ( pVisualPage && ( pVisualPage->lParam & PPF_RENDER ) )
-                for ( int i = IDC_COLOR1; i <= IDC_COLOR16; i++ )
-                    EnableWindow( GetDlgItem( hWnd, i ), FALSE );
+            // For color command later
+            const PROPSHEETPAGE* pPage = reinterpret_cast<const PROPSHEETPAGE*>(lParam);
+            SetWindowLongPtr(hWnd, DWLP_USER, (LONG_PTR)pPage);
+
             return TRUE;
         }
         // Draws the colored buttons
@@ -141,7 +140,18 @@ INT_PTR WINAPI VisualProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
                     cc.lpCustColors = (LPDWORD) acrCustClr;
                     cc.rgbResult = (COLORREF)GetWindowLongPtr( hWndBtn, GWLP_USERDATA );
                     cc.Flags = CC_FULLOPEN | CC_RGBINIT;
-                    if ( !ChooseColor( &cc ) ) return TRUE;
+
+                    const PROPSHEETPAGE *pVisualPage = reinterpret_cast< const PROPSHEETPAGE* >( GetWindowLongPtr( hWnd, DWLP_USER ) );
+                    if ( pVisualPage && ( pVisualPage->lParam & PPF_RENDER ) && iId != IDC_BKGCOLOR )
+                    {
+                        MessageBox( hWnd, TEXT( "Track colors should be set in MIDI Custom Settings instead." ), TEXT( "Render to Video" ), MB_OK | MB_ICONEXCLAMATION );
+                        return TRUE;
+                    }
+                    else
+                    {
+                        if ( !ChooseColor( &cc ) )
+                            return TRUE;
+                    }
 
                     // Draw the button (indirect)
                     SetWindowLongPtr( hWndBtn, GWLP_USERDATA, cc.rgbResult );
@@ -370,11 +380,12 @@ INT_PTR WINAPI VideoProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
             // Store initial selection for later comparison
             SetWindowLongPtr( hWndGPUAdapter, GWLP_USERDATA, ( LPARAM )SendMessage( hWndGPUAdapter, CB_GETCURSEL, 0, 0 ) );
 
-            // Neither makes sense render mode
+            // Neither makes sense in render mode
             if ( GetWindowLongPtr( hWnd, DWLP_USER ) & PPF_RENDER )
             {
                 EnableWindow( hWndGPUAdapter, FALSE );
                 EnableWindow( GetDlgItem( hWnd, IDC_USENEWALGO ), FALSE );
+                EnableWindow( GetDlgItem( hWnd, IDC_LIMITFPS ), FALSE );
             }
 
             return TRUE;

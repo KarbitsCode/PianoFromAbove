@@ -209,8 +209,9 @@ BEGIN
     EDITTEXT        IDC_RENDER_FFMPEG,7,86,244,14,ES_AUTOHSCROLL
     LTEXT           "FFmpeg path (optional):",IDC_STATIC,7,77,80,8
     PUSHBUTTON      "Browse...",IDC_BROWSE_FFMPEG,253,86,50,14
-    PUSHBUTTON      "Visual Preferences...",IDC_VISUAL_SETTINGS,7,126,93,14
     PUSHBUTTON      "MIDI Custom Settings...",IDC_MIDI_SETTINGS,7,110,93,14
+    PUSHBUTTON      "Visual Preferences...",IDC_VISUAL_SETTINGS,7,126,93,14
+    LTEXT           "Note: The rendered video will not include any audio.",IDC_STATIC,7,149,174,10
     DEFPUSHBUTTON   "OK",IDOK,199,145,50,14
     PUSHBUTTON      "Cancel",IDCANCEL,253,145,50,14
 END

@@ -709,7 +709,8 @@ void ProgressRenderDialog::SetProgress(int iSeconds, int iPercent)
 
     PostMessage(m_hProgressBar, PBM_SETPOS, iPercent, 0);
 
-    std::wstring* pStatus = new std::wstring(L"Rendering: " + std::to_wstring((iSeconds - 3) / 60) + L":" + ((iSeconds - 3) % 60 < 10 ? L"0" : L"") + std::to_wstring((iSeconds - 3) % 60) + L" (" + std::to_wstring(iPercent) + L"%)");
+    int iSecondsDisplay = iSeconds - 3;
+    std::wstring* pStatus = new std::wstring(L"Recording: " + std::to_wstring(iSecondsDisplay / 60) + L":" + (iSecondsDisplay % 60 < 10 ? L"0" : L"") + std::to_wstring(iSecondsDisplay % 60) + L" (" + std::to_wstring(iPercent) + L"%)");
     if (!PostMessage(m_hWnd, WM_APP + 1, 0, reinterpret_cast<LPARAM>(pStatus)))
         delete pStatus;
 
