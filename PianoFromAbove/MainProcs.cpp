@@ -1766,6 +1766,14 @@ wstring GetPathText( HWND hWnd, int iId )
 // Picks a file into an edit box
 bool BrowseForFile( HWND hWnd, int iEditId, LPCTSTR sFilter, LPCTSTR sTitle, bool bSave, LPCTSTR sDefExt )
 {
+    // Each Browse window now remembers the folder of its own last pick
+    const LPCTSTR sKey = TEXT( "Software\\Piano From Above\\BrowseDirs" );
+    wstring sValue = to_wstring( iEditId );
+    TCHAR sDir[MAX_PATH] = { 0 };
+    DWORD cbDir = sizeof( sDir );
+    if ( RegGetValue( HKEY_CURRENT_USER, sKey, sValue.c_str(), RRF_RT_REG_SZ, NULL, sDir, &cbDir ) != ERROR_SUCCESS )
+        sDir[0] = L'\0';
+
     TCHAR sFilename[1024] = { 0 };
     ( void )lstrcpyn( sFilename, GetPathText( hWnd, iEditId ).c_str(), sizeof( sFilename ) / sizeof( TCHAR ) );
 
@@ -1775,12 +1783,15 @@ bool BrowseForFile( HWND hWnd, int iEditId, LPCTSTR sFilter, LPCTSTR sTitle, boo
     ofn.lpstrFilter = sFilter;
     ofn.lpstrFile = sFilename;
     ofn.nMaxFile = sizeof( sFilename ) / sizeof( TCHAR );
+	ofn.lpstrInitialDir = sDir[0] ? sDir : NULL; // The saved path will be ignored if the edit box already has a path in it
     ofn.lpstrTitle = sTitle;
     ofn.lpstrDefExt = sDefExt;
     ofn.Flags = OFN_EXPLORER | OFN_HIDEREADONLY | OFN_PATHMUSTEXIST | ( bSave ? OFN_OVERWRITEPROMPT : OFN_FILEMUSTEXIST );
     if ( !( bSave ? GetSaveFileName( &ofn ) : GetOpenFileName( &ofn ) ) ) return false;
 
     SetDlgItemText( hWnd, iEditId, sFilename );
+    wstring sPicked( sFilename, ofn.nFileOffset );
+    RegSetKeyValue( HKEY_CURRENT_USER, sKey, sValue.c_str(), REG_SZ, sPicked.c_str(), ( DWORD )( ( sPicked.size() + 1 ) * sizeof( TCHAR ) ) );
     return true;
 }
 
