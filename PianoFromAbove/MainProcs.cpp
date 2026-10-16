@@ -1827,7 +1827,7 @@ bool EnsureMIDILoad( HWND hWnd, RenderSettingsState &state )
     wstring sFile = GetPathText( hWnd, IDC_RENDER_MIDI );
     if ( sFile.empty() )
     {
-        MessageBox( hWnd, TEXT( "Choose a MIDI to render." ), TEXT( "Render to Video" ), MB_OK | MB_ICONINFORMATION );
+        MessageBox( hWnd, TEXT( "Choose a MIDI file first." ), TEXT( "Render to Video" ), MB_OK | MB_ICONINFORMATION );
         SetFocus( GetDlgItem( hWnd, IDC_RENDER_MIDI ) );
         return false;
     }
@@ -1845,7 +1845,7 @@ bool StartRender( HWND hWnd, RenderSettingsState &state )
     wstring sDest = GetPathText( hWnd, IDC_RENDER_DEST );
     if ( sDest.empty() )
     {
-        MessageBox( hWnd, TEXT( "Choose where to save the video." ), TEXT( "Render to Video" ), MB_OK | MB_ICONINFORMATION );
+        MessageBox( hWnd, TEXT( "Choose where to save the video first." ), TEXT( "Render to Video" ), MB_OK | MB_ICONINFORMATION );
         SetFocus( GetDlgItem( hWnd, IDC_RENDER_DEST ) );
         return false;
     }
