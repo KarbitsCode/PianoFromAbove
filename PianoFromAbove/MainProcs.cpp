@@ -263,7 +263,7 @@ LRESULT WINAPI WndProc( HWND hWnd, UINT msg, WPARAM wParam, LPARAM lParam )
         }
         case WM_RECORDDONE:
         {
-            // From the game thread when a render is over
+            // From the game thread when the render is stopped
             wstring *psMessage = reinterpret_cast< wstring* >( lParam );
             if ( psMessage )
             {
@@ -1845,7 +1845,7 @@ bool StartRender( HWND hWnd, RenderSettingsState &state )
     wstring sDest = GetPathText( hWnd, IDC_RENDER_DEST );
     if ( sDest.empty() )
     {
-        MessageBox( hWnd, TEXT( "Choose where to save the video first." ), TEXT( "Render to Video" ), MB_OK | MB_ICONINFORMATION );
+        MessageBox( hWnd, TEXT( "Choose video destination path first." ), TEXT( "Render to Video" ), MB_OK | MB_ICONINFORMATION );
         SetFocus( GetDlgItem( hWnd, IDC_RENDER_DEST ) );
         return false;
     }
@@ -1864,7 +1864,7 @@ bool StartRender( HWND hWnd, RenderSettingsState &state )
         DWORD dwAttrib = GetFileAttributes( sDest.substr( 0, iSlash ).c_str() );
         if ( dwAttrib == INVALID_FILE_ATTRIBUTES || !( dwAttrib & FILE_ATTRIBUTE_DIRECTORY ) )
         {
-            MessageBox( hWnd, TEXT( "The folder for the video doesn't exist." ), TEXT( "Render to Video" ), MB_OK | MB_ICONEXCLAMATION );
+            MessageBox( hWnd, TEXT( "The folder for the video does not exist." ), TEXT( "Render to Video" ), MB_OK | MB_ICONEXCLAMATION );
             SetFocus( GetDlgItem( hWnd, IDC_RENDER_DEST ) );
             return false;
         }

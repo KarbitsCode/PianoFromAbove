@@ -1499,7 +1499,7 @@ GameState::GameError MainScreen::Render()
     if ( FAILED( m_pRenderer->ResetDeviceIfNeeded() ) )
     {
         // Lost the device (locked screen, etc.). Keep whatever was recorded so far.
-        StopRecording( true, L"The graphics device was lost, so recording stopped.", MB_ICONWARNING );
+        StopRecording( true, L"The graphics device was lost, recording stopped.", MB_ICONWARNING );
         return DirectXError;
     }
 
@@ -1589,7 +1589,7 @@ void MainScreen::StopRecording( bool bKeepVideo, const wstring &sReason, UINT uI
         }
         else
         {
-            sMessage = L"ffmpeg reported an error while finishing the video. Its log was saved to:\n" + m_Recorder.GetLogFile();
+            sMessage = L"ffmpeg reported an error while finishing the video. The log was saved to:\n" + m_Recorder.GetLogFile();
             uIcon = MB_ICONERROR;
         }
     }
@@ -1620,7 +1620,7 @@ void MainScreen::CaptureFrame()
     int iWidth = 0, iHeight = 0;
     if ( FAILED( m_pRenderer->CaptureBackBuffer( m_vRecordPixels, iWidth, iHeight ) ) )
     {
-        StopRecording( true, L"Could not read a frame back from the graphics device, so recording stopped.", MB_ICONERROR );
+        StopRecording( true, L"Could not read a frame back from the graphics device, recording stopped.", MB_ICONERROR );
         return;
     }
 
@@ -1638,7 +1638,7 @@ void MainScreen::CaptureFrame()
     }
     else if ( iWidth != m_iRecordWidth || iHeight != m_iRecordHeight )
     {
-        StopRecording( true, L"The window was resized, recording has been stopped.", MB_ICONWARNING );
+        StopRecording( true, L"The window was resized, recording stopped.", MB_ICONWARNING );
         return;
     }
 
