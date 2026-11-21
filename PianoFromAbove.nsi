@@ -27,6 +27,7 @@ InstallDir "$LOCALAPPDATA\${ProgramName}"
 InstallDirRegKey HKCU "Software\${ProgramName}" ""
 
 Function .onInit
+    System::Call 'user32::SetProcessDPIAware() i.r0'
     ${If} ${RunningX64}
         StrCpy $TargetFile "KPFA-${Version}-x86_64.exe"
     ${Else}
